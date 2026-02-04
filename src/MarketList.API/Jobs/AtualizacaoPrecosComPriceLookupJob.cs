@@ -19,8 +19,8 @@ public class AtualizacaoPrecosComPriceLookupJob
     private readonly ILogger<AtualizacaoPrecosComPriceLookupJob> _logger;
 
     // Coordenadas padrão - Salvador/BA (podem vir de configuração ou do usuário)
-    private const double DefaultLatitude = -12.9912;    
-    private const double DefaultLongitude = -38.49;
+    private const double DefaultLatitude = -12.5797;
+    private const double DefaultLongitude = -41.7007;
 
     public AtualizacaoPrecosComPriceLookupJob(
         AppDbContext context,

@@ -29,8 +29,8 @@ public class TestePrecosController : ControllerBase
 
         var resultado = await _priceLookupService.GetLatestPriceAsync(
             productNameOrGtin: produto,
-            latitude: -12.9714,  // Salvador/BA
-            longitude: -38.5014,
+            latitude: -12.5797,  // Centro da Bahia/BA
+            longitude: -41.7007,
             hours: 24
         );
 
@@ -71,8 +71,8 @@ public class TestePrecosController : ControllerBase
         {
             var resultado = await _priceLookupService.GetLatestPriceAsync(
                 productNameOrGtin: produto,
-                latitude: -12.9714,
-                longitude: -38.5014,
+                latitude: -12.5797,
+                longitude: -41.7007,
                 hours: 24
             );
 

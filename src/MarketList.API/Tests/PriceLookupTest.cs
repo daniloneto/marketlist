@@ -34,11 +34,11 @@ public class PriceLookupTest
         foreach (var produto in produtos)
         {
             Console.WriteLine($"\n=== Testando: {produto} ===");
-            
+                        
             var resultado = await service.GetLatestPriceAsync(
                 productNameOrGtin: produto,
-                latitude: -12.9714,  // Salvador/BA
-                longitude: -38.5014,
+                latitude: -12.5797,  // Centro da Bahia/BA
+                longitude: -41.7007,
                 hours: 24
             );
             
