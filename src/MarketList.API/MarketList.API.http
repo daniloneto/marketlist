@@ -1,0 +1,6 @@
+@MarketList.API_HostAddress = http://localhost:5299
+
+GET {{MarketList.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

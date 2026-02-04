@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MarketList.API/MarketList.API.csproj" />
+    <Project Path="src/MarketList.Application/MarketList.Application.csproj" />
+    <Project Path="src/MarketList.Domain/MarketList.Domain.csproj" />
+    <Project Path="src/MarketList.Infrastructure/MarketList.Infrastructure.csproj" />
+  </Folder>
+</Solution>
