@@ -18,6 +18,13 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
     private readonly ILogger<PrecoDaHoraPriceLookupService> _logger;
     private const string BaseUrl = "https://precodahora.ba.gov.br";
     private const string ProductsEndpoint = "/produtos/";
+    
+    // Cache de sessão (reutilizar por um tempo para evitar rate limiting)
+    private static string? _cachedCsrfToken;
+    private static string? _cachedCookies;
+    private static DateTime _sessionCacheExpiry = DateTime.MinValue;
+    private static readonly SemaphoreSlim _sessionLock = new(1, 1);
+    private const int SessionCacheMinutes = 10;
 
     public PrecoDaHoraPriceLookupService(
         HttpClient httpClient,
@@ -26,11 +33,25 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
         _httpClient = httpClient;
         _logger = logger;
 
-        // Configurar HttpClient
+        // Configurar HttpClient com headers realistas de navegador
         _httpClient.BaseAddress = new Uri(BaseUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(30);
+        
+        // Headers que simulam um navegador real
         _httpClient.DefaultRequestHeaders.Add("User-Agent", 
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
+        _httpClient.DefaultRequestHeaders.Add("Accept", 
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8");
+        _httpClient.DefaultRequestHeaders.Add("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7");
+        _httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
+        _httpClient.DefaultRequestHeaders.Add("Connection", "keep-alive");
+        _httpClient.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "document");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "navigate");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Fetch-Site", "none");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Ch-Ua", "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Ch-Ua-Mobile", "?0");
+        _httpClient.DefaultRequestHeaders.Add("Sec-Ch-Ua-Platform", "\"Windows\"");
     }
 
     public async Task<PriceLookupResult> GetLatestPriceAsync(
@@ -45,14 +66,17 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
                 "Iniciando busca de preços para '{Product}' em lat={Lat}, lon={Lon}",
                 productNameOrGtin, latitude, longitude);
 
-            // Passo 1: Obter sessão e CSRF token
-            var (csrfToken, cookies) = await ObterSessaoECsrfTokenAsync();
+            // Passo 1: Obter sessão e CSRF token (com cache)
+            var (csrfToken, cookies) = await ObterSessaoECsrfTokenComCacheAsync();
             
             if (string.IsNullOrEmpty(csrfToken))
             {
                 _logger.LogWarning("Não foi possível obter o CSRF token");
                 return new PriceLookupResult { Found = false };
             }
+
+            // Delay adicional entre requisições para evitar rate limiting
+            await Task.Delay(1000);
 
             // Passo 2: Consultar preços
             var htmlResponse = await ConsultarPrecosAsync(
@@ -96,13 +120,55 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
     }
 
     /// <summary>
+    /// Obtém a sessão e CSRF token com cache para evitar rate limiting
+    /// </summary>
+    private async Task<(string? CsrfToken, string? Cookies)> ObterSessaoECsrfTokenComCacheAsync()
+    {
+        await _sessionLock.WaitAsync();
+        try
+        {
+            // Verificar se o cache ainda é válido
+            if (!string.IsNullOrEmpty(_cachedCsrfToken) && 
+                !string.IsNullOrEmpty(_cachedCookies) && 
+                DateTime.UtcNow < _sessionCacheExpiry)
+            {
+                _logger.LogDebug("Usando sessão em cache");
+                return (_cachedCsrfToken, _cachedCookies);
+            }
+
+            // Cache expirado ou inexistente, obter nova sessão
+            _logger.LogInformation("Obtendo nova sessão do servidor");
+            var (token, cookies) = await ObterSessaoECsrfTokenAsync();
+            
+            if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(cookies))
+            {
+                _cachedCsrfToken = token;
+                _cachedCookies = cookies;
+                _sessionCacheExpiry = DateTime.UtcNow.AddMinutes(SessionCacheMinutes);
+                _logger.LogInformation("Sessão cacheada por {Minutes} minutos", SessionCacheMinutes);
+            }
+            
+            return (token, cookies);
+        }
+        finally
+        {
+            _sessionLock.Release();
+        }
+    }
+
+    /// <summary>
     /// Obtém a sessão e o CSRF token fazendo GET na página de produtos
     /// </summary>
     private async Task<(string? CsrfToken, string? Cookies)> ObterSessaoECsrfTokenAsync()
     {
         try
         {
-            var response = await _httpClient.GetAsync(ProductsEndpoint);
+            // Criar requisição com headers específicos para GET
+            var request = new HttpRequestMessage(HttpMethod.Get, ProductsEndpoint);
+            request.Headers.Add("Referer", BaseUrl + "/");
+            request.Headers.Add("Cache-Control", "max-age=0");
+            
+            var response = await _httpClient.SendAsync(request);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -115,6 +181,11 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
 
             // Parsear HTML para extrair CSRF token
             var html = await response.Content.ReadAsStringAsync();
+            
+            // Log do HTML para debug (apenas primeiros 2000 caracteres)
+            _logger.LogDebug("HTML recebido (primeiros 2000 chars): {Html}", 
+                html.Length > 2000 ? html.Substring(0, 2000) : html);
+            
             var csrfToken = ExtrairCsrfToken(html);
 
             return (csrfToken, cookies);
@@ -155,11 +226,59 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
+            // Tentar múltiplos seletores para encontrar o CSRF token
             var validateElement = doc.GetElementbyId("validate");
             if (validateElement != null)
             {
                 var csrfToken = validateElement.GetAttributeValue("data-id", string.Empty);
-                return !string.IsNullOrEmpty(csrfToken) ? csrfToken : null;
+                if (!string.IsNullOrEmpty(csrfToken))
+                {
+                    _logger.LogInformation("CSRF token encontrado via #validate: {Token}", csrfToken.Substring(0, Math.Min(10, csrfToken.Length)) + "...");
+                    return csrfToken;
+                }
+            }
+
+            // Tentar encontrar no meta tag
+            var metaCsrf = doc.DocumentNode.SelectSingleNode("//meta[@name='csrf-token']");
+            if (metaCsrf != null)
+            {
+                var csrfToken = metaCsrf.GetAttributeValue("content", string.Empty);
+                if (!string.IsNullOrEmpty(csrfToken))
+                {
+                    _logger.LogInformation("CSRF token encontrado via meta tag: {Token}", csrfToken.Substring(0, Math.Min(10, csrfToken.Length)) + "...");
+                    return csrfToken;
+                }
+            }
+
+            // Tentar encontrar em input hidden
+            var inputCsrf = doc.DocumentNode.SelectSingleNode("//input[@name='csrfmiddlewaretoken']");
+            if (inputCsrf != null)
+            {
+                var csrfToken = inputCsrf.GetAttributeValue("value", string.Empty);
+                if (!string.IsNullOrEmpty(csrfToken))
+                {
+                    _logger.LogInformation("CSRF token encontrado via input: {Token}", csrfToken.Substring(0, Math.Min(10, csrfToken.Length)) + "...");
+                    return csrfToken;
+                }
+            }
+
+            // Buscar em qualquer elemento com data-id
+            var elementsWithDataId = doc.DocumentNode.SelectNodes("//*[@data-id]");
+            if (elementsWithDataId != null && elementsWithDataId.Any())
+            {
+                _logger.LogInformation("Encontrados {Count} elementos com data-id", elementsWithDataId.Count);
+                foreach (var elem in elementsWithDataId)
+                {
+                    var dataId = elem.GetAttributeValue("data-id", string.Empty);
+                    if (!string.IsNullOrEmpty(dataId) && dataId.Length > 20)
+                    {
+                        _logger.LogInformation("Possível CSRF em elemento {Tag} id={Id}: {Token}", 
+                            elem.Name, 
+                            elem.GetAttributeValue("id", "sem-id"),
+                            dataId.Substring(0, Math.Min(10, dataId.Length)) + "...");
+                        return dataId;
+                    }
+                }
             }
 
             _logger.LogWarning("Elemento #validate não encontrado no HTML");
@@ -211,13 +330,29 @@ public class PrecoDaHoraPriceLookupService : IPriceLookupService
 
             var content = new FormUrlEncodedContent(parameters);
 
-            // Criar requisição com headers apropriados
+            // Criar requisição com headers apropriados que simulam navegador
             var request = new HttpRequestMessage(HttpMethod.Post, ProductsEndpoint)
             {
                 Content = content
             };
 
+            // Headers essenciais para POST
             request.Headers.Add("X-CSRFToken", csrfToken);
+            request.Headers.Add("Origin", BaseUrl);
+            request.Headers.Add("Referer", BaseUrl + ProductsEndpoint);
+            request.Headers.Add("X-Requested-With", "XMLHttpRequest");
+            
+            // Sobrescrever Accept para AJAX
+            request.Headers.Remove("Accept");
+            request.Headers.Add("Accept", "text/html, */*; q=0.01");
+            
+            // Modificar Sec-Fetch para AJAX
+            request.Headers.Remove("Sec-Fetch-Dest");
+            request.Headers.Remove("Sec-Fetch-Mode");
+            request.Headers.Remove("Sec-Fetch-Site");
+            request.Headers.Add("Sec-Fetch-Dest", "empty");
+            request.Headers.Add("Sec-Fetch-Mode", "cors");
+            request.Headers.Add("Sec-Fetch-Site", "same-origin");
             
             if (!string.IsNullOrEmpty(cookies))
             {

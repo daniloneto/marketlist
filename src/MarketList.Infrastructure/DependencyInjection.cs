@@ -37,7 +37,10 @@ public static class DependencyInjection
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
         services.AddScoped<IProcessamentoListaService, ProcessamentoListaService>();
 
-        // Price Lookup Service (Adapter para Preço da Hora)
+        // External Services (Mock)
+        services.AddScoped<IPrecoExternoApi, PrecoExternoApiMock>();
+
+        // Price Lookup Service (Desabilitado - serviço com proteção anti-bot)
         services.AddHttpClient<PrecoDaHoraPriceLookupService>(client =>
         {
             client.BaseAddress = new Uri("https://precodahora.ba.gov.br");

@@ -14,24 +14,20 @@ namespace MarketList.API.Jobs;
 public class AtualizacaoPrecosJob
 {
     private readonly AppDbContext _context;
-    private readonly IPriceLookupService _priceLookupService;
+    private readonly IPrecoExternoApi _precoExternoApi;
     private readonly IRepository<HistoricoPreco> _historicoRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AtualizacaoPrecosJob> _logger;
 
-    // Coordenadas padrão - Salvador/BA (podem vir de configuração)
-    private const double DefaultLatitude = -12.9714;
-    private const double DefaultLongitude = -38.5014;
-
     public AtualizacaoPrecosJob(
         AppDbContext context,
-        IPriceLookupService priceLookupService,
+        IPrecoExternoApi precoExternoApi,
         IRepository<HistoricoPreco> historicoRepository,
         IUnitOfWork unitOfWork,
         ILogger<AtualizacaoPrecosJob> logger)
     {
         _context = context;
-        _priceLookupService = priceLookupService;
+        _precoExternoApi = precoExternoApi;
         _historicoRepository = historicoRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -52,32 +48,26 @@ public class AtualizacaoPrecosJob
         {
             try
             {
-                var resultado = await _priceLookupService.GetLatestPriceAsync(
-                    productNameOrGtin: produto.Nome,
-                    latitude: DefaultLatitude,
-                    longitude: DefaultLongitude,
-                    hours: 24
-                );
+                var precoExterno = await _precoExternoApi.ConsultarPrecoAsync(produto.Nome, cancellationToken);
                 
-                if (resultado.Found && resultado.Price.HasValue)
+                if (precoExterno != null && precoExterno.Sucesso && precoExterno.Preco.HasValue)
                 {
                     // Criar novo registro de histórico
                     var historico = new HistoricoPreco
                     {
                         Id = Guid.NewGuid(),
                         ProdutoId = produto.Id,
-                        PrecoUnitario = resultado.Price.Value,
-                        DataConsulta = resultado.Date ?? DateTime.UtcNow,
-                        FontePreco = $"Preço da Hora - {resultado.StoreName ?? "N/A"}",
+                        PrecoUnitario = precoExterno.Preco.Value,
+                        DataConsulta = DateTime.UtcNow,
+                        FontePreco = precoExterno.Fonte,
                         CreatedAt = DateTime.UtcNow
                     };
 
                     await _historicoRepository.AddAsync(historico, cancellationToken);
                     atualizados++;
 
-                    _logger.LogDebug(
-                        "Preço atualizado para {Produto}: R$ {Preco:N2} em {Loja}", 
-                        produto.Nome, resultado.Price.Value, resultado.StoreName ?? "N/A");
+                    _logger.LogDebug("Preço atualizado para {Produto}: R$ {Preco:N2}", 
+                        produto.Nome, precoExterno.Preco.Value);
                 }
             }
             catch (Exception ex)
@@ -85,9 +75,6 @@ public class AtualizacaoPrecosJob
                 _logger.LogWarning(ex, "Erro ao atualizar preço do produto {Produto}", produto.Nome);
                 erros++;
             }
-
-            // Pequeno delay para não sobrecarregar o serviço externo
-            await Task.Delay(500, cancellationToken);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

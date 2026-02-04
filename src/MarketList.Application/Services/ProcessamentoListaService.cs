@@ -15,13 +15,9 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private readonly IRepository<HistoricoPreco> _historicoPrecoRepository;
     private readonly IRepository<ItemListaDeCompras> _itemRepository;
     private readonly IAnalisadorTextoService _analisadorTexto;
-    private readonly IPriceLookupService _priceLookupService;
+    private readonly IPrecoExternoApi _precoExternoApi;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProcessamentoListaService> _logger;
-
-    // Coordenadas padrão - Salvador/BA (podem vir de configuração)
-    private const double DefaultLatitude = -12.9714;
-    private const double DefaultLongitude = -38.5014;
 
     public ProcessamentoListaService(
         IRepository<ListaDeCompras> listaRepository,
@@ -30,7 +26,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
         IRepository<HistoricoPreco> historicoPrecoRepository,
         IRepository<ItemListaDeCompras> itemRepository,
         IAnalisadorTextoService analisadorTexto,
-        IPriceLookupService priceLookupService,
+        IPrecoExternoApi precoExternoApi,
         IUnitOfWork unitOfWork,
         ILogger<ProcessamentoListaService> logger)
     {
@@ -40,7 +36,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _historicoPrecoRepository = historicoPrecoRepository;
         _itemRepository = itemRepository;
         _analisadorTexto = analisadorTexto;
-        _priceLookupService = priceLookupService;
+        _precoExternoApi = precoExternoApi;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -103,39 +99,27 @@ public class ProcessamentoListaService : IProcessamentoListaService
         // 3. Verificar/criar produto
         var produto = await ObterOuCriarProdutoAsync(itemAnalisado, categoria, cancellationToken);
 
-        // 4. Consultar preço externo usando o novo PriceLookupService
+        // 4. Consultar preço externo
         decimal? precoUnitario = null;
         try
         {
-            var resultado = await _priceLookupService.GetLatestPriceAsync(
-                productNameOrGtin: produto.Nome,
-                latitude: DefaultLatitude,
-                longitude: DefaultLongitude,
-                hours: 24
-            );
-
-            if (resultado.Found && resultado.Price.HasValue)
+            var precoExterno = await _precoExternoApi.ConsultarPrecoAsync(produto.Nome, cancellationToken);
+            if (precoExterno.Sucesso && precoExterno.Preco.HasValue)
             {
                 // Registrar no histórico de preços
                 var historicoPreco = new HistoricoPreco
                 {
                     Id = Guid.NewGuid(),
                     ProdutoId = produto.Id,
-                    PrecoUnitario = resultado.Price.Value,
-                    DataConsulta = resultado.Date ?? DateTime.UtcNow,
-                    FontePreco = $"Preço da Hora - {resultado.StoreName ?? "N/A"}",
+                    PrecoUnitario = precoExterno.Preco.Value,
+                    DataConsulta = DateTime.UtcNow,
+                    FontePreco = precoExterno.Fonte,
                     CreatedAt = DateTime.UtcNow
                 };
                 await _historicoPrecoRepository.AddAsync(historicoPreco, cancellationToken);
-                precoUnitario = resultado.Price;
+                precoUnitario = precoExterno.Preco;
 
-                _logger.LogInformation(
-                    "Preço registrado para {Produto}: R$ {Preco:N2} em {Loja}",
-                    produto.Nome, resultado.Price, resultado.StoreName ?? "N/A");
-            }
-            else
-            {
-                _logger.LogInformation("Preço não encontrado para {Produto}", produto.Nome);
+                _logger.LogInformation("Preço registrado para {Produto}: {Preco}", produto.Nome, precoExterno.Preco);
             }
         }
         catch (Exception ex)
