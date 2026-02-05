@@ -22,11 +22,13 @@ public class ProdutoConfiguration : IEntityTypeConfiguration<Produto>
 
         builder.Property(p => p.Descricao)
             .HasColumnName("descricao")
-            .HasMaxLength(500);
-
-        builder.Property(p => p.Unidade)
+            .HasMaxLength(500);        builder.Property(p => p.Unidade)
             .HasColumnName("unidade")
             .HasMaxLength(20);
+
+        builder.Property(p => p.CodigoLoja)
+            .HasColumnName("codigo_loja")
+            .HasMaxLength(50);
 
         builder.Property(p => p.CategoriaId)
             .HasColumnName("categoria_id");
@@ -35,13 +37,12 @@ public class ProdutoConfiguration : IEntityTypeConfiguration<Produto>
             .HasColumnName("created_at");
 
         builder.Property(p => p.UpdatedAt)
-            .HasColumnName("updated_at");
-
-        builder.HasOne(p => p.Categoria)
+            .HasColumnName("updated_at");        builder.HasOne(p => p.Categoria)
             .WithMany(c => c.Produtos)
             .HasForeignKey(p => p.CategoriaId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => p.Nome);
+        builder.HasIndex(p => p.CodigoLoja);
     }
 }

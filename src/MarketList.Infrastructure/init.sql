@@ -156,3 +156,58 @@ BEGIN
 END $EF$;
 COMMIT;
 
+-- Nova Migration: AdicionarTipoEntradaEUnidadeDeMedida
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    -- Adicionar coluna tipo_entrada na tabela listas_de_compras
+    ALTER TABLE listas_de_compras 
+    ADD COLUMN tipo_entrada integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    -- Adicionar coluna codigo_loja na tabela produtos
+    ALTER TABLE produtos 
+    ADD COLUMN codigo_loja varchar(50);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    -- Adicionar coluna unidade_de_medida na tabela itens_lista_de_compras
+    ALTER TABLE itens_lista_de_compras 
+    ADD COLUMN unidade_de_medida integer;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    -- Adicionar coluna preco_total na tabela itens_lista_de_compras
+    ALTER TABLE itens_lista_de_compras 
+    ADD COLUMN preco_total numeric(18,2);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    -- Criar índice para codigo_loja
+    CREATE INDEX IX_produtos_codigo_loja ON produtos(codigo_loja);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260204000000_AdicionarTipoEntradaEUnidadeDeMedida') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260204000000_AdicionarTipoEntradaEUnidadeDeMedida', '9.0.4');
+    END IF;
+END $EF$;
+COMMIT;

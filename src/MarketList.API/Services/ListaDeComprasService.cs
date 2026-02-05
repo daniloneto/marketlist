@@ -23,9 +23,7 @@ public class ListaDeComprasService : IListaDeComprasService
         _context = context;
         _unitOfWork = unitOfWork;
         _backgroundJobClient = backgroundJobClient;
-    }
-
-    public async Task<IEnumerable<ListaDeComprasDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    }    public async Task<IEnumerable<ListaDeComprasDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var listas = await _context.ListasDeCompras
             .Include(l => l.Itens)
@@ -36,12 +34,13 @@ public class ListaDeComprasService : IListaDeComprasService
             l.Id,
             l.Nome,
             l.TextoOriginal,
+            l.TipoEntrada,
             l.Status,
             l.CreatedAt,
             l.ProcessadoEm,
             l.ErroProcessamento,
             l.Itens.Count,
-            l.Itens.Any() ? l.Itens.Sum(i => i.PrecoUnitario.HasValue ? i.PrecoUnitario.Value * i.Quantidade : 0) : (decimal?)null
+            l.Itens.Any() ? l.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null
         ));
     }
 
@@ -61,7 +60,9 @@ public class ListaDeComprasService : IListaDeComprasService
             i.Produto.Nome,
             i.Produto.Unidade,
             i.Quantidade,
+            i.UnidadeDeMedida,
             i.PrecoUnitario,
+            i.PrecoTotal,
             i.SubTotal,
             i.TextoOriginal,
             i.Comprado
@@ -71,21 +72,21 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.Id,
             lista.Nome,
             lista.TextoOriginal,
+            lista.TipoEntrada,
             lista.Status,
             lista.CreatedAt,
             lista.ProcessadoEm,
             lista.ErroProcessamento,
             itensDto
         );
-    }
-
-    public async Task<ListaDeComprasDto> CreateAsync(ListaDeComprasCreateDto dto, CancellationToken cancellationToken = default)
+    }    public async Task<ListaDeComprasDto> CreateAsync(ListaDeComprasCreateDto dto, CancellationToken cancellationToken = default)
     {
         var lista = new ListaDeCompras
         {
             Id = Guid.NewGuid(),
             Nome = dto.Nome,
             TextoOriginal = dto.TextoOriginal,
+            TipoEntrada = dto.TipoEntrada,
             Status = StatusLista.Pendente,
             CreatedAt = DateTime.UtcNow
         };
@@ -95,12 +96,11 @@ public class ListaDeComprasService : IListaDeComprasService
 
         // Dispara o Job do Hangfire para processamento assíncrono
         _backgroundJobClient.Enqueue<IProcessamentoListaService>(
-            service => service.ProcessarListaAsync(lista.Id, CancellationToken.None));
-
-        return new ListaDeComprasDto(
+            service => service.ProcessarListaAsync(lista.Id, CancellationToken.None));        return new ListaDeComprasDto(
             lista.Id,
             lista.Nome,
             lista.TextoOriginal,
+            lista.TipoEntrada,
             lista.Status,
             lista.CreatedAt,
             lista.ProcessadoEm,
@@ -122,18 +122,17 @@ public class ListaDeComprasService : IListaDeComprasService
         lista.Nome = dto.Nome;
         lista.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new ListaDeComprasDto(
+        await _unitOfWork.SaveChangesAsync(cancellationToken);        return new ListaDeComprasDto(
             lista.Id,
             lista.Nome,
             lista.TextoOriginal,
+            lista.TipoEntrada,
             lista.Status,
             lista.CreatedAt,
             lista.ProcessadoEm,
             lista.ErroProcessamento,
             lista.Itens.Count,
-            lista.Itens.Any() ? lista.Itens.Sum(i => i.PrecoUnitario.HasValue ? i.PrecoUnitario.Value * i.Quantidade : 0) : (decimal?)null
+            lista.Itens.Any() ? lista.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null
         );
     }
 
@@ -178,15 +177,15 @@ public class ListaDeComprasService : IListaDeComprasService
         };
 
         _context.ItensListaDeCompras.Add(item);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new ItemListaDeComprasDto(
+        await _unitOfWork.SaveChangesAsync(cancellationToken);        return new ItemListaDeComprasDto(
             item.Id,
             item.ProdutoId,
             produto.Nome,
             produto.Unidade,
             item.Quantidade,
+            item.UnidadeDeMedida,
             item.PrecoUnitario,
+            item.PrecoTotal,
             item.SubTotal,
             item.TextoOriginal,
             item.Comprado
@@ -206,15 +205,15 @@ public class ListaDeComprasService : IListaDeComprasService
         item.Comprado = dto.Comprado;
         item.UpdatedAt = DateTime.UtcNow;
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new ItemListaDeComprasDto(
+        await _unitOfWork.SaveChangesAsync(cancellationToken);        return new ItemListaDeComprasDto(
             item.Id,
             item.ProdutoId,
             item.Produto.Nome,
             item.Produto.Unidade,
             item.Quantidade,
+            item.UnidadeDeMedida,
             item.PrecoUnitario,
+            item.PrecoTotal,
             item.SubTotal,
             item.TextoOriginal,
             item.Comprado

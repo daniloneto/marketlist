@@ -18,10 +18,12 @@ public class ListaDeComprasConfiguration : IEntityTypeConfiguration<ListaDeCompr
         builder.Property(l => l.Nome)
             .HasColumnName("nome")
             .HasMaxLength(200)
-            .IsRequired();
-
-        builder.Property(l => l.TextoOriginal)
+            .IsRequired();        builder.Property(l => l.TextoOriginal)
             .HasColumnName("texto_original");
+
+        builder.Property(l => l.TipoEntrada)
+            .HasColumnName("tipo_entrada")
+            .HasConversion<int>();
 
         builder.Property(l => l.Status)
             .HasColumnName("status")

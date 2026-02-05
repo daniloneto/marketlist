@@ -15,6 +15,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private readonly IRepository<HistoricoPreco> _historicoPrecoRepository;
     private readonly IRepository<ItemListaDeCompras> _itemRepository;
     private readonly IAnalisadorTextoService _analisadorTexto;
+    private readonly ILeitorNotaFiscal _leitorNotaFiscal;
     private readonly IPrecoExternoApi _precoExternoApi;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProcessamentoListaService> _logger;
@@ -26,6 +27,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
         IRepository<HistoricoPreco> historicoPrecoRepository,
         IRepository<ItemListaDeCompras> itemRepository,
         IAnalisadorTextoService analisadorTexto,
+        ILeitorNotaFiscal leitorNotaFiscal,
         IPrecoExternoApi precoExternoApi,
         IUnitOfWork unitOfWork,
         ILogger<ProcessamentoListaService> logger)
@@ -36,12 +38,11 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _historicoPrecoRepository = historicoPrecoRepository;
         _itemRepository = itemRepository;
         _analisadorTexto = analisadorTexto;
+        _leitorNotaFiscal = leitorNotaFiscal;
         _precoExternoApi = precoExternoApi;
         _unitOfWork = unitOfWork;
         _logger = logger;
-    }
-
-    public async Task ProcessarListaAsync(Guid listaId, CancellationToken cancellationToken = default)
+    }    public async Task ProcessarListaAsync(Guid listaId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Iniciando processamento da lista {ListaId}", listaId);
 
@@ -59,13 +60,14 @@ public class ProcessamentoListaService : IProcessamentoListaService
             await _listaRepository.UpdateAsync(lista, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // 1. Analisar o texto da lista
-            var itensAnalisados = _analisadorTexto.AnalisarTexto(lista.TextoOriginal ?? string.Empty);
-            _logger.LogInformation("Analisados {Count} itens da lista {ListaId}", itensAnalisados.Count, listaId);
-
-            foreach (var itemAnalisado in itensAnalisados)
+            // Escolhe o pipeline baseado no tipo de entrada
+            if (lista.TipoEntrada == TipoEntrada.NotaFiscal)
             {
-                await ProcessarItemAsync(lista, itemAnalisado, cancellationToken);
+                await ProcessarNotaFiscalAsync(lista, cancellationToken);
+            }
+            else
+            {
+                await ProcessarListaSimplesAsync(lista, cancellationToken);
             }
 
             // Finaliza o processamento
@@ -90,14 +92,46 @@ public class ProcessamentoListaService : IProcessamentoListaService
         }
     }
 
-    private async Task ProcessarItemAsync(ListaDeCompras lista, ItemAnalisadoDto itemAnalisado, CancellationToken cancellationToken)
+    /// <summary>
+    /// Pipeline para processar lista simples (texto livre com nomes de produtos)
+    /// </summary>
+    private async Task ProcessarListaSimplesAsync(ListaDeCompras lista, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Processando lista simples {ListaId}", lista.Id);
+
+        // 1. Analisar o texto da lista
+        var itensAnalisados = _analisadorTexto.AnalisarTexto(lista.TextoOriginal ?? string.Empty);
+        _logger.LogInformation("Analisados {Count} itens da lista {ListaId}", itensAnalisados.Count, lista.Id);
+
+        foreach (var itemAnalisado in itensAnalisados)
+        {
+            await ProcessarItemListaSimplesAsync(lista, itemAnalisado, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Pipeline para processar nota fiscal (texto estruturado com preços e quantidades)
+    /// </summary>
+    private async Task ProcessarNotaFiscalAsync(ListaDeCompras lista, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Processando nota fiscal {ListaId}", lista.Id);
+
+        // 1. Ler e interpretar a nota fiscal
+        var itensNota = _leitorNotaFiscal.Ler(lista.TextoOriginal ?? string.Empty);
+        _logger.LogInformation("Lidos {Count} itens da nota fiscal {ListaId}", itensNota.Count, lista.Id);
+
+        foreach (var itemNota in itensNota)
+        {
+            await ProcessarItemNotaFiscalAsync(lista, itemNota, cancellationToken);
+        }
+    }    private async Task ProcessarItemListaSimplesAsync(ListaDeCompras lista, ItemAnalisadoDto itemAnalisado, CancellationToken cancellationToken)
     {
         // 2. Detectar e criar categoria se necessário
         var nomeCategoria = _analisadorTexto.DetectarCategoria(itemAnalisado.NomeProduto);
         var categoria = await ObterOuCriarCategoriaAsync(nomeCategoria, cancellationToken);
 
         // 3. Verificar/criar produto
-        var produto = await ObterOuCriarProdutoAsync(itemAnalisado, categoria, cancellationToken);
+        var produto = await ObterOuCriarProdutoAsync(itemAnalisado.NomeProduto, itemAnalisado.Unidade, null, categoria, cancellationToken);
 
         // 4. Consultar preço externo
         decimal? precoUnitario = null;
@@ -154,6 +188,65 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _logger.LogInformation("Item adicionado: {Produto} x {Quantidade}", produto.Nome, itemAnalisado.Quantidade);
     }
 
+    /// <summary>
+    /// Processa um item vindo de uma nota fiscal
+    /// </summary>
+    private async Task ProcessarItemNotaFiscalAsync(ListaDeCompras lista, ItemNotaFiscalLidoDto itemNota, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // 1. Detectar ou usar categoria genérica
+            var nomeCategoria = _analisadorTexto.DetectarCategoria(itemNota.NomeProduto);
+            var categoria = await ObterOuCriarCategoriaAsync(nomeCategoria, cancellationToken);
+
+            // 2. Encontrar ou criar produto usando código da loja + nome
+            var produto = await ObterOuCriarProdutoAsync(
+                itemNota.NomeProduto, 
+                itemNota.UnidadeDeMedida.ToString(), 
+                itemNota.CodigoLoja, 
+                categoria, 
+                cancellationToken);
+
+            // 3. Registrar no histórico de preços
+            var historicoPreco = new HistoricoPreco
+            {
+                Id = Guid.NewGuid(),
+                ProdutoId = produto.Id,
+                PrecoUnitario = itemNota.PrecoUnitario,
+                DataConsulta = DateTime.UtcNow,
+                FontePreco = "NotaFiscal",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _historicoPrecoRepository.AddAsync(historicoPreco, cancellationToken);
+
+            // 4. Criar item da lista com todas as informações da nota
+            var itemLista = new ItemListaDeCompras
+            {
+                Id = Guid.NewGuid(),
+                ListaDeComprasId = lista.Id,
+                ProdutoId = produto.Id,
+                Quantidade = itemNota.Quantidade,
+                UnidadeDeMedida = itemNota.UnidadeDeMedida,
+                PrecoUnitario = itemNota.PrecoUnitario,
+                PrecoTotal = itemNota.PrecoTotal,
+                TextoOriginal = itemNota.TextoOriginal,
+                Comprado = false, // Lista da nota fiscal = compras já realizadas, mas mantendo false para compatibilidade
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _itemRepository.AddAsync(itemLista, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Item da nota adicionado: {Produto} - {Qtd} {Unidade} - R$ {Preco}", 
+                itemNota.NomeProduto, itemNota.Quantidade, itemNota.UnidadeDeMedida, itemNota.PrecoUnitario);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao processar item da nota: {Produto}", itemNota.NomeProduto);
+            // Continua processando os próximos itens (tolerante a falhas)
+        }
+    }
+
     private async Task<Categoria> ObterOuCriarCategoriaAsync(string nomeCategoria, CancellationToken cancellationToken)
     {
         var categorias = await _categoriaRepository.GetAllAsync(cancellationToken);
@@ -175,29 +268,57 @@ public class ProcessamentoListaService : IProcessamentoListaService
         }
 
         return categoria;
-    }
-
-    private async Task<Produto> ObterOuCriarProdutoAsync(ItemAnalisadoDto itemAnalisado, Categoria categoria, CancellationToken cancellationToken)
+    }    private async Task<Produto> ObterOuCriarProdutoAsync(
+        string nomeProduto, 
+        string? unidade, 
+        string? codigoLoja, 
+        Categoria categoria, 
+        CancellationToken cancellationToken)
     {
         var produtos = await _produtoRepository.GetAllAsync(cancellationToken);
-        var produto = produtos.FirstOrDefault(p => 
-            p.Nome.Equals(itemAnalisado.NomeProduto, StringComparison.OrdinalIgnoreCase));
+        
+        // Se temos código da loja, usa como critério principal
+        Produto? produto = null;
+        if (!string.IsNullOrWhiteSpace(codigoLoja))
+        {
+            produto = produtos.FirstOrDefault(p => 
+                !string.IsNullOrWhiteSpace(p.CodigoLoja) && 
+                p.CodigoLoja.Equals(codigoLoja, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Se não encontrou por código, busca por nome
+        if (produto == null)
+        {
+            produto = produtos.FirstOrDefault(p => 
+                p.Nome.Equals(nomeProduto, StringComparison.OrdinalIgnoreCase));
+        }
 
         if (produto == null)
         {
             produto = new Produto
             {
                 Id = Guid.NewGuid(),
-                Nome = itemAnalisado.NomeProduto,
-                Unidade = itemAnalisado.Unidade,
+                Nome = nomeProduto,
+                Unidade = unidade,
+                CodigoLoja = codigoLoja,
                 CategoriaId = categoria.Id,
                 CreatedAt = DateTime.UtcNow
             };
             await _produtoRepository.AddAsync(produto, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Produto criado: {Produto} na categoria {Categoria}", 
-                itemAnalisado.NomeProduto, categoria.Nome);
+            _logger.LogInformation("Produto criado: {Produto} (Código: {Codigo}) na categoria {Categoria}", 
+                nomeProduto, codigoLoja ?? "N/A", categoria.Nome);
+        }
+        else if (!string.IsNullOrWhiteSpace(codigoLoja) && string.IsNullOrWhiteSpace(produto.CodigoLoja))
+        {
+            // Atualiza o código da loja se o produto já existia mas não tinha código
+            produto.CodigoLoja = codigoLoja;
+            await _produtoRepository.UpdateAsync(produto, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            
+            _logger.LogInformation("Código da loja atualizado para produto: {Produto} -> {Codigo}", 
+                nomeProduto, codigoLoja);
         }
 
         return produto;

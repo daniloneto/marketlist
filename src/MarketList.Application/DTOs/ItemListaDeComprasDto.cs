@@ -1,3 +1,5 @@
+using MarketList.Domain.Enums;
+
 namespace MarketList.Application.DTOs;
 
 public record ItemListaDeComprasDto(
@@ -6,7 +8,9 @@ public record ItemListaDeComprasDto(
     string ProdutoNome,
     string? ProdutoUnidade,
     decimal Quantidade,
+    UnidadeDeMedida? UnidadeDeMedida,
     decimal? PrecoUnitario,
+    decimal? PrecoTotal,
     decimal? SubTotal,
     string? TextoOriginal,
     bool Comprado

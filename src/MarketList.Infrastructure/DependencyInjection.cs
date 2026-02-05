@@ -31,10 +31,9 @@ public static class DependencyInjection
         services.AddScoped<IRepository<Produto>, Repository<Produto>>();
         services.AddScoped<IRepository<HistoricoPreco>, Repository<HistoricoPreco>>();
         services.AddScoped<IRepository<ListaDeCompras>, Repository<ListaDeCompras>>();
-        services.AddScoped<IRepository<ItemListaDeCompras>, Repository<ItemListaDeCompras>>();
-
-        // Application Services
+        services.AddScoped<IRepository<ItemListaDeCompras>, Repository<ItemListaDeCompras>>();        // Application Services
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
+        services.AddScoped<ILeitorNotaFiscal, LeitorNotaFiscal>();
         services.AddScoped<IProcessamentoListaService, ProcessamentoListaService>();
 
         // External Services (Mock)

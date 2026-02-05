@@ -13,14 +13,17 @@ import {
   Text,
   Paper,
   Badge,
+  Select,
+  Alert,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconEye } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { listaDeComprasService } from '../services';
 import { LoadingState, ErrorState, StatusBadge } from '../components';
 import type { ListaDeComprasDto, ListaDeComprasCreateDto } from '../types';
+import { TipoEntrada } from '../types';
 
 export function ListasDeComprasPage() {
   const navigate = useNavigate();
@@ -32,12 +35,11 @@ export function ListasDeComprasPage() {
   const { data: listas, isLoading, error, refetch } = useQuery({
     queryKey: ['listas'],
     queryFn: listaDeComprasService.getAll,
-  });
-
-  const createForm = useForm<ListaDeComprasCreateDto>({
+  });  const createForm = useForm<ListaDeComprasCreateDto>({
     initialValues: {
       nome: '',
       textoOriginal: '',
+      tipoEntrada: TipoEntrada.ListaSimples,
     },
     validate: {
       nome: (value) => (value.trim() ? null : 'Nome é obrigatório'),
@@ -134,11 +136,11 @@ export function ListasDeComprasPage() {
         </Button>
       </Group>
 
-      <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+      <Paper shadow="xs" p="md">        <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
+              <Table.Th>Tipo</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Itens</Table.Th>
               <Table.Th>Valor Total</Table.Th>
@@ -150,6 +152,11 @@ export function ListasDeComprasPage() {
             {listas?.map((lista) => (
               <Table.Tr key={lista.id}>
                 <Table.Td>{lista.nome}</Table.Td>
+                <Table.Td>
+                  <Badge color={lista.tipoEntrada === 0 ? 'blue' : 'green'} variant="light">
+                    {lista.tipoEntrada === 0 ? 'Lista Simples' : 'Nota Fiscal'}
+                  </Badge>
+                </Table.Td>
                 <Table.Td>
                   <StatusBadge status={lista.status} />
                 </Table.Td>
@@ -201,28 +208,62 @@ export function ListasDeComprasPage() {
         styles={{
           body: { maxHeight: '70vh', overflow: 'auto' },
         }}
-      >
-        <form onSubmit={createForm.onSubmit((values) => createMutation.mutate(values))}>
+      >        <form onSubmit={createForm.onSubmit((values) => createMutation.mutate(values))}>
           <Stack>
             <TextInput
               label="Nome da Lista"
               placeholder="Ex: Compras do mês"
               {...createForm.getInputProps('nome')}
             />
+              <Select
+              label="Tipo de Entrada"
+              placeholder="Selecione o tipo"
+              data={[
+                { value: '0', label: 'Lista Simples' },
+                { value: '1', label: 'Nota Fiscal' },
+              ]}
+              value={createForm.values.tipoEntrada.toString()}
+              onChange={(value) => createForm.setFieldValue('tipoEntrada', Number.parseInt(value || '0', 10) as typeof TipoEntrada.ListaSimples)}
+            />
+
+            {createForm.values.tipoEntrada === 1 && (
+              <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                Cole aqui o texto da nota fiscal. O sistema irá extrair automaticamente os produtos, quantidades, unidades e preços.
+              </Alert>
+            )}
+            
             <Textarea
               label="Lista de Itens"
-              placeholder={`Cole aqui sua lista de compras, um item por linha.
+              placeholder={
+                createForm.values.tipoEntrada === 0
+                  ? `Cole aqui sua lista de compras, um item por linha.
 Exemplos:
 Leite 2
 Arroz 5kg
 Pão
-Queijo 500g`}
-              minRows={10}
+Queijo 500g`
+                  : `Cole aqui o texto da nota fiscal com os itens:
+
+BANANA TERRA (Código: AR004808)
+Qtde.:1,915   UN: KG9   Vl. Unit.: 6,99
+Vl. Total
+13,39
+
+CEBOLINHA (Código: AR007093)
+Qtde.:1   UN: MCO1   Vl. Unit.: 1,89
+Vl. Total
+1,89`
+              }
+              minRows={15}
               {...createForm.getInputProps('textoOriginal')}
             />
-            <Text size="sm" c="dimmed">
-              O sistema irá processar automaticamente cada item, detectando quantidades e categorias.
-            </Text>
+            
+            {createForm.values.tipoEntrada === 0 && (
+              <Text size="sm" c="dimmed">
+                O sistema irá processar automaticamente cada item, detectando quantidades e categorias.
+              </Text>
+            )}
+            
             <Group justify="flex-end">
               <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
                 Cancelar

@@ -4,7 +4,8 @@ public class Produto : BaseEntity
 {
     public string Nome { get; set; } = string.Empty;
     public string? Descricao { get; set; }
-    public string? Unidade { get; set; } // kg, un, L, etc.
+    public string? Unidade { get; set; } // kg, un, L, etc. (mantido para compatibilidade)
+    public string? CodigoLoja { get; set; } // Código da loja (ex: AR004808)
     
     // Relacionamentos
     public Guid CategoriaId { get; set; }

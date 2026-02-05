@@ -6,6 +6,7 @@ public record ListaDeComprasDto(
     Guid Id,
     string Nome,
     string? TextoOriginal,
+    TipoEntrada TipoEntrada,
     StatusLista Status,
     DateTime CreatedAt,
     DateTime? ProcessadoEm,
@@ -18,6 +19,7 @@ public record ListaDeComprasDetalhadaDto(
     Guid Id,
     string Nome,
     string? TextoOriginal,
+    TipoEntrada TipoEntrada,
     StatusLista Status,
     DateTime CreatedAt,
     DateTime? ProcessadoEm,
@@ -27,7 +29,8 @@ public record ListaDeComprasDetalhadaDto(
 
 public record ListaDeComprasCreateDto(
     string Nome,
-    string TextoOriginal
+    string TextoOriginal,
+    TipoEntrada TipoEntrada = TipoEntrada.ListaSimples
 );
 
 public record ListaDeComprasUpdateDto(

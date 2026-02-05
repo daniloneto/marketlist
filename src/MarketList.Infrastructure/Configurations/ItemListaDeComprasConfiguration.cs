@@ -19,14 +19,20 @@ public class ItemListaDeComprasConfiguration : IEntityTypeConfiguration<ItemList
             .HasColumnName("lista_de_compras_id");
 
         builder.Property(i => i.ProdutoId)
-            .HasColumnName("produto_id");
-
-        builder.Property(i => i.Quantidade)
+            .HasColumnName("produto_id");        builder.Property(i => i.Quantidade)
             .HasColumnName("quantidade")
             .HasPrecision(18, 3);
 
+        builder.Property(i => i.UnidadeDeMedida)
+            .HasColumnName("unidade_de_medida")
+            .HasConversion<int?>();
+
         builder.Property(i => i.PrecoUnitario)
             .HasColumnName("preco_unitario")
+            .HasPrecision(18, 2);
+
+        builder.Property(i => i.PrecoTotal)
+            .HasColumnName("preco_total")
             .HasPrecision(18, 2);
 
         builder.Property(i => i.TextoOriginal)
