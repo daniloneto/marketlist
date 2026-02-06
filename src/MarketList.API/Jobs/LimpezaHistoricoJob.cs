@@ -5,7 +5,7 @@ namespace MarketList.API.Jobs;
 
 /// <summary>
 /// Job Hangfire para limpeza de histórico de preços antigos.
-/// Mantém apenas os registros dos últimos 30 dias para cada produto.
+/// Mantém apenas os registros dos últimos 120 dias para cada produto.
 /// </summary>
 public class LimpezaHistoricoJob
 {
@@ -21,14 +21,14 @@ public class LimpezaHistoricoJob
     }
 
     /// <summary>
-    /// Remove registros de histórico com mais de 30 dias, mantendo
+    /// Remove registros de histórico com mais de 120 dias, mantendo
     /// pelo menos o registro mais recente de cada produto.
     /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("[Hangfire Job] Iniciando limpeza de histórico de preços");
 
-        var dataLimite = DateTime.UtcNow.AddDays(-30);
+        var dataLimite = DateTime.UtcNow.AddDays(-120);
 
         // Buscar IDs dos registros a manter (mais recente de cada produto)
         var idsRecentes = await _context.HistoricoPrecos
