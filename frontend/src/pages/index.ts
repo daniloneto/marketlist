@@ -3,3 +3,4 @@ export { ListaDetalhePage } from './ListaDetalhePage';
 export { CategoriasPage } from './CategoriasPage';
 export { ProdutosPage } from './ProdutosPage';
 export { HistoricoPrecosPage } from './HistoricoPrecosPage';
+export { EmpresasPage } from './EmpresasPage';

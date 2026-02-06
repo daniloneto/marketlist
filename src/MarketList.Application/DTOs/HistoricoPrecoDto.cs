@@ -6,7 +6,9 @@ public record HistoricoPrecoDto(
     string ProdutoNome,
     decimal PrecoUnitario,
     DateTime DataConsulta,
-    string? FontePreco
+    string? FontePreco,
+    Guid? EmpresaId,
+    string? EmpresaNome
 );
 
 public record HistoricoPrecoCreateDto(

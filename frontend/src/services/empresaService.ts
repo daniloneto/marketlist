@@ -1,0 +1,28 @@
+import api from './api';
+import type { EmpresaDto, EmpresaCreateDto, EmpresaUpdateDto } from '../types';
+
+export const empresaService = {
+  getAll: async (): Promise<EmpresaDto[]> => {
+    const response = await api.get<EmpresaDto[]>('/empresas');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<EmpresaDto> => {
+    const response = await api.get<EmpresaDto>(`/empresas/${id}`);
+    return response.data;
+  },
+
+  create: async (data: EmpresaCreateDto): Promise<EmpresaDto> => {
+    const response = await api.post<EmpresaDto>('/empresas', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: EmpresaUpdateDto): Promise<EmpresaDto> => {
+    const response = await api.put<EmpresaDto>(`/empresas/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/empresas/${id}`);
+  },
+};

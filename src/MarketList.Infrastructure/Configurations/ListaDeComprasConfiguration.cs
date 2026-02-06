@@ -42,7 +42,16 @@ public class ListaDeComprasConfiguration : IEntityTypeConfiguration<ListaDeCompr
         builder.Property(l => l.UpdatedAt)
             .HasColumnName("updated_at");
 
+        builder.Property(l => l.EmpresaId)
+            .HasColumnName("empresa_id");
+
+        builder.HasOne(l => l.Empresa)
+            .WithMany(e => e.Listas)
+            .HasForeignKey(l => l.EmpresaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(l => l.Status);
         builder.HasIndex(l => l.CreatedAt);
+        builder.HasIndex(l => l.EmpresaId);
     }
 }

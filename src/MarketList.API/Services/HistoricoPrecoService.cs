@@ -22,6 +22,7 @@ public class HistoricoPrecoService : IHistoricoPrecoService
     {
         var historicos = await _context.HistoricoPrecos
             .Include(h => h.Produto)
+            .Include(h => h.Empresa)
             .OrderByDescending(h => h.DataConsulta)
             .ToListAsync(cancellationToken);
 
@@ -31,7 +32,9 @@ public class HistoricoPrecoService : IHistoricoPrecoService
             h.Produto.Nome,
             h.PrecoUnitario,
             h.DataConsulta,
-            h.FontePreco
+            h.FontePreco,
+            h.EmpresaId,
+            h.Empresa?.Nome
         ));
     }
 
@@ -39,6 +42,7 @@ public class HistoricoPrecoService : IHistoricoPrecoService
     {
         var historicos = await _context.HistoricoPrecos
             .Include(h => h.Produto)
+            .Include(h => h.Empresa)
             .Where(h => h.ProdutoId == produtoId)
             .OrderByDescending(h => h.DataConsulta)
             .ToListAsync(cancellationToken);
@@ -49,7 +53,9 @@ public class HistoricoPrecoService : IHistoricoPrecoService
             h.Produto.Nome,
             h.PrecoUnitario,
             h.DataConsulta,
-            h.FontePreco
+            h.FontePreco,
+            h.EmpresaId,
+            h.Empresa?.Nome
         ));
     }
 
@@ -57,6 +63,7 @@ public class HistoricoPrecoService : IHistoricoPrecoService
     {
         var historico = await _context.HistoricoPrecos
             .Include(h => h.Produto)
+            .Include(h => h.Empresa)
             .Where(h => h.ProdutoId == produtoId)
             .OrderByDescending(h => h.DataConsulta)
             .FirstOrDefaultAsync(cancellationToken);
@@ -70,7 +77,9 @@ public class HistoricoPrecoService : IHistoricoPrecoService
             historico.Produto.Nome,
             historico.PrecoUnitario,
             historico.DataConsulta,
-            historico.FontePreco
+            historico.FontePreco,
+            historico.EmpresaId,
+            historico.Empresa?.Nome
         );
     }
 
@@ -98,7 +107,9 @@ public class HistoricoPrecoService : IHistoricoPrecoService
             produto.Nome,
             historico.PrecoUnitario,
             historico.DataConsulta,
-            historico.FontePreco
+            historico.FontePreco,
+            null,
+            null
         );
     }
 }

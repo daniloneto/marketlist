@@ -35,11 +35,20 @@ public class HistoricoPrecoConfiguration : IEntityTypeConfiguration<HistoricoPre
         builder.Property(h => h.UpdatedAt)
             .HasColumnName("updated_at");
 
+        builder.Property(h => h.EmpresaId)
+            .HasColumnName("empresa_id");
+
         builder.HasOne(h => h.Produto)
             .WithMany(p => p.HistoricoPrecos)
             .HasForeignKey(h => h.ProdutoId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(h => h.Empresa)
+            .WithMany(e => e.HistoricoPrecos)
+            .HasForeignKey(h => h.EmpresaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(h => new { h.ProdutoId, h.DataConsulta });
+        builder.HasIndex(h => h.EmpresaId);
     }
 }

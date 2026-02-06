@@ -27,6 +27,7 @@ public class ListaDeComprasService : IListaDeComprasService
     {
         var listas = await _context.ListasDeCompras
             .Include(l => l.Itens)
+            .Include(l => l.Empresa)
             .OrderByDescending(l => l.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -40,7 +41,9 @@ public class ListaDeComprasService : IListaDeComprasService
             l.ProcessadoEm,
             l.ErroProcessamento,
             l.Itens.Count,
-            l.Itens.Any() ? l.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null
+            l.Itens.Any() ? l.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null,
+            l.EmpresaId,
+            l.Empresa?.Nome
         ));
     }
 
@@ -49,6 +52,7 @@ public class ListaDeComprasService : IListaDeComprasService
         var lista = await _context.ListasDeCompras
             .Include(l => l.Itens)
                 .ThenInclude(i => i.Produto)
+            .Include(l => l.Empresa)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
         if (lista == null)
@@ -77,16 +81,35 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.CreatedAt,
             lista.ProcessadoEm,
             lista.ErroProcessamento,
-            itensDto
+            itensDto,
+            lista.EmpresaId,
+            lista.Empresa?.Nome
         );
     }    public async Task<ListaDeComprasDto> CreateAsync(ListaDeComprasCreateDto dto, CancellationToken cancellationToken = default)
     {
+        // Validação: Se TipoEntrada == NotaFiscal, EmpresaId é obrigatório
+        if (dto.TipoEntrada == TipoEntrada.NotaFiscal && !dto.EmpresaId.HasValue)
+        {
+            throw new InvalidOperationException("EmpresaId é obrigatório quando TipoEntrada é NotaFiscal.");
+        }
+
+        // Validar se a empresa existe (se informada)
+        if (dto.EmpresaId.HasValue)
+        {
+            var empresaExiste = await _context.Empresas.AnyAsync(e => e.Id == dto.EmpresaId.Value, cancellationToken);
+            if (!empresaExiste)
+            {
+                throw new InvalidOperationException($"Empresa com ID {dto.EmpresaId.Value} não encontrada.");
+            }
+        }
+
         var lista = new ListaDeCompras
         {
             Id = Guid.NewGuid(),
             Nome = dto.Nome,
             TextoOriginal = dto.TextoOriginal,
             TipoEntrada = dto.TipoEntrada,
+            EmpresaId = dto.EmpresaId,
             Status = StatusLista.Pendente,
             CreatedAt = DateTime.UtcNow
         };
@@ -106,6 +129,8 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.ProcessadoEm,
             lista.ErroProcessamento,
             0,
+            null,
+            lista.EmpresaId,
             null
         );
     }
@@ -114,6 +139,7 @@ public class ListaDeComprasService : IListaDeComprasService
     {
         var lista = await _context.ListasDeCompras
             .Include(l => l.Itens)
+            .Include(l => l.Empresa)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
 
         if (lista == null)
@@ -132,7 +158,9 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.ProcessadoEm,
             lista.ErroProcessamento,
             lista.Itens.Count,
-            lista.Itens.Any() ? lista.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null
+            lista.Itens.Any() ? lista.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null,
+            lista.EmpresaId,
+            lista.Empresa?.Nome
         );
     }
 

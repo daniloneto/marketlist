@@ -12,7 +12,9 @@ public record ListaDeComprasDto(
     DateTime? ProcessadoEm,
     string? ErroProcessamento,
     int QuantidadeItens,
-    decimal? ValorTotal
+    decimal? ValorTotal,
+    Guid? EmpresaId,
+    string? EmpresaNome
 );
 
 public record ListaDeComprasDetalhadaDto(
@@ -24,13 +26,16 @@ public record ListaDeComprasDetalhadaDto(
     DateTime CreatedAt,
     DateTime? ProcessadoEm,
     string? ErroProcessamento,
-    List<ItemListaDeComprasDto> Itens
+    List<ItemListaDeComprasDto> Itens,
+    Guid? EmpresaId,
+    string? EmpresaNome
 );
 
 public record ListaDeComprasCreateDto(
     string Nome,
     string TextoOriginal,
-    TipoEntrada TipoEntrada = TipoEntrada.ListaSimples
+    TipoEntrada TipoEntrada = TipoEntrada.ListaSimples,
+    Guid? EmpresaId = null
 );
 
 public record ListaDeComprasUpdateDto(

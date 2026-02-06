@@ -50,6 +50,24 @@ export interface CategoriaUpdateDto {
   descricao?: string | null;
 }
 
+export interface EmpresaDto {
+  id: string;
+  nome: string;
+  cnpj: string | null;
+  createdAt: string;
+  quantidadeListas: number;
+}
+
+export interface EmpresaCreateDto {
+  nome: string;
+  cnpj?: string | null;
+}
+
+export interface EmpresaUpdateDto {
+  nome: string;
+  cnpj?: string | null;
+}
+
 export interface ProdutoDto {
   id: string;
   nome: string;
@@ -82,6 +100,8 @@ export interface HistoricoPrecoDto {
   precoUnitario: number;
   dataConsulta: string;
   fontePreco: string | null;
+  empresaId: string | null;
+  empresaNome: string | null;
 }
 
 export interface ListaDeComprasDto {
@@ -95,6 +115,8 @@ export interface ListaDeComprasDto {
   erroProcessamento: string | null;
   quantidadeItens: number;
   valorTotal: number | null;
+  empresaId: string | null;
+  empresaNome: string | null;
 }
 
 export interface ListaDeComprasDetalhadaDto {
@@ -107,13 +129,14 @@ export interface ListaDeComprasDetalhadaDto {
   processadoEm: string | null;
   erroProcessamento: string | null;
   itens: ItemListaDeComprasDto[];
+  empresaId: string | null;
+  empresaNome: string | null;
 }
 
 export interface ListaDeComprasCreateDto {
   nome: string;
   textoOriginal: string;
-  tipoEntrada: TipoEntrada;
-}
+  tipoEntrada: TipoEntrada;  empresaId?: string | null;}
 
 export interface ListaDeComprasUpdateDto {
   nome: string;

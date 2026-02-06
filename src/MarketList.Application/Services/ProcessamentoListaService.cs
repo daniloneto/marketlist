@@ -148,6 +148,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
                     PrecoUnitario = precoExterno.Preco.Value,
                     DataConsulta = DateTime.UtcNow,
                     FontePreco = precoExterno.Fonte,
+                    EmpresaId = lista.EmpresaId,
                     CreatedAt = DateTime.UtcNow
                 };
                 await _historicoPrecoRepository.AddAsync(historicoPreco, cancellationToken);
@@ -215,6 +216,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
                 PrecoUnitario = itemNota.PrecoUnitario,
                 DataConsulta = DateTime.UtcNow,
                 FontePreco = "NotaFiscal",
+                EmpresaId = lista.EmpresaId,
                 CreatedAt = DateTime.UtcNow
             };
             await _historicoPrecoRepository.AddAsync(historicoPreco, cancellationToken);

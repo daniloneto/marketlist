@@ -35,6 +35,7 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
 builder.Services.AddScoped<IHistoricoPrecoService, HistoricoPrecoService>();
 builder.Services.AddScoped<IListaDeComprasService, ListaDeComprasService>();
+builder.Services.AddScoped<IEmpresaService, EmpresaService>();
 
 // Application Layer Services (para processamento)
 builder.Services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();

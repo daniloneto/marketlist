@@ -15,6 +15,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<HistoricoPreco> HistoricoPrecos => Set<HistoricoPreco>();
     public DbSet<ListaDeCompras> ListasDeCompras => Set<ListaDeCompras>();
     public DbSet<ItemListaDeCompras> ItensListaDeCompras => Set<ItemListaDeCompras>();
+    public DbSet<Empresa> Empresas => Set<Empresa>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

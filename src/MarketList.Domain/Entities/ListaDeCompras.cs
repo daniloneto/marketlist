@@ -11,6 +11,10 @@ public class ListaDeCompras : BaseEntity
     public DateTime? ProcessadoEm { get; set; }
     public string? ErroProcessamento { get; set; }
     
+    // Relacionamento com Empresa (nullable para listas antigas e listas simples)
+    public Guid? EmpresaId { get; set; }
+    public virtual Empresa? Empresa { get; set; }
+    
     // Navegação
     public virtual ICollection<ItemListaDeCompras> Itens { get; set; } = new List<ItemListaDeCompras>();
 }

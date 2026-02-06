@@ -18,11 +18,11 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle, IconBuilding } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { listaDeComprasService } from '../services';
+import { listaDeComprasService, empresaService } from '../services';
 import { LoadingState, ErrorState, StatusBadge } from '../components';
-import type { ListaDeComprasDto, ListaDeComprasCreateDto } from '../types';
+import type { ListaDeComprasDto, ListaDeComprasCreateDto, EmpresaCreateDto } from '../types';
 import { TipoEntrada } from '../types';
 
 export function ListasDeComprasPage() {
@@ -30,20 +30,43 @@ export function ListasDeComprasPage() {
   const queryClient = useQueryClient();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
   const [selectedLista, setSelectedLista] = useState<ListaDeComprasDto | null>(null);
 
   const { data: listas, isLoading, error, refetch } = useQuery({
     queryKey: ['listas'],
     queryFn: listaDeComprasService.getAll,
+  });
+
+  const { data: empresas } = useQuery({
+    queryKey: ['empresas'],
+    queryFn: empresaService.getAll,
   });  const createForm = useForm<ListaDeComprasCreateDto>({
     initialValues: {
       nome: '',
       textoOriginal: '',
       tipoEntrada: TipoEntrada.ListaSimples,
+      empresaId: undefined,
     },
     validate: {
       nome: (value) => (value.trim() ? null : 'Nome é obrigatório'),
       textoOriginal: (value) => (value.trim() ? null : 'Lista de itens é obrigatória'),
+      empresaId: (value, values) => {
+        if (values.tipoEntrada === TipoEntrada.NotaFiscal && !value) {
+          return 'Empresa é obrigatória para Nota Fiscal';
+        }
+        return null;
+      },
+    },
+  });
+
+  const empresaForm = useForm<EmpresaCreateDto>({
+    initialValues: {
+      nome: '',
+      cnpj: '',
+    },
+    validate: {
+      nome: (value) => (value.trim() ? null : 'Nome é obrigatório'),
     },
   });
 
@@ -100,6 +123,28 @@ export function ListasDeComprasPage() {
     },
   });
 
+  const createEmpresaMutation = useMutation({
+    mutationFn: empresaService.create,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['empresas'] });
+      setEmpresaModalOpen(false);
+      empresaForm.reset();
+      createForm.setFieldValue('empresaId', data.id);
+      notifications.show({
+        title: 'Sucesso',
+        message: 'Empresa criada com sucesso!',
+        color: 'green',
+      });
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Erro',
+        message: 'Erro ao criar empresa',
+        color: 'red',
+      });
+    },
+  });
+
   const handleEdit = (lista: ListaDeComprasDto) => {
     setSelectedLista(lista);
     editForm.setValues({ nome: lista.nome });
@@ -141,6 +186,7 @@ export function ListasDeComprasPage() {
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
               <Table.Th>Tipo</Table.Th>
+              <Table.Th>Empresa</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Itens</Table.Th>
               <Table.Th>Valor Total</Table.Th>
@@ -156,6 +202,16 @@ export function ListasDeComprasPage() {
                   <Badge color={lista.tipoEntrada === 0 ? 'blue' : 'green'} variant="light">
                     {lista.tipoEntrada === 0 ? 'Lista Simples' : 'Nota Fiscal'}
                   </Badge>
+                </Table.Td>
+                <Table.Td>
+                  {lista.empresaNome ? (
+                    <Group gap="xs">
+                      <IconBuilding size={14} />
+                      <Text size="sm">{lista.empresaNome}</Text>
+                    </Group>
+                  ) : (
+                    '-'
+                  )}
                 </Table.Td>
                 <Table.Td>
                   <StatusBadge status={lista.status} />
@@ -223,8 +279,37 @@ export function ListasDeComprasPage() {
                 { value: '1', label: 'Nota Fiscal' },
               ]}
               value={createForm.values.tipoEntrada.toString()}
-              onChange={(value) => createForm.setFieldValue('tipoEntrada', Number.parseInt(value || '0', 10) as typeof TipoEntrada.ListaSimples)}
+              onChange={(value) => {
+                createForm.setFieldValue('tipoEntrada', Number.parseInt(value || '0', 10) as typeof TipoEntrada.ListaSimples);
+                // Limpa empresa se mudar para Lista Simples
+                if (Number.parseInt(value || '0', 10) === TipoEntrada.ListaSimples) {
+                  createForm.setFieldValue('empresaId', undefined);
+                }
+              }}
             />
+
+            {createForm.values.tipoEntrada === TipoEntrada.NotaFiscal && (
+              <>
+                <Group align="flex-end">
+                  <Select
+                    label="Empresa"
+                    placeholder="Selecione a empresa"
+                    data={empresas?.map((e) => ({ value: e.id, label: e.nome })) || []}
+                    {...createForm.getInputProps('empresaId')}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    leftSection={<IconBuilding size={16} />}
+                    onClick={() => setEmpresaModalOpen(true)}
+                  >
+                    Nova Empresa
+                  </Button>
+                </Group>
+                <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
+                  Cole aqui o texto da nota fiscal. O sistema irá extrair automaticamente os produtos, quantidades, unidades e preços.
+                </Alert>
+              </>
+            )}
 
             {createForm.values.tipoEntrada === 1 && (
               <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
@@ -295,6 +380,37 @@ Vl. Total
               </Button>
               <Button type="submit" loading={updateMutation.isPending}>
                 Salvar
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Modal>
+
+      {/* Modal de Cadastro R\u00e1pido de Empresa */}
+      <Modal
+        opened={empresaModalOpen}
+        onClose={() => setEmpresaModalOpen(false)}
+        title="Nova Empresa"
+      >
+        <form onSubmit={empresaForm.onSubmit((values) => createEmpresaMutation.mutate(values))}>
+          <Stack>
+            <TextInput
+              label="Nome"
+              placeholder="Nome da empresa"
+              required
+              {...empresaForm.getInputProps('nome')}
+            />
+            <TextInput
+              label="CNPJ"
+              placeholder="00.000.000/0000-00"
+              {...empresaForm.getInputProps('cnpj')}
+            />
+            <Group justify="flex-end">
+              <Button variant="outline" onClick={() => setEmpresaModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" loading={createEmpresaMutation.isPending}>
+                Criar e Selecionar
               </Button>
             </Group>
           </Stack>

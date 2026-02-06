@@ -5,6 +5,7 @@ import {
   IconCategory,
   IconPackage,
   IconChartLine,
+  IconBuilding,
 } from '@tabler/icons-react';
 
 interface LayoutProps {
@@ -15,6 +16,7 @@ const navItems = [
   { label: 'Listas de Compras', icon: IconShoppingCart, to: '/' },
   { label: 'Produtos', icon: IconPackage, to: '/produtos' },
   { label: 'Categorias', icon: IconCategory, to: '/categorias' },
+  { label: 'Empresas', icon: IconBuilding, to: '/empresas' },
   { label: 'Histórico de Preços', icon: IconChartLine, to: '/historico-precos' },
 ];
 

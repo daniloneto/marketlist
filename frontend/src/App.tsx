@@ -14,6 +14,7 @@ import {
   CategoriasPage,
   ProdutosPage,
   HistoricoPrecosPage,
+  EmpresasPage,
 } from './pages';
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ function App() {
               <Route path="/categorias" element={<CategoriasPage />} />
               <Route path="/produtos" element={<ProdutosPage />} />
               <Route path="/historico-precos" element={<HistoricoPrecosPage />} />
+              <Route path="/empresas" element={<EmpresasPage />} />
             </Routes>
           </Layout>
         </BrowserRouter>
