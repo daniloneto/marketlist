@@ -16,7 +16,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private readonly IRepository<ItemListaDeCompras> _itemRepository;
     private readonly IAnalisadorTextoService _analisadorTexto;
     private readonly ILeitorNotaFiscal _leitorNotaFiscal;
-    private readonly IPrecoExternoApi _precoExternoApi;
     private readonly IProdutoResolverService _produtoResolver;
     private readonly ICategoriaClassificadorService _categoriaClassificador;
     private readonly IUnitOfWork _unitOfWork;
@@ -30,7 +29,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
         IRepository<ItemListaDeCompras> itemRepository,
         IAnalisadorTextoService analisadorTexto,
         ILeitorNotaFiscal leitorNotaFiscal,
-        IPrecoExternoApi precoExternoApi,
         IProdutoResolverService produtoResolver,
         ICategoriaClassificadorService categoriaClassificador,
         IUnitOfWork unitOfWork,
@@ -43,7 +41,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _itemRepository = itemRepository;
         _analisadorTexto = analisadorTexto;
         _leitorNotaFiscal = leitorNotaFiscal;
-        _precoExternoApi = precoExternoApi;
         _produtoResolver = produtoResolver;
         _categoriaClassificador = categoriaClassificador;
         _unitOfWork = unitOfWork;
@@ -139,42 +136,8 @@ public class ProcessamentoListaService : IProcessamentoListaService
         // 3. Verificar/criar produto
         var produto = await ObterOuCriarProdutoAsync(itemAnalisado.NomeProduto, itemAnalisado.Unidade, null, categoria, cancellationToken);
 
-        // 4. Consultar preço externo
-        decimal? precoUnitario = null;
-        try
-        {
-            var precoExterno = await _precoExternoApi.ConsultarPrecoAsync(produto.Nome, cancellationToken);
-            if (precoExterno.Sucesso && precoExterno.Preco.HasValue)
-            {
-                // Registrar no histórico de preços
-                var historicoPreco = new HistoricoPreco
-                {
-                    Id = Guid.NewGuid(),
-                    ProdutoId = produto.Id,
-                    PrecoUnitario = precoExterno.Preco.Value,
-                    DataConsulta = DateTime.UtcNow,
-                    FontePreco = precoExterno.Fonte,
-                    EmpresaId = lista.EmpresaId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _historicoPrecoRepository.AddAsync(historicoPreco, cancellationToken);
-                precoUnitario = precoExterno.Preco;
-
-                _logger.LogInformation("Preço registrado para {Produto}: {Preco}", produto.Nome, precoExterno.Preco);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Erro ao consultar preço para {Produto}", produto.Nome);
-            // Não falha o processamento se a consulta de preço falhar
-        }
-
-        // Se não conseguiu preço externo, busca o último preço conhecido
-        if (!precoUnitario.HasValue)
-        {
-            var ultimoPreco = await ObterUltimoPrecoAsync(produto.Id, cancellationToken);
-            precoUnitario = ultimoPreco;
-        }
+        // 4. Buscar último preço conhecido (se houver)
+        var precoUnitario = await ObterUltimoPrecoAsync(produto.Id, cancellationToken);
 
         // 5. Criar item da lista
         var itemLista = new ItemListaDeCompras

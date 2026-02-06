@@ -44,7 +44,6 @@ builder.Services.AddScoped<IProcessamentoListaService, ProcessamentoListaService
 
 // Jobs do Hangfire
 builder.Services.AddScoped<ProcessamentoListaJob>();
-builder.Services.AddScoped<AtualizacaoPrecosJob>();
 builder.Services.AddScoped<LimpezaHistoricoJob>();
 
 // Hangfire
@@ -112,13 +111,6 @@ app.Run();
 
 void ConfigurarJobsRecorrentes()
 {
-    // Atualização de preços - executa a cada 6 horas
-    RecurringJob.AddOrUpdate<AtualizacaoPrecosJob>(
-        "atualizacao-precos",
-        job => job.ExecuteAsync(CancellationToken.None),
-        "0 */6 * * *", // Cron: a cada 6 horas
-        new RecurringJobOptions { TimeZone = TimeZoneInfo.Local });
-
     // Limpeza de histórico - executa diariamente às 3h da manhã
     RecurringJob.AddOrUpdate<LimpezaHistoricoJob>(
         "limpeza-historico",

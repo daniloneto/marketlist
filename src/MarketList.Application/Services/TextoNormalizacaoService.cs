@@ -18,10 +18,17 @@ public class TextoNormalizacaoService : ITextoNormalizacaoService
         // 2. Remover acentos
         texto = RemoverAcentos(texto);
 
-        // 3. Remover pontuação (mantém apenas letras, números e espaços)
-        texto = Regex.Replace(texto, @"[^A-Z0-9\s]", "");
+        // 3. Preservar números decimais (vírgula ou ponto entre dígitos)
+        // Marca temporariamente para não perder
+        texto = Regex.Replace(texto, @"(\d)[,.](\d)", "$1<<<DECIMAL>>>$2");
 
-        // 4. Remover espaços duplicados e trim
+        // 4. Substituir pontuação por espaços (caracteres especiais que não são letras/números/espaços)
+        texto = Regex.Replace(texto, @"[^A-Z0-9\s]", " ");
+
+        // 5. Restaurar os decimais (usando vírgula como padrão brasileiro)
+        texto = texto.Replace("<<<DECIMAL>>>", ",");
+
+        // 6. Remover espaços duplicados e trim
         texto = Regex.Replace(texto, @"\s+", " ").Trim();
 
         return texto;

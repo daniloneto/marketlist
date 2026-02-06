@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketList.API.Controllers;
@@ -10,11 +11,16 @@ public class ProdutosController : ControllerBase
 {
     private readonly IProdutoService _produtoService;
     private readonly IHistoricoPrecoService _historicoPrecoService;
+    private readonly ISinonimoRepository _sinonimoRepository;
 
-    public ProdutosController(IProdutoService produtoService, IHistoricoPrecoService historicoPrecoService)
+    public ProdutosController(
+        IProdutoService produtoService, 
+        IHistoricoPrecoService historicoPrecoService,
+        ISinonimoRepository sinonimoRepository)
     {
         _produtoService = produtoService;
         _historicoPrecoService = historicoPrecoService;
+        _sinonimoRepository = sinonimoRepository;
     }
 
     /// <summary>
@@ -115,5 +121,29 @@ public class ProdutosController : ControllerBase
     {
         var texto = await _produtoService.GerarListaSimplesAsync(cancellationToken);
         return Ok(texto);
+    }
+
+    /// <summary>
+    /// [DEBUG] Obtém os sinônimos de um produto
+    /// </summary>
+    [HttpGet("{id:guid}/sinonimos")]
+    public async Task<ActionResult> GetSinonimos(Guid id, CancellationToken cancellationToken)
+    {
+        var sinonimos = await _sinonimoRepository.GetAllAsync(cancellationToken);
+        var sinonimosDoProduto = sinonimos.Where(s => s.ProdutoId == id).ToList();
+        
+        return Ok(new
+        {
+            produtoId = id,
+            totalSinonimos = sinonimosDoProduto.Count,
+            sinonimos = sinonimosDoProduto.Select(s => new
+            {
+                s.Id,
+                s.TextoOriginal,
+                s.TextoNormalizado,
+                s.FonteOrigem,
+                s.CreatedAt
+            })
+        });
     }
 }

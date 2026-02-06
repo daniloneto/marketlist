@@ -98,6 +98,9 @@ public class ProdutoAprovacaoService : IProdutoAprovacaoService
             };
 
             await _sinonimoRepository.AddAsync(sinonimo, cancellationToken);
+            
+            _logger.LogInformation("Sinônimo criado: '{TextoOriginal}' -> '{TextoNormalizado}' para produto {ProdutoId}", 
+                nomeAntigo, nomeAntigoNormalizado, produtoId);
 
             // Atualizar produto com nome correto
             produto.Nome = aprovacao.NomeCorrigido;
@@ -105,6 +108,11 @@ public class ProdutoAprovacaoService : IProdutoAprovacaoService
             
             _logger.LogInformation("Nome do produto {ProdutoId} corrigido: '{NomeAntigo}' -> '{NomeNovo}'", 
                 produtoId, nomeAntigo, aprovacao.NomeCorrigido);
+        }
+        else if (!string.IsNullOrWhiteSpace(aprovacao.NomeCorrigido))
+        {
+            _logger.LogWarning("Sinônimo NÃO criado para produto {ProdutoId}. Nome atual: '{NomeAtual}', Nome corrigido: '{NomeCorrigido}'", 
+                produtoId, produto.Nome, aprovacao.NomeCorrigido);
         }
 
         // 2. Corrigir categoria se fornecida

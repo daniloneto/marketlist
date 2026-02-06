@@ -1,13 +1,8 @@
 namespace MarketList.Application.DTOs;
 
-public record PrecoExternoDto(
-    string NomeProduto,
-    decimal? Preco,
-    string? Fonte,
-    bool Sucesso,
-    string? Erro
-);
-
+/// <summary>
+/// DTO que representa um item analisado de uma lista de compras simples (texto livre)
+/// </summary>
 public record ItemAnalisadoDto(
     string TextoOriginal,
     string NomeProduto,

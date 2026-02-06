@@ -4,7 +4,6 @@ using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
 using MarketList.Infrastructure.Repositories;
-using MarketList.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,19 +42,6 @@ public static class DependencyInjection
         services.AddScoped<IProdutoResolverService, ProdutoResolverService>();
         services.AddScoped<ICategoriaClassificadorService, CategoriaClassificadorService>();
         services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
-
-        // External Services (Mock)
-        services.AddScoped<IPrecoExternoApi, PrecoExternoApiMock>();
-
-        // Price Lookup Service (Desabilitado - serviço com proteção anti-bot)
-        services.AddHttpClient<PrecoDaHoraPriceLookupService>(client =>
-        {
-            client.BaseAddress = new Uri("https://precodahora.ba.gov.br");
-            client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("User-Agent", 
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-        });
-        services.AddScoped<IPriceLookupService, PrecoDaHoraPriceLookupService>();
 
         return services;
     }

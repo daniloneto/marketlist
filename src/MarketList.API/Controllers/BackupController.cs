@@ -2,6 +2,7 @@ using MarketList.Domain.Entities;
 using MarketList.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -23,66 +24,84 @@ public class BackupController : ControllerBase
 
     /// <summary>
     /// Obtém todos os DbSets do contexto ordenados por dependências (tabelas pai primeiro)
+    /// A ordem é FIXA para garantir que as FKs sejam respeitadas na importação
     /// </summary>
     private List<(string Name, Type EntityType)> GetOrderedDbSets()
     {
-        var dbSetProperties = _context.GetType()
-            .GetProperties()
-            .Where(p => p.PropertyType.IsGenericType &&
-                       p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>) &&
-                       p.PropertyType.GetGenericArguments()[0].IsSubclassOf(typeof(BaseEntity)))
-            .Select(p => (
-                Name: p.Name,
-                EntityType: p.PropertyType.GetGenericArguments()[0]
-            ))
-            .ToList();
-
-        // Ordena por dependências usando o metadata do EF Core
-        var entityTypes = _context.Model.GetEntityTypes().ToList();
-        var ordered = new List<(string Name, Type EntityType)>();
-        var remaining = new HashSet<Type>(dbSetProperties.Select(x => x.EntityType));
-
-        while (remaining.Count > 0)
+        // Ordem fixa garantida por dependências:
+        // 1. Tabelas sem dependências
+        // 2. Tabelas que dependem das anteriores
+        var orderedTypes = new List<(string Name, Type EntityType)>
         {
-            var added = false;
-            foreach (var item in dbSetProperties.Where(x => remaining.Contains(x.EntityType)))
-            {
-                var efEntityType = entityTypes.FirstOrDefault(e => e.ClrType == item.EntityType);
-                if (efEntityType == null) continue;
+            ("Categorias", typeof(Categoria)),
+            ("Empresas", typeof(Empresa)),
+            ("Produtos", typeof(Produto)),
+            ("SinonimosProduto", typeof(SinonimoProduto)),
+            ("HistoricoPrecos", typeof(HistoricoPreco)),
+            ("RegrasClassificacaoCategoria", typeof(RegraClassificacaoCategoria)),
+            ("ListasDeCompras", typeof(ListaDeCompras)),
+            ("ItensListaDeCompras", typeof(ItemListaDeCompras)),
+        };
 
-                // Verifica se todas as dependências (foreign keys) já foram adicionadas
-                var foreignKeys = efEntityType.GetForeignKeys();
-                var dependencies = foreignKeys
-                    .Select(fk => fk.PrincipalEntityType.ClrType)
-                    .Where(t => t != item.EntityType) // Ignora auto-referências
-                    .ToList();
-
-                if (dependencies.All(d => !remaining.Contains(d)))
-                {
-                    ordered.Add(item);
-                    remaining.Remove(item.EntityType);
-                    added = true;
-                }
-            }
-
-            // Se não conseguiu adicionar nenhum, adiciona o primeiro restante (ciclo ou erro)
-            if (!added && remaining.Count > 0)
-            {
-                var first = dbSetProperties.First(x => remaining.Contains(x.EntityType));
-                ordered.Add(first);
-                remaining.Remove(first.EntityType);
-            }
-        }
-
-        return ordered;
+        return orderedTypes;
     }
 
     /// <summary>
-    /// Método auxiliar genérico para obter todos os registros de uma entidade
+    /// Método auxiliar genérico para obter todos os registros de uma entidade com suas relações (até 2 níveis)
     /// </summary>
     private async Task<List<T>> GetAllEntitiesAsync<T>(CancellationToken cancellationToken) where T : BaseEntity
     {
-        return await _context.Set<T>().AsNoTracking().ToListAsync(cancellationToken);
+        // Para entidades específicas que precisam de relações aninhadas, usa métodos dedicados
+        if (typeof(T) == typeof(Categoria))
+        {
+            var categorias = await _context.Categorias
+                .AsNoTracking()
+                .Include(c => c.Produtos)
+                    .ThenInclude(p => p.Sinonimos)
+                .Include(c => c.Produtos)
+                    .ThenInclude(p => p.HistoricoPrecos)
+                .ToListAsync(cancellationToken);
+            return (categorias as List<T>)!;
+        }
+
+        if (typeof(T) == typeof(Produto))
+        {
+            var produtos = await _context.Produtos
+                .AsNoTracking()
+                .Include(p => p.Sinonimos)
+                .Include(p => p.HistoricoPrecos)
+                .Include(p => p.ItensLista)
+                .ToListAsync(cancellationToken);
+            return (produtos as List<T>)!;
+        }
+
+        if (typeof(T) == typeof(ListaDeCompras))
+        {
+            var listas = await _context.ListasDeCompras
+                .AsNoTracking()
+                .Include(l => l.Itens)
+                .ToListAsync(cancellationToken);
+            return (listas as List<T>)!;
+        }
+
+        // Para outras entidades, carrega com navegações de primeiro nível
+        IQueryable<T> query = _context.Set<T>().AsNoTracking();
+        
+        var entityType = _context.Model.FindEntityType(typeof(T));
+        if (entityType != null)
+        {
+            var navigations = entityType.GetNavigations()
+                .Where(n => n.IsCollection)
+                .Select(n => n.Name)
+                .ToList();
+            
+            foreach (var navigation in navigations)
+            {
+                query = EntityFrameworkQueryableExtensions.Include(query, navigation);
+            }
+        }
+        
+        return await query.ToListAsync(cancellationToken);
     }
 
     /// <summary>
@@ -193,24 +212,43 @@ public class BackupController : ControllerBase
             };
 
             // Importa na ordem correta (tabelas pai primeiro)
+            _logger.LogInformation("Ordem de importação: {Ordem}", string.Join(" -> ", dbSets.Select(d => d.Name)));
+            
+            // Log das chaves encontradas no JSON
+            var jsonKeys = jsonNode.AsObject().Select(p => p.Key).ToList();
+            _logger.LogInformation("Chaves encontradas no JSON: {Keys}", string.Join(", ", jsonKeys));
+            
             foreach (var (name, entityType) in dbSets)
             {
                 var entityResult = new EntityImportResult();
                 result[name] = entityResult;
 
-                var dataNode = jsonNode[name] ?? jsonNode[char.ToLower(name[0]) + name[1..]];
-                if (dataNode == null) continue;
+                // Tenta encontrar a chave no JSON (camelCase ou PascalCase)
+                var nameCamelCase = char.ToLower(name[0]) + name[1..];
+                var dataNode = jsonNode[nameCamelCase] ?? jsonNode[name];
+                if (dataNode == null)
+                {
+                    _logger.LogWarning("Entidade {Name} (ou {CamelCase}) não encontrada no backup. Chaves disponíveis: {Keys}", 
+                        name, nameCamelCase, string.Join(", ", jsonKeys));
+                    continue;
+                }
 
                 var listType = typeof(List<>).MakeGenericType(entityType);
                 var items = JsonSerializer.Deserialize(dataNode.ToJsonString(), listType, options) as System.Collections.IList;
 
-                if (items == null || items.Count == 0) continue;
+                if (items == null || items.Count == 0) 
+                {
+                    _logger.LogInformation("Entidade {Name}: 0 registros", name);
+                    continue;
+                }
+                
+                _logger.LogInformation("Importando {Name}: {Count} registros", name, items.Count);
 
                 foreach (var item in items)
                 {
                     var entity = (BaseEntity)item;
 
-                    // Verifica se já existe
+                    // Verifica se já existe no banco
                     var existsMethod = typeof(BackupController)
                         .GetMethod(nameof(EntityExistsAsync), BindingFlags.NonPublic | BindingFlags.Instance)!
                         .MakeGenericMethod(entityType);
@@ -220,7 +258,10 @@ public class BackupController : ControllerBase
 
                     if (!exists)
                     {
-                        _context.Add(item);
+                        // Insere via SQL direto para TODAS as entidades
+                        // Isso preserva os IDs originais e evita problemas com
+                        // cascade inserts de navigation properties
+                        await InsertEntityViaSqlAsync(item, entityType, cancellationToken);
                         entityResult.Imported++;
                     }
                     else
@@ -229,8 +270,8 @@ public class BackupController : ControllerBase
                     }
                 }
 
-                // Salva após cada entidade para respeitar foreign keys
-                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Entidade {Name}: {Imported} importados, {Skipped} ignorados", 
+                    name, entityResult.Imported, entityResult.Skipped);
             }
 
             await transaction.CommitAsync(cancellationToken);
@@ -264,6 +305,54 @@ public class BackupController : ControllerBase
     private async Task<bool> EntityExistsAsync<T>(Guid id, CancellationToken cancellationToken) where T : BaseEntity
     {
         return await _context.Set<T>().AnyAsync(x => x.Id == id, cancellationToken);
+    }
+
+    /// <summary>
+    /// Insere uma entidade diretamente via SQL, usando metadados do EF Core para descobrir
+    /// nomes de tabela/colunas. Ignora navigation properties completamente, preserva IDs originais.
+    /// </summary>
+    private async Task InsertEntityViaSqlAsync(object entity, Type entityType, CancellationToken ct)
+    {
+        var efEntityType = _context.Model.FindEntityType(entityType)
+            ?? throw new InvalidOperationException($"Tipo {entityType.Name} não encontrado no modelo EF Core");
+
+        var tableName = efEntityType.GetTableName()!;
+        var schema = efEntityType.GetSchema();
+        var storeObject = StoreObjectIdentifier.Table(tableName, schema);
+
+        // GetProperties() retorna apenas propriedades escalares (não navigations)
+        var properties = efEntityType.GetProperties()
+            .Where(p => !p.IsShadowProperty() && entityType.GetProperty(p.Name) != null)
+            .ToList();
+
+        var columns = new List<string>();
+        var paramPlaceholders = new List<string>();
+        var values = new List<object>();
+        int paramIndex = 0;
+
+        for (int i = 0; i < properties.Count; i++)
+        {
+            var prop = properties[i];
+            var columnName = prop.GetColumnName(storeObject) ?? prop.Name;
+            var value = entityType.GetProperty(prop.Name)!.GetValue(entity);
+
+            columns.Add(columnName);
+
+            if (value == null)
+            {
+                // Null values go directly in SQL, no parameter needed
+                paramPlaceholders.Add("NULL");
+            }
+            else
+            {
+                paramPlaceholders.Add($"{{{paramIndex}}}");
+                values.Add(value);
+                paramIndex++;
+            }
+        }
+
+        var sql = $"INSERT INTO {tableName} ({string.Join(", ", columns)}) VALUES ({string.Join(", ", paramPlaceholders)})";
+        await _context.Database.ExecuteSqlRawAsync(sql, values.ToArray(), ct);
     }
 
     /// <summary>
@@ -302,6 +391,68 @@ public class BackupController : ControllerBase
         };
 
         return Ok(info);
+    }
+
+    /// <summary>
+    /// Analisa um arquivo de backup sem importar (diagnóstico)
+    /// </summary>
+    [HttpPost("analyze")]
+    public async Task<IActionResult> AnalyzeBackup(IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { error = "Nenhum arquivo enviado" });
+
+        try
+        {
+            using var stream = new StreamReader(file.OpenReadStream());
+            var json = await stream.ReadToEndAsync(cancellationToken);
+
+            var jsonNode = JsonNode.Parse(json);
+            if (jsonNode == null)
+                return BadRequest(new { error = "Arquivo de backup inválido" });
+
+            var analysis = new Dictionary<string, object>();
+            var dbSets = GetOrderedDbSets();
+
+            foreach (var (name, entityType) in dbSets)
+            {
+                var nameCamelCase = char.ToLower(name[0]) + name[1..];
+                var dataNode = jsonNode[nameCamelCase] ?? jsonNode[name];
+                
+                if (dataNode is JsonArray arr)
+                {
+                    analysis[name] = new
+                    {
+                        found = true,
+                        count = arr.Count,
+                        keyInJson = jsonNode[nameCamelCase] != null ? nameCamelCase : name
+                    };
+                }
+                else
+                {
+                    analysis[name] = new
+                    {
+                        found = false,
+                        count = 0,
+                        keyInJson = (string?)null
+                    };
+                }
+            }
+
+            // Mostra todas as chaves encontradas no JSON
+            var allKeys = jsonNode.AsObject().Select(p => p.Key).ToList();
+
+            return Ok(new
+            {
+                expectedOrder = dbSets.Select(d => d.Name).ToList(),
+                keysInJson = allKeys,
+                analysis
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = "Erro ao analisar backup", details = ex.Message });
+        }
     }
 }
 
