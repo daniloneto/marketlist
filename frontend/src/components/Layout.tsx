@@ -26,6 +26,7 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { backupService, type ImportResult } from '../services/backupService';
+import { ChatAssistant } from './ChatAssistant';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -235,6 +236,8 @@ export function Layout({ children }: LayoutProps) {
           </Group>
         </Stack>
       </Modal>
+
+      <ChatAssistant />
     </AppShell>
   );
 }

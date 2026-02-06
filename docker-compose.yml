@@ -18,6 +18,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # Ollama LLM Service (optional)
+  # Pode ser comentado se usar outro provider (OpenAI, Anthropic)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: marketlist-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    # Remova a linha abaixo se quiser executar apenas em CPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   api:
     build:
       context: .
@@ -27,11 +52,25 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=marketlist;Username=postgres;Password=postgres
+      # Configuração do MCP Client
+      - MCP__Provider=ollama
+      - MCP__Endpoint=http://ollama:11434/api/chat
+      - MCP__Model=mistral
+      - MCP__Temperature=0.7
+      - MCP__MaxTokens=2048
+      # Para usar OpenAI ao invés de Ollama, use:
+      # - MCP__Provider=openai
+      # - MCP__Endpoint=https://api.openai.com/v1/chat/completions
+      # - MCP__ApiKey=seu_api_key_aqui
+      # - MCP__Model=gpt-3.5-turbo
     ports:
       - "5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  ollama_data:
