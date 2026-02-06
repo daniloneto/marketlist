@@ -16,6 +16,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<ListaDeCompras> ListasDeCompras => Set<ListaDeCompras>();
     public DbSet<ItemListaDeCompras> ItensListaDeCompras => Set<ItemListaDeCompras>();
     public DbSet<Empresa> Empresas => Set<Empresa>();
+    public DbSet<SinonimoProduto> SinonimosProduto => Set<SinonimoProduto>();
+    public DbSet<RegraClassificacaoCategoria> RegrasClassificacaoCategoria => Set<RegraClassificacaoCategoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

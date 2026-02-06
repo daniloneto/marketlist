@@ -109,4 +109,11 @@ public class ProdutosController : ControllerBase
         var historico = await _historicoPrecoService.GetByProdutoAsync(id, cancellationToken);
         return Ok(historico);
     }
+
+    [HttpGet("lista-simples")]
+    public async Task<ActionResult<string>> GerarListaSimples(CancellationToken cancellationToken)
+    {
+        var texto = await _produtoService.GerarListaSimplesAsync(cancellationToken);
+        return Ok(texto);
+    }
 }

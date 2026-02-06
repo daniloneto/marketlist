@@ -4,3 +4,4 @@ export { CategoriasPage } from './CategoriasPage';
 export { ProdutosPage } from './ProdutosPage';
 export { HistoricoPrecosPage } from './HistoricoPrecosPage';
 export { EmpresasPage } from './EmpresasPage';
+export { RevisaoProdutosPage } from './RevisaoProdutosPage';

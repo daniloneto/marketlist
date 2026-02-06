@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconHistory } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconHistory, IconList, IconCopy } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
 import { LoadingState, ErrorState } from '../components';
 import type { ProdutoDto, ProdutoCreateDto, HistoricoPrecoDto } from '../types';
@@ -29,6 +29,8 @@ export function ProdutosPage() {
   const [historicoModalOpen, setHistoricoModalOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<ProdutoDto | null>(null);
   const [historico, setHistorico] = useState<HistoricoPrecoDto[]>([]);
+  const [listaModalOpen, setListaModalOpen] = useState(false);
+  const [listaTexto, setListaTexto] = useState('');
 
   const { data: produtos, isLoading, error, refetch } = useQuery({
     queryKey: ['produtos'],
@@ -101,7 +103,7 @@ export function ProdutosPage() {
     onError: () => {
       notifications.show({
         title: 'Erro',
-        message: 'Não é possível excluir este produto',
+        message: 'Erro ao excluir produto',
         color: 'red',
       });
     },
@@ -128,6 +130,37 @@ export function ProdutosPage() {
     const data = await produtoService.getHistoricoPrecos(produto.id);
     setHistorico(data);
     setHistoricoModalOpen(true);
+  };
+
+  const handleGerarLista = async () => {
+    try {
+      const texto = await produtoService.gerarListaSimples();
+      setListaTexto(texto);
+      setListaModalOpen(true);
+    } catch {
+      notifications.show({
+        title: 'Erro',
+        message: 'Erro ao gerar lista simples',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleCopiarLista = async () => {
+    try {
+      await navigator.clipboard.writeText(listaTexto);
+      notifications.show({
+        title: 'Copiado!',
+        message: 'Lista copiada para a área de transferência',
+        color: 'green',
+      });
+    } catch {
+      notifications.show({
+        title: 'Erro',
+        message: 'Não foi possível copiar',
+        color: 'red',
+      });
+    }
   };
 
   const formatCurrency = (value: number | null) => {
@@ -160,9 +193,14 @@ export function ProdutosPage() {
     <>
       <Group justify="space-between" mb="md">
         <Title order={2}>Produtos</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
-          Novo Produto
-        </Button>
+        <Group>
+          <Button variant="light" leftSection={<IconList size={16} />} onClick={handleGerarLista}>
+            Gerar lista simples
+          </Button>
+          <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
+            Novo Produto
+          </Button>
+        </Group>
       </Group>
 
       <Paper shadow="xs" p="md">
@@ -333,6 +371,32 @@ export function ProdutosPage() {
             </Table.Tbody>
           </Table>
         )}
+      </Modal>
+
+      {/* Modal de Lista Simples */}
+      <Modal
+        opened={listaModalOpen}
+        onClose={() => setListaModalOpen(false)}
+        title="Lista de Compras Simples"
+        size="md"
+      >
+        <Stack>
+          <Textarea
+            value={listaTexto}
+            readOnly
+            autosize
+            minRows={10}
+            maxRows={20}
+          />
+          <Group justify="flex-end">
+            <Button
+              leftSection={<IconCopy size={16} />}
+              onClick={handleCopiarLista}
+            >
+              Copiar
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </>
   );

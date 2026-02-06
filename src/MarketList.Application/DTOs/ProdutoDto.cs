@@ -30,3 +30,23 @@ public record ProdutoResumoDto(
     string Nome,
     string? Unidade
 );
+
+public record ProdutoPendenteDto(
+    Guid Id,
+    string Nome,
+    string? Descricao,
+    string? Unidade,
+    string? CodigoLoja,
+    Guid CategoriaId,
+    string CategoriaNome,
+    bool PrecisaRevisao,
+    bool CategoriaPrecisaRevisao,
+    DateTime CreatedAt,
+    List<ProdutoResumoDto> ProdutosSimilares
+);
+
+public record ProdutoAprovacaoDto(
+    string? NomeCorrigido,
+    Guid? CategoriaIdCorrigida,
+    Guid? VincularAoProdutoId
+);

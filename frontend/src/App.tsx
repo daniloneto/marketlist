@@ -15,6 +15,7 @@ import {
   ProdutosPage,
   HistoricoPrecosPage,
   EmpresasPage,
+  RevisaoProdutosPage,
 } from './pages';
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ function App() {
               <Route path="/listas/:id" element={<ListaDetalhePage />} />
               <Route path="/categorias" element={<CategoriasPage />} />
               <Route path="/produtos" element={<ProdutosPage />} />
+              <Route path="/revisao-produtos" element={<RevisaoProdutosPage />} />
               <Route path="/historico-precos" element={<HistoricoPrecosPage />} />
               <Route path="/empresas" element={<EmpresasPage />} />
             </Routes>

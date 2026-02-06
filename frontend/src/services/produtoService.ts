@@ -1,5 +1,13 @@
 import api from './api';
-import type { ProdutoDto, ProdutoCreateDto, ProdutoUpdateDto, HistoricoPrecoDto } from '../types';
+import type { 
+  ProdutoDto, 
+  ProdutoCreateDto, 
+  ProdutoUpdateDto, 
+  HistoricoPrecoDto,
+  ProdutoPendenteDto,
+  ProdutoAprovacaoDto,
+  ProdutoResumoDto 
+} from '../types';
 
 export const produtoService = {
   getAll: async (): Promise<ProdutoDto[]> => {
@@ -33,6 +41,29 @@ export const produtoService = {
 
   getHistoricoPrecos: async (id: string): Promise<HistoricoPrecoDto[]> => {
     const response = await api.get<HistoricoPrecoDto[]>(`/produtos/${id}/historico-precos`);
+    return response.data;
+  },
+
+  // Revisão de Produtos
+  getPendentes: async (): Promise<ProdutoPendenteDto[]> => {
+    const response = await api.get<ProdutoPendenteDto[]>('/revisao-produtos/pendentes');
+    return response.data;
+  },
+
+  aprovar: async (id: string, data: ProdutoAprovacaoDto): Promise<void> => {
+    await api.post(`/revisao-produtos/${id}/aprovar`, data);
+  },
+
+  vincular: async (idOrigem: string, idDestino: string): Promise<void> => {
+    await api.post(`/revisao-produtos/${idOrigem}/vincular/${idDestino}`);
+  },
+
+  getSimilares: async (id: string): Promise<ProdutoResumoDto[]> => {
+    const response = await api.get<ProdutoResumoDto[]>(`/revisao-produtos/${id}/similares`);
+    return response.data;
+  },
+  gerarListaSimples: async (): Promise<string> => {
+    const response = await api.get<string>('/produtos/lista-simples');
     return response.data;
   },
 };

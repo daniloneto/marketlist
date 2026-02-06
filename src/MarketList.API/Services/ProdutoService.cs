@@ -189,4 +189,75 @@ public class ProdutoService : IProdutoService
 
         return true;
     }
+
+    public async Task<string> GerarListaSimplesAsync(CancellationToken cancellationToken = default)
+    {
+        var produtos = await _context.Produtos
+            .Include(p => p.Categoria)
+            .OrderBy(p => p.Categoria.Nome)
+            .ThenBy(p => p.Nome)
+            .ToListAsync(cancellationToken);
+
+        // Buscar a última quantidade de cada produto nas listas
+        var produtoIds = produtos.Select(p => p.Id).ToList();
+        var ultimasQuantidades = await _context.ItensListaDeCompras
+            .Where(i => produtoIds.Contains(i.ProdutoId))
+            .GroupBy(i => i.ProdutoId)
+            .Select(g => new
+            {
+                ProdutoId = g.Key,
+                Quantidade = g.OrderByDescending(i => i.CreatedAt).First().Quantidade
+            })
+            .ToDictionaryAsync(x => x.ProdutoId, x => x.Quantidade, cancellationToken);
+
+        // Buscar o último preço de cada produto
+        var ultimosPrecos = await _context.HistoricoPrecos
+            .Where(h => produtoIds.Contains(h.ProdutoId))
+            .GroupBy(h => h.ProdutoId)
+            .Select(g => new
+            {
+                ProdutoId = g.Key,
+                Preco = g.OrderByDescending(h => h.DataConsulta).First().PrecoUnitario
+            })
+            .ToDictionaryAsync(x => x.ProdutoId, x => x.Preco, cancellationToken);
+
+        var agrupados = produtos.GroupBy(p => p.Categoria.Nome);
+
+        var sb = new System.Text.StringBuilder();
+        var primeiro = true;
+
+        foreach (var grupo in agrupados)
+        {
+            if (!primeiro)
+                sb.AppendLine();
+
+            sb.AppendLine(grupo.Key);
+
+            foreach (var produto in grupo)
+            {
+                var quantidade = ultimasQuantidades.ContainsKey(produto.Id)
+                    ? ultimasQuantidades[produto.Id]
+                    : 1;
+
+                // Formatar quantidade: se for inteiro, sem casas decimais
+                var qtdFormatada = quantidade % 1 == 0
+                    ? quantidade.ToString("0")
+                    : quantidade.ToString("0.##");
+
+                var unidade = !string.IsNullOrWhiteSpace(produto.Unidade) 
+                    ? produto.Unidade.ToLower() 
+                    : "un";
+
+                var precoFormatado = ultimosPrecos.ContainsKey(produto.Id)
+                    ? ultimosPrecos[produto.Id].ToString("C", new System.Globalization.CultureInfo("pt-BR"))
+                    : "-";
+
+                sb.AppendLine($"{qtdFormatada} {unidade} {produto.Nome} {precoFormatado}");
+            }
+
+            primeiro = false;
+        }
+
+        return sb.ToString().TrimEnd();
+    }
 }

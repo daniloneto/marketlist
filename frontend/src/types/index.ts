@@ -93,6 +93,32 @@ export interface ProdutoUpdateDto {
   categoriaId: string;
 }
 
+export interface ProdutoResumoDto {
+  id: string;
+  nome: string;
+  unidade: string | null;
+}
+
+export interface ProdutoPendenteDto {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  unidade: string | null;
+  codigoLoja: string | null;
+  categoriaId: string;
+  categoriaNome: string;
+  precisaRevisao: boolean;
+  categoriaPrecisaRevisao: boolean;
+  createdAt: string;
+  produtosSimilares: ProdutoResumoDto[];
+}
+
+export interface ProdutoAprovacaoDto {
+  nomeCorrigido?: string | null;
+  categoriaIdCorrigida?: string | null;
+  vincularAoProdutoId?: string | null;
+}
+
 export interface HistoricoPrecoDto {
   id: string;
   produtoId: string;

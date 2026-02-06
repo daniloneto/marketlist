@@ -26,15 +26,23 @@ public static class DependencyInjection
         // Unit of Work
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
 
-        // Repositories
+        // Repositories - Generic
         services.AddScoped<IRepository<Categoria>, Repository<Categoria>>();
-        services.AddScoped<IRepository<Produto>, Repository<Produto>>();
         services.AddScoped<IRepository<HistoricoPreco>, Repository<HistoricoPreco>>();
         services.AddScoped<IRepository<ListaDeCompras>, Repository<ListaDeCompras>>();
-        services.AddScoped<IRepository<ItemListaDeCompras>, Repository<ItemListaDeCompras>>();        // Application Services
+        services.AddScoped<IRepository<ItemListaDeCompras>, Repository<ItemListaDeCompras>>();
+        
+        // Repositories - Specialized
+        services.AddScoped<IProdutoRepository, ProdutoRepository>();
+        services.AddScoped<ISinonimoRepository, SinonimoRepository>();
+        services.AddScoped<IRegraClassificacaoRepository, RegraClassificacaoRepository>();        // Application Services
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
         services.AddScoped<ILeitorNotaFiscal, LeitorNotaFiscal>();
         services.AddScoped<IProcessamentoListaService, ProcessamentoListaService>();
+        services.AddScoped<ITextoNormalizacaoService, TextoNormalizacaoService>();
+        services.AddScoped<IProdutoResolverService, ProdutoResolverService>();
+        services.AddScoped<ICategoriaClassificadorService, CategoriaClassificadorService>();
+        services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
 
         // External Services (Mock)
         services.AddScoped<IPrecoExternoApi, PrecoExternoApiMock>();

@@ -5,6 +5,7 @@ using MarketList.API.Services;
 using MarketList.Application.Interfaces;
 using MarketList.Application.Services;
 using MarketList.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,12 +84,25 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
 app.MapControllers();
 
-// Criar banco de dados se não existir (apenas desenvolvimento)
-if (app.Environment.IsDevelopment())
+// Aplicar migrations automaticamente
+try
 {
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<MarketList.Infrastructure.Data.AppDbContext>();
-    context.Database.EnsureCreated();
+    using (var scope = app.Services.CreateScope())
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Iniciando aplicação de migrations...");
+        
+        var context = scope.ServiceProvider.GetRequiredService<MarketList.Infrastructure.Data.AppDbContext>();
+        context.Database.Migrate();
+        
+        logger.LogInformation("Migrations aplicadas com sucesso!");
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Erro ao aplicar migrations");
+    throw;
 }
 
 // Configurar Jobs Recorrentes do Hangfire

@@ -58,7 +58,7 @@ public class ItemListaDeComprasConfiguration : IEntityTypeConfiguration<ItemList
         builder.HasOne(i => i.Produto)
             .WithMany(p => p.ItensLista)
             .HasForeignKey(i => i.ProdutoId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(i => i.ListaDeComprasId);
     }

@@ -10,25 +10,29 @@ namespace MarketList.Application.Services;
 public class ProcessamentoListaService : IProcessamentoListaService
 {
     private readonly IRepository<ListaDeCompras> _listaRepository;
-    private readonly IRepository<Produto> _produtoRepository;
+    private readonly IProdutoRepository _produtoRepository;
     private readonly IRepository<Categoria> _categoriaRepository;
     private readonly IRepository<HistoricoPreco> _historicoPrecoRepository;
     private readonly IRepository<ItemListaDeCompras> _itemRepository;
     private readonly IAnalisadorTextoService _analisadorTexto;
     private readonly ILeitorNotaFiscal _leitorNotaFiscal;
     private readonly IPrecoExternoApi _precoExternoApi;
+    private readonly IProdutoResolverService _produtoResolver;
+    private readonly ICategoriaClassificadorService _categoriaClassificador;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProcessamentoListaService> _logger;
 
     public ProcessamentoListaService(
         IRepository<ListaDeCompras> listaRepository,
-        IRepository<Produto> produtoRepository,
+        IProdutoRepository produtoRepository,
         IRepository<Categoria> categoriaRepository,
         IRepository<HistoricoPreco> historicoPrecoRepository,
         IRepository<ItemListaDeCompras> itemRepository,
         IAnalisadorTextoService analisadorTexto,
         ILeitorNotaFiscal leitorNotaFiscal,
         IPrecoExternoApi precoExternoApi,
+        IProdutoResolverService produtoResolver,
+        ICategoriaClassificadorService categoriaClassificador,
         IUnitOfWork unitOfWork,
         ILogger<ProcessamentoListaService> logger)
     {
@@ -40,6 +44,8 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _analisadorTexto = analisadorTexto;
         _leitorNotaFiscal = leitorNotaFiscal;
         _precoExternoApi = precoExternoApi;
+        _produtoResolver = produtoResolver;
+        _categoriaClassificador = categoriaClassificador;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }    public async Task ProcessarListaAsync(Guid listaId, CancellationToken cancellationToken = default)
@@ -277,50 +283,36 @@ public class ProcessamentoListaService : IProcessamentoListaService
         Categoria categoria, 
         CancellationToken cancellationToken)
     {
-        var produtos = await _produtoRepository.GetAllAsync(cancellationToken);
-        
-        // Se temos código da loja, usa como critério principal
-        Produto? produto = null;
-        if (!string.IsNullOrWhiteSpace(codigoLoja))
-        {
-            produto = produtos.FirstOrDefault(p => 
-                !string.IsNullOrWhiteSpace(p.CodigoLoja) && 
-                p.CodigoLoja.Equals(codigoLoja, StringComparison.OrdinalIgnoreCase));
-        }
-        
-        // Se não encontrou por código, busca por nome
-        if (produto == null)
-        {
-            produto = produtos.FirstOrDefault(p => 
-                p.Nome.Equals(nomeProduto, StringComparison.OrdinalIgnoreCase));
-        }
+        // 1. Classificar a categoria automaticamente baseado no nome do produto
+        var classificacao = await _categoriaClassificador.ClassificarAsync(nomeProduto, cancellationToken);
+        var categoriaId = classificacao.CategoriaId;
 
-        if (produto == null)
-        {
-            produto = new Produto
-            {
-                Id = Guid.NewGuid(),
-                Nome = nomeProduto,
-                Unidade = unidade,
-                CodigoLoja = codigoLoja,
-                CategoriaId = categoria.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _produtoRepository.AddAsync(produto, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // 2. Resolver o produto (buscar existente ou criar novo)
+        var resolucao = await _produtoResolver.ResolverProdutoAsync(
+            nomeOriginal: nomeProduto,
+            codigoLoja: codigoLoja,
+            categoriaId: categoriaId,
+            cancellationToken);
 
-            _logger.LogInformation("Produto criado: {Produto} (Código: {Codigo}) na categoria {Categoria}", 
-                nomeProduto, codigoLoja ?? "N/A", categoria.Nome);
-        }
-        else if (!string.IsNullOrWhiteSpace(codigoLoja) && string.IsNullOrWhiteSpace(produto.CodigoLoja))
+        var produto = resolucao.Produto;
+
+        // 3. Se o produto foi criado E a classificação foi de baixa confiança, marcar categoria para revisão
+        if (resolucao.FoiCriado && classificacao.Confianca == Confianca.Baixa)
         {
-            // Atualiza o código da loja se o produto já existia mas não tinha código
-            produto.CodigoLoja = codigoLoja;
+            produto.CategoriaPrecisaRevisao = true;
             await _produtoRepository.UpdateAsync(produto, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            
-            _logger.LogInformation("Código da loja atualizado para produto: {Produto} -> {Codigo}", 
-                nomeProduto, codigoLoja);
+
+            _logger.LogWarning("Produto '{Produto}' criado com categoria '{Categoria}' (baixa confiança - precisa revisão)",
+                nomeProduto, categoria.Nome);
+        }
+
+        // 4. Atualizar unidade se não existir e foi fornecida
+        if (!string.IsNullOrWhiteSpace(unidade) && string.IsNullOrWhiteSpace(produto.Unidade))
+        {
+            produto.Unidade = unidade;
+            await _produtoRepository.UpdateAsync(produto, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return produto;
