@@ -102,6 +102,75 @@ npm run dev
 
 O frontend estará disponível em: http://localhost:5173
 
+## 🤖 Assistente de Compras (Chat com IA)
+
+O MarketList inclui um assistente inteligente baseado em Model Context Protocol (MCP) que permite conversar sobre suas listas, produtos e preços.
+
+### Características do Assistente
+
+- **Buscas inteligentes**: Consulte histórico de compras e preços
+- **Sugestões de economia**: O assistente identifica oportunidades de economizar
+- **Criação assistida de listas**: Crie listas por conversa natural
+- **Análise de despesas**: Resumo de quanto você gastou
+
+### Configuração
+
+Os diferentes provedores de LLM podem ser configurados via variáveis de ambiente:
+
+#### 1. **Ollama (Gratuito, Local)**  [Recomendado para desenvolvimento]
+
+```bash
+docker-compose up -d ollama
+
+# Puxar modelo (primeira vez)
+docker exec marketlist-ollama ollama pull mistral
+
+# Variables no docker-compose ou .env:
+MCP_PROVIDER=ollama
+MCP_ENDPOINT=http://localhost:11434/api/chat
+MCP_MODEL=mistral
+```
+
+#### 2. **OpenAI GPT**
+
+```bash
+# .env ou docker-compose
+MCP_PROVIDER=openai
+MCP_ENDPOINT=https://api.openai.com/v1/chat/completions
+MCP_MODEL=gpt-3.5-turbo
+MCP_API_KEY=sk-...
+```
+
+#### 3. **Anthropic Claude**
+
+```bash
+# .env ou docker-compose
+MCP_PROVIDER=anthropic
+MCP_ENDPOINT=https://api.anthropic.com/v1/messages
+MCP_MODEL=claude-3-sonnet-20240229
+MCP_API_KEY=sk-ant-...
+```
+
+### Como Usar o Assistente
+
+1. Clique no botão de chat (💬) no canto inferior direito
+2. Faça suas perguntas em linguagem natural:
+   - "Quais são minhas últimas listas?"
+   - "Qual o preço do arroz agora?"
+   - "Crie uma lista com itens básicos"
+   - "Quanto gastei este mês?"
+
+### Tools Disponíveis
+
+O assistente tem acesso às seguintes ferramentas:
+
+- `get_shopping_lists` - Obtém últimas listas do usuário
+- `get_list_details` - Detalhes de uma lista específica
+- `search_products` - Busca de produtos por nome/categoria
+- `get_price_history` - Histórico de preços
+- `get_categories` - Lista de categorias
+- `get_stores` - Lista de supermercados
+
 ## Funcionalidades
 
 ### Listas de Compras

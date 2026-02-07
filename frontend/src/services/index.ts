@@ -4,4 +4,4 @@ export { historicoPrecoService } from './historicoPrecoService';
 export { listaDeComprasService } from './listaDeComprasService';
 export { empresaService } from './empresaService';
 export { backupService } from './backupService';
-export { default as api } from './api';
+export { sendChatMessage, streamChatMessage, getAvailableTools } from './chatService';

@@ -28,8 +28,22 @@ const queryClient = new QueryClient({
 });
 
 const theme = createTheme({
-  primaryColor: 'teal',
+  primaryColor: 'blue',
   fontFamily: 'Inter, system-ui, sans-serif',
+  colors: {
+    blue: [
+      '#e6f2ff',
+      '#b3d9ff',
+      '#80c0ff',
+      '#4da6ff',
+      '#1a8cff',
+      '#0257B2',
+      '#014a9a',
+      '#013d82',
+      '#01306a',
+      '#012352',
+    ],
+  },
 });
 
 function App() {
