@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using MarketList.Application.Interfaces;
 using MarketList.Domain.Interfaces;
@@ -7,7 +8,7 @@ namespace MarketList.Application.Services;
 
 /// <summary>
 /// Serviço do assistente de chat integrado com MCP
-/// Orquestra tools e comunicação com LLM
+/// Busca dados reais do banco e envia como contexto ao LLM
 /// </summary>
 public class ChatAssistantService : IChatAssistantService
 {
@@ -49,13 +50,19 @@ public class ChatAssistantService : IChatAssistantService
         {
             _logger.LogInformation("Processando mensagem do usuário: {UserId}", userId);
             
-            // Adiciona mensagem do usuário ao histórico
-            conversationHistory.Add(new ChatMessage { Role = "user", Content = userMessage });
+            // Busca dados relevantes do banco baseado na mensagem
+            var contextData = await GatherContextDataAsync(userMessage, cancellationToken);
+            
+            // Monta mensagem enriquecida com contexto real
+            var enrichedMessage = BuildEnrichedMessage(userMessage, contextData);
+            
+            // Adiciona mensagem ao histórico
+            conversationHistory.Add(new ChatMessage { Role = "user", Content = enrichedMessage });
 
-            // Obtém resposta do MCP
-            var response = await _mcpClient.SendMessageAsync(userMessage, conversationHistory, cancellationToken);
+            // Obtém resposta do LLM
+            var response = await _mcpClient.SendMessageAsync(enrichedMessage, conversationHistory, cancellationToken);
 
-            _logger.LogInformation("Resposta recebida do MCP");
+            _logger.LogInformation("Resposta recebida do LLM");
             return response;
         }
         catch (Exception ex)
@@ -71,30 +78,158 @@ public class ChatAssistantService : IChatAssistantService
         List<ChatMessage> conversationHistory,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        conversationHistory.Add(new ChatMessage { Role = "user", Content = userMessage });
+        _logger.LogInformation("Stream processando mensagem do usuário: {UserId}", userId);
+        
+        // Busca dados relevantes do banco
+        var contextData = await GatherContextDataAsync(userMessage, cancellationToken);
+        var enrichedMessage = BuildEnrichedMessage(userMessage, contextData);
+        
+        conversationHistory.Add(new ChatMessage { Role = "user", Content = enrichedMessage });
 
-        try
-        {
-            _logger.LogInformation("Stream processando mensagem do usuário: {UserId}", userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao iniciar stream de mensagem");
-        }
-
-        await foreach (var chunk in _mcpClient.StreamResponseAsync(userMessage, conversationHistory, cancellationToken).ConfigureAwait(false))
+        await foreach (var chunk in _mcpClient.StreamResponseAsync(enrichedMessage, conversationHistory, cancellationToken).ConfigureAwait(false))
         {
             yield return chunk;
         }
 
-        try
+        _logger.LogInformation("Stream finalizado");
+    }
+
+    /// <summary>
+    /// Busca dados relevantes do banco baseado na intenção da mensagem
+    /// </summary>
+    private async Task<ContextData> GatherContextDataAsync(string userMessage, CancellationToken cancellationToken)
+    {
+        var context = new ContextData();
+        var messageLower = userMessage.ToLowerInvariant();
+        
+        // Detecta intenção e busca dados relevantes
+        if (ContainsAny(messageLower, "lista", "compra", "compras", "últimas", "minhas", "mostrar", "ver"))
         {
-            _logger.LogInformation("Stream finalizado");
+            var listas = await _listaRepository.GetAllAsync(cancellationToken);
+            context.Listas = listas.OrderByDescending(l => l.CreatedAt).Take(5).ToList();
+            _logger.LogDebug("Buscou {Count} listas de compras", context.Listas.Count);
         }
-        catch (Exception ex)
+        
+        if (ContainsAny(messageLower, "produto", "produtos", "buscar", "procurar", "encontrar"))
         {
-            _logger.LogError(ex, "Erro ao fazer stream de mensagem");
+            var produtos = await _produtoRepository.GetAllAsync(cancellationToken);
+            context.Produtos = produtos.Take(20).ToList();
+            _logger.LogDebug("Buscou {Count} produtos", context.Produtos.Count);
         }
+        
+        if (ContainsAny(messageLower, "categoria", "categorias", "tipo", "tipos"))
+        {
+            var categorias = await _categoriaRepository.GetAllAsync(cancellationToken);
+            context.Categorias = categorias.ToList();
+            _logger.LogDebug("Buscou {Count} categorias", context.Categorias.Count);
+        }
+        
+        if (ContainsAny(messageLower, "loja", "lojas", "mercado", "supermercado", "empresa"))
+        {
+            var empresas = await _empresaRepository.GetAllAsync(cancellationToken);
+            context.Empresas = empresas.ToList();
+            _logger.LogDebug("Buscou {Count} empresas", context.Empresas.Count);
+        }
+        
+        if (ContainsAny(messageLower, "preço", "preco", "valor", "custo", "histórico", "historico"))
+        {
+            // Busca histórico dos últimos produtos
+            var produtos = await _produtoRepository.GetAllAsync(cancellationToken);
+            var produtosComHistorico = new List<(Domain.Entities.Produto produto, List<Domain.Entities.HistoricoPreco> historico)>();
+            
+            foreach (var produto in produtos.Take(5))
+            {
+                var historico = await _historicoRepository.GetByProdutoIdAsync(produto.Id, 90, cancellationToken);
+                if (historico.Any())
+                {
+                    produtosComHistorico.Add((produto, historico.OrderByDescending(h => h.DataConsulta).Take(3).ToList()));
+                }
+            }
+            context.HistoricoPrecos = produtosComHistorico;
+        }
+        
+        return context;
+    }
+    
+    /// <summary>
+    /// Monta a mensagem enriquecida com dados reais do sistema
+    /// </summary>
+    private string BuildEnrichedMessage(string userMessage, ContextData context)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("CONTEXTO DO SISTEMA (dados reais do banco de dados):");
+        sb.AppendLine("=".PadRight(50, '='));
+        
+        if (context.Listas?.Any() == true)
+        {
+            sb.AppendLine("\n📋 LISTAS DE COMPRAS RECENTES:");
+            foreach (var lista in context.Listas)
+            {
+                sb.AppendLine($"  - ID: {lista.Id}");
+                sb.AppendLine($"    Nome: {lista.Nome ?? "Sem nome"}");
+                sb.AppendLine($"    Data: {lista.CreatedAt:dd/MM/yyyy}");
+                sb.AppendLine($"    Status: {lista.Status}");
+                if (lista.Itens?.Any() == true)
+                {
+                    sb.AppendLine($"    Itens ({lista.Itens.Count}):");
+                    foreach (var item in lista.Itens.Take(10))
+                    {
+                        var produtoNome = item.Produto?.Nome ?? "Produto sem nome";
+                        sb.AppendLine($"      • {produtoNome} - Qtd: {item.Quantidade} {item.UnidadeDeMedida}");
+                    }
+                }
+                sb.AppendLine();
+            }
+        }
+        
+        if (context.Produtos?.Any() == true)
+        {
+            sb.AppendLine("\n🛒 PRODUTOS DISPONÍVEIS:");
+            foreach (var produto in context.Produtos.Take(15))
+            {
+                sb.AppendLine($"  - {produto.Nome} (ID: {produto.Id})");
+            }
+        }
+        
+        if (context.Categorias?.Any() == true)
+        {
+            sb.AppendLine("\n🏷️ CATEGORIAS:");
+            sb.AppendLine($"  {string.Join(", ", context.Categorias.Select(c => c.Nome))}");
+        }
+        
+        if (context.Empresas?.Any() == true)
+        {
+            sb.AppendLine("\n🏪 LOJAS/SUPERMERCADOS:");
+            foreach (var empresa in context.Empresas)
+            {
+                sb.AppendLine($"  - {empresa.Nome}");
+            }
+        }
+        
+        if (context.HistoricoPrecos?.Any() == true)
+        {
+            sb.AppendLine("\n💰 HISTÓRICO DE PREÇOS:");
+            foreach (var (produto, historico) in context.HistoricoPrecos)
+            {
+                sb.AppendLine($"  {produto.Nome}:");
+                foreach (var h in historico)
+                {
+                    sb.AppendLine($"    • R$ {h.PrecoUnitario:F2} em {h.DataConsulta:dd/MM/yyyy}");
+                }
+            }
+        }
+        
+        sb.AppendLine("\n" + "=".PadRight(50, '='));
+        sb.AppendLine("\nPERGUNTA DO USUÁRIO:");
+        sb.AppendLine(userMessage);
+        sb.AppendLine("\nResponda de forma clara e objetiva, usando APENAS os dados fornecidos acima. Se não houver dados relevantes, informe que não há registros disponíveis.");
+        
+        return sb.ToString();
+    }
+    
+    private static bool ContainsAny(string text, params string[] keywords)
+    {
+        return keywords.Any(k => text.Contains(k, StringComparison.OrdinalIgnoreCase));
     }
 
     public List<ToolDefinition> GetAvailableTools()
@@ -204,4 +339,16 @@ public class ChatAssistantService : IChatAssistantService
         _mcpClient.SetTools(tools);
         _logger.LogInformation("Assistente de chat inicializado com {ToolCount} tools", tools.Count);
     }
+}
+
+/// <summary>
+/// Dados de contexto buscados do banco para enriquecer o prompt
+/// </summary>
+internal class ContextData
+{
+    public List<Domain.Entities.ListaDeCompras>? Listas { get; set; }
+    public List<Domain.Entities.Produto>? Produtos { get; set; }
+    public List<Domain.Entities.Categoria>? Categorias { get; set; }
+    public List<Domain.Entities.Empresa>? Empresas { get; set; }
+    public List<(Domain.Entities.Produto produto, List<Domain.Entities.HistoricoPreco> historico)>? HistoricoPrecos { get; set; }
 }

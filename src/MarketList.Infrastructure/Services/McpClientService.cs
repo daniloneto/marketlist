@@ -140,8 +140,20 @@ public class McpClientService : IMcpClientService
         // Constrói o prompt com o histórico
         var promptBuilder = new StringBuilder();
         
-        // Adiciona contexto do sistema
-        promptBuilder.AppendLine("Você é um assistente de compras inteligente. Ajude o usuário com suas listas de compras, produtos, preços e categorias.");
+        // Adiciona contexto do sistema com instruções rigorosas
+        promptBuilder.AppendLine(@"Você é um assistente de compras do sistema MarketList.
+
+REGRAS CRÍTICAS - SIGA ESTRITAMENTE:
+1. Responda APENAS com base nos dados fornecidos na seção ""CONTEXTO DO SISTEMA"".
+2. NUNCA invente, crie ou suponha dados que não estejam explicitamente listados no contexto.
+3. Se não houver dados no contexto para responder uma pergunta, diga: ""Não há registros disponíveis para essa consulta.""
+4. Não adicione itens, produtos, categorias ou valores que não apareçam no contexto.
+5. Se o contexto estiver vazio ou com poucos dados, informe isso ao usuário.
+6. Seja preciso: use exatamente os nomes, quantidades e valores mostrados no contexto.
+7. Quando listar itens, liste APENAS o que aparece no contexto, nada mais.
+
+Lembre-se: você é um assistente que consulta um banco de dados real. Inventar dados seria fornecer informações falsas ao usuário.
+");
         promptBuilder.AppendLine();
         
         // Adiciona histórico

@@ -88,7 +88,7 @@ export async function streamChatMessage(
 
       for (const line of lines) {
         if (line.startsWith("data: ")) {
-          const data = line.substring(6).trim();
+          const data = line.substring(6);
           if (data && data !== "[DONE]") {
             onChunk(data);
           }

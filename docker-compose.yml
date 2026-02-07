@@ -37,12 +37,31 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+
+  # Serviço para baixar o modelo Mistral automaticamente
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: marketlist-ollama-init
+    depends_on:
+      - ollama
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Aguardando Ollama iniciar..."
+        sleep 10
+        until curl -s http://ollama:11434/api/tags > /dev/null 2>&1; do
+          echo "Ollama ainda não está pronto, aguardando..."
+          sleep 5
+        done
+        echo "Ollama está pronto! Verificando modelo mistral..."
+        if curl -s http://ollama:11434/api/tags | grep -q "mistral"; then
+          echo "Modelo mistral já está instalado!"
+        else
+          echo "Baixando modelo mistral (isso pode levar alguns minutos)..."
+          curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
+          echo "Modelo mistral baixado com sucesso!"
+        fi
 
   api:
     build:
@@ -56,7 +75,7 @@ services:
       - MCP__Provider=ollama
       - MCP__Endpoint=http://ollama:11434/api/generate
       - MCP__Model=mistral
-      - MCP__Temperature=0.7
+      - MCP__Temperature=0.3
       - MCP__MaxTokens=2048
     ports:
       - "5000:5000"
@@ -64,7 +83,9 @@ services:
       postgres:
         condition: service_healthy
       ollama:
-        condition: service_healthy
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
