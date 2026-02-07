@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { ChatMessage } from "@/types";
-import { sendChatMessage, streamChatMessage } from "@/services/chatService";
+import type { ChatMessage } from "@/types";
+import { streamChatMessage } from "@/services/chatService";
 
 interface UseChat {
   messages: ChatMessage[];
@@ -42,7 +42,7 @@ export function useChat(): UseChat {
 
         // Coleta resposta em streaming
         let fullResponse = "";
-        await streamChatMessage(userMessage, messages, (chunk) => {
+        await streamChatMessage(userMessage, messages, (chunk: string) => {
           fullResponse += chunk;
           // Atualiza última mensagem (assistente) com o conteúdo acumulado
           setMessages((prev) => {

@@ -45,19 +45,29 @@ public static class DependencyInjection
         var mcpSection = configuration.GetSection("MCP");
         services.Configure<McpClientOptions>(mcpSection);
         
-        services.AddHttpClient<IMcpClientService, McpClientService>()
-            .ConfigureHttpClient((provider, client) =>
-            {
-                var options = mcpSection.Get<McpClientOptions>();
-                if (options?.Endpoint != null)
+        var mcpOptions = mcpSection.Get<McpClientOptions>();
+        
+        // Usar Mock em desenvolvimento se configurado
+        if (mcpOptions?.Provider == "mock" || configuration["MCP:UseMock"] == "true")
+        {
+            services.AddScoped<IMcpClientService, MockMcpClientService>();
+        }
+        else
+        {
+            services.AddHttpClient<IMcpClientService, McpClientService>()
+                .ConfigureHttpClient((provider, client) =>
                 {
-                    client.BaseAddress = new Uri(options.Endpoint);
-                    if (!string.IsNullOrEmpty(options.ApiKey))
+                    var options = mcpSection.Get<McpClientOptions>();
+                    if (options?.Endpoint != null)
                     {
-                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
+                        client.BaseAddress = new Uri(options.Endpoint);
+                        if (!string.IsNullOrEmpty(options.ApiKey))
+                        {
+                            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
+                        }
                     }
-                }
-            });
+                });
+        }
 
         // Chat Assistant Service
         services.AddScoped<IChatAssistantService, ChatAssistantService>();

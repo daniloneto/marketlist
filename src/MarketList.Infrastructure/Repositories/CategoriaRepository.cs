@@ -7,11 +7,8 @@ namespace MarketList.Infrastructure.Repositories;
 
 public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
 {
-    private readonly AppDbContext _context;
-
     public CategoriaRepository(AppDbContext context) : base(context)
     {
-        _context = context;
     }
 
     public async Task<Categoria?> FindByNomeAsync(string nome, CancellationToken cancellationToken = default)

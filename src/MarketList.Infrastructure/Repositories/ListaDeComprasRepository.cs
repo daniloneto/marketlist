@@ -7,11 +7,8 @@ namespace MarketList.Infrastructure.Repositories;
 
 public class ListaDeComprasRepository : Repository<ListaDeCompras>, IListaDeComprasRepository
 {
-    private readonly AppDbContext _context;
-
     public ListaDeComprasRepository(AppDbContext context) : base(context)
     {
-        _context = context;
     }
 
     public async Task<IEnumerable<ListaDeCompras>> GetByUsuarioIdAsync(string usuarioId, int limit = 10, CancellationToken cancellationToken = default)

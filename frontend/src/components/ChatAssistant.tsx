@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Markdown from "react-markdown";
 import { useChat } from "@/hooks/useChat";
-import { ChatMessage } from "@/types";
 import "./ChatAssistant.css";
 
 export const ChatAssistant: React.FC = () => {
@@ -100,7 +99,7 @@ export const ChatAssistant: React.FC = () => {
           </div>
         )}
 
-        {messages.map((msg, idx) => (
+        {messages.map((msg: any, idx: number) => (
           <div
             key={idx}
             className={`chat-message ${msg.role}`}

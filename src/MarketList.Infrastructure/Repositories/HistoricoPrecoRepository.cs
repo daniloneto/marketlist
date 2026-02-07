@@ -7,11 +7,8 @@ namespace MarketList.Infrastructure.Repositories;
 
 public class HistoricoPrecoRepository : Repository<HistoricoPreco>, IHistoricoPrecoRepository
 {
-    private readonly AppDbContext _context;
-
     public HistoricoPrecoRepository(AppDbContext context) : base(context)
     {
-        _context = context;
     }
 
     public async Task<IEnumerable<HistoricoPreco>> GetByProdutoIdAsync(Guid produtoId, int days = 90, CancellationToken cancellationToken = default)
