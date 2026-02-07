@@ -53,25 +53,18 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=marketlist;Username=postgres;Password=postgres
-      # Configuração do MCP Client
       - MCP__Provider=ollama
-      - MCP__Endpoint=http://ollama:11434/api/chat
+      - MCP__Endpoint=http://ollama:11434/api/generate
       - MCP__Model=mistral
       - MCP__Temperature=0.7
       - MCP__MaxTokens=2048
-      # Para usar OpenAI ao invés de Ollama, use:
-      # - MCP__Provider=openai
-      # - MCP__Endpoint=https://api.openai.com/v1/chat/completions
-      # - MCP__ApiKey=seu_api_key_aqui
-      # - MCP__Model=gpt-3.5-turbo
     ports:
       - "5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
-      # Ollama é opcional - API usará MockMcpClientService se não estiver disponível
-      # ollama:
-      #   condition: service_healthy
+      ollama:
+        condition: service_healthy
 
 volumes:
   postgres_data:

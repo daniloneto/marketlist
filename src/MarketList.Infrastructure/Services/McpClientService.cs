@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace MarketList.Infrastructure.Services;
 
 /// <summary>
-/// Cliente MCP agnóstico que suporta múltiplos backends
+/// Cliente MCP para Ollama
 /// </summary>
 public class McpClientService : IMcpClientService
 {
@@ -40,8 +40,10 @@ public class McpClientService : IMcpClientService
     {
         try
         {
-            var request = BuildRequest(message, conversationHistory);
-            var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var request = BuildOllamaRequest(message, conversationHistory, stream: false);
+            var jsonContent = JsonSerializer.Serialize(request);
+            
+            _logger.LogDebug("Enviando para Ollama: {Request}", jsonContent);
             
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(_options.Endpoint, content, cancellationToken);
@@ -49,12 +51,12 @@ public class McpClientService : IMcpClientService
             response.EnsureSuccessStatusCode();
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             
-            _logger.LogInformation("Resposta MCP recebida com sucesso");
-            return ParseResponse(responseBody);
+            _logger.LogDebug("Resposta Ollama: {Response}", responseBody);
+            return ParseOllamaResponse(responseBody);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao comunicar com servidor MCP");
+            _logger.LogError(ex, "Erro ao comunicar com Ollama");
             throw;
         }
     }
@@ -64,15 +66,17 @@ public class McpClientService : IMcpClientService
         List<ChatMessage> conversationHistory,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var request = BuildRequest(message, conversationHistory);
-        var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var request = BuildOllamaRequest(message, conversationHistory, stream: true);
+        var jsonContent = JsonSerializer.Serialize(request);
 
         var streamContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        // Usando stream para SSE
-        var streamUrl = _options.Endpoint.Replace("/message", "/stream");
-        using var response = await _httpClient.PostAsync(streamUrl, streamContent, cancellationToken);
-
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _options.Endpoint)
+        {
+            Content = streamContent
+        };
+        
+        using var response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -81,17 +85,45 @@ public class McpClientService : IMcpClientService
         string? line;
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
         {
-            if (line.StartsWith("data: "))
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            
+            var (text, done) = ParseStreamLine(line);
+            
+            if (!string.IsNullOrEmpty(text))
             {
-                var data = line.Substring(6);
-                if (data != "[DONE]")
-                {
-                    yield return data;
-                }
+                yield return text;
             }
+            
+            if (done) break;
         }
 
-        _logger.LogInformation("Stream MCP finalizado");
+        _logger.LogInformation("Stream Ollama finalizado");
+    }
+    
+    private (string? text, bool done) ParseStreamLine(string line)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(line);
+            string? text = null;
+            bool done = false;
+            
+            if (doc.RootElement.TryGetProperty("response", out var responseText))
+            {
+                text = responseText.GetString();
+            }
+            
+            if (doc.RootElement.TryGetProperty("done", out var doneElement))
+            {
+                done = doneElement.GetBoolean();
+            }
+            
+            return (text, done);
+        }
+        catch (JsonException)
+        {
+            return (null, false);
+        }
     }
 
     public async Task<string> ExecuteToolAsync(
@@ -100,64 +132,50 @@ public class McpClientService : IMcpClientService
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Executando tool: {ToolName} com parâmetros: {@Parameters}", toolName, parameters);
-        // Esta será implementada pelo ChatAssistantService
         throw new NotImplementedException("ExecuteToolAsync deve ser implementado pelo ChatAssistantService");
     }
 
-    private McpRequest BuildRequest(string message, List<ChatMessage> conversationHistory)
+    private object BuildOllamaRequest(string message, List<ChatMessage> conversationHistory, bool stream)
     {
-        var messages = conversationHistory.ConvertAll(m => new { m.Role, m.Content });
-        messages.Add(new { Role = "user", Content = message });
-
-        return new McpRequest
+        // Constrói o prompt com o histórico
+        var promptBuilder = new StringBuilder();
+        
+        // Adiciona contexto do sistema
+        promptBuilder.AppendLine("Você é um assistente de compras inteligente. Ajude o usuário com suas listas de compras, produtos, preços e categorias.");
+        promptBuilder.AppendLine();
+        
+        // Adiciona histórico
+        foreach (var msg in conversationHistory)
         {
-            Model = _options.Model,
-            Messages = messages.Cast<object>().ToList(),
-            Tools = _tools.ConvertAll(t => new
+            var prefix = msg.Role == "user" ? "Usuário" : "Assistente";
+            promptBuilder.AppendLine($"{prefix}: {msg.Content}");
+        }
+        
+        // Adiciona mensagem atual
+        promptBuilder.AppendLine($"Usuário: {message}");
+        promptBuilder.AppendLine("Assistente:");
+
+        return new
+        {
+            model = _options.Model,
+            prompt = promptBuilder.ToString(),
+            stream = stream,
+            options = new
             {
-                Type = "function",
-                Function = new
-                {
-                    t.Name,
-                    t.Description,
-                    Parameters = new
-                    {
-                        Type = "object",
-                        Properties = t.Parameters.ToDictionary(p => p.Key, p => new
-                        {
-                            p.Value.Type,
-                            p.Value.Description
-                        }),
-                        Required = t.Parameters.Where(p => p.Value.Required).Select(p => p.Key).ToList()
-                    }
-                }
-            }).Cast<object>().ToList(),
-            Temperature = _options.Temperature,
-            MaxTokens = _options.MaxTokens
+                temperature = _options.Temperature,
+                num_predict = _options.MaxTokens
+            }
         };
     }
 
-    private string ParseResponse(string responseBody)
+    private string ParseOllamaResponse(string responseBody)
     {
         try
         {
             using var doc = JsonDocument.Parse(responseBody);
             var root = doc.RootElement;
 
-            // Trata diferentes formatos de resposta
-            if (root.TryGetProperty("choices"u8, out var choices) && choices.GetArrayLength() > 0)
-            {
-                var choice = choices[0];
-                if (choice.TryGetProperty("message"u8, out var message))
-                {
-                    if (message.TryGetProperty("content"u8, out var content))
-                    {
-                        return content.GetString() ?? "";
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("response"u8, out var response))
+            if (root.TryGetProperty("response", out var response))
             {
                 return response.GetString() ?? "";
             }
@@ -176,31 +194,11 @@ public class McpClientService : IMcpClientService
 /// </summary>
 public class McpClientOptions
 {
-    public required string Provider { get; set; } // "ollama", "openai", "anthropic"
+    public required string Provider { get; set; }
     public required string Endpoint { get; set; }
     public string? ApiKey { get; set; }
     public string Model { get; set; } = "mistral";
     public float Temperature { get; set; } = 0.7f;
     public int MaxTokens { get; set; } = 2048;
-}
-
-/// <summary>
-/// Estrutura de request para MCP
-/// </summary>
-internal class McpRequest
-{
-    [JsonPropertyName("model")]
-    public required string Model { get; set; }
-
-    [JsonPropertyName("messages")]
-    public required List<object> Messages { get; set; }
-
-    [JsonPropertyName("tools")]
-    public List<object> Tools { get; set; } = [];
-
-    [JsonPropertyName("temperature")]
-    public float Temperature { get; set; }
-
-    [JsonPropertyName("max_tokens")]
-    public int MaxTokens { get; set; }
+    public bool UseMock { get; set; } = false;
 }

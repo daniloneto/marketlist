@@ -41,33 +41,21 @@ public static class DependencyInjection
         services.AddScoped<IEmpresaRepository, EmpresaRepository>();
         services.AddScoped<IHistoricoPrecoRepository, HistoricoPrecoRepository>();
 
-        // MCP Client Configuration
+        // MCP Client Configuration - Ollama
         var mcpSection = configuration.GetSection("MCP");
         services.Configure<McpClientOptions>(mcpSection);
         
-        var mcpOptions = mcpSection.Get<McpClientOptions>();
-        
-        // Usar Mock em desenvolvimento se configurado
-        if (mcpOptions?.Provider == "mock" || configuration["MCP:UseMock"] == "true")
-        {
-            services.AddScoped<IMcpClientService, MockMcpClientService>();
-        }
-        else
-        {
-            services.AddHttpClient<IMcpClientService, McpClientService>()
-                .ConfigureHttpClient((provider, client) =>
+        services.AddHttpClient<IMcpClientService, McpClientService>()
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var options = mcpSection.Get<McpClientOptions>();
+                if (options?.Endpoint != null)
                 {
-                    var options = mcpSection.Get<McpClientOptions>();
-                    if (options?.Endpoint != null)
-                    {
-                        client.BaseAddress = new Uri(options.Endpoint);
-                        if (!string.IsNullOrEmpty(options.ApiKey))
-                        {
-                            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {options.ApiKey}");
-                        }
-                    }
-                });
-        }
+                    var uri = new Uri(options.Endpoint);
+                    client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}");
+                    client.Timeout = TimeSpan.FromMinutes(2); // Ollama pode demorar
+                }
+            });
 
         // Chat Assistant Service
         services.AddScoped<IChatAssistantService, ChatAssistantService>();
