@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import {
   AppShell,
   Group,
-  Title,
   NavLink as MantineNavLink,
   Stack,
   Button,
@@ -12,6 +11,7 @@ import {
   Modal,
   Checkbox,
   Alert,
+  Image,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -27,6 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { backupService, type ImportResult } from '../services/backupService';
 import { ChatAssistant } from './ChatAssistant';
+import marketlistLogo from '../assets/marketlist.png';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -122,8 +123,7 @@ export function Layout({ children }: LayoutProps) {
     >
       <AppShell.Header>
         <Group h="100%" px="md">
-          <IconShoppingCart size={30} />
-          <Title order={3}>MarketList</Title>
+          <Image src={marketlistLogo} alt="MarketList" h={40} fit="contain" />
         </Group>
       </AppShell.Header>
 
