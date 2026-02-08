@@ -191,3 +191,21 @@ export interface ItemListaDeComprasUpdateDto {
   quantidade: number;
   comprado: boolean;
 }
+// Chat Types
+export interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp?: string;
+}
+
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  parameters: Record<string, ParameterDefinition>;
+}
+
+export interface ParameterDefinition {
+  type: string;
+  description: string;
+  required?: boolean;
+}

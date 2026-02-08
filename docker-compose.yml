@@ -18,6 +18,51 @@ services:
       timeout: 5s
       retries: 5
 
+  # Ollama LLM Service (optional)
+  # Pode ser comentado se usar outro provider (OpenAI, Anthropic)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: marketlist-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    # Remova a linha abaixo se quiser executar apenas em CPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # Serviço para baixar o modelo Mistral automaticamente
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: marketlist-ollama-init
+    depends_on:
+      - ollama
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Aguardando Ollama iniciar..."
+        sleep 10
+        until curl -s http://ollama:11434/api/tags > /dev/null 2>&1; do
+          echo "Ollama ainda não está pronto, aguardando..."
+          sleep 5
+        done
+        echo "Ollama está pronto! Verificando modelo mistral..."
+        if curl -s http://ollama:11434/api/tags | grep -q "mistral"; then
+          echo "Modelo mistral já está instalado!"
+        else
+          echo "Baixando modelo mistral (isso pode levar alguns minutos)..."
+          curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
+          echo "Modelo mistral baixado com sucesso!"
+        fi
+
   api:
     build:
       context: .
@@ -27,11 +72,21 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=marketlist;Username=postgres;Password=postgres
+      - MCP__Provider=ollama
+      - MCP__Endpoint=http://ollama:11434/api/generate
+      - MCP__Model=mistral
+      - MCP__Temperature=0.3
+      - MCP__MaxTokens=2048
     ports:
       - "5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
+      ollama:
+        condition: service_started
+      ollama-init:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
+  ollama_data:
