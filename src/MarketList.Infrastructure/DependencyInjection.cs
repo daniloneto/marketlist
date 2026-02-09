@@ -57,8 +57,15 @@ public static class DependencyInjection
                 }
             });
 
+        // Telegram options
+        var telegramSection = configuration.GetSection("Telegram");
+        services.Configure<Configurations.TelegramOptions>(telegramSection);
+
+        services.AddHttpClient<Services.ITelegramClientService, Services.TelegramClientService>();
+
         // Chat Assistant Service
         services.AddScoped<IChatAssistantService, ChatAssistantService>();
+        services.AddScoped<IEmpresaResolverService, EmpresaResolverService>();
         services.AddScoped<ToolExecutor>();        // Application Services
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
         services.AddScoped<ILeitorNotaFiscal, LeitorNotaFiscal>();

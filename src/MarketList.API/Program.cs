@@ -5,6 +5,8 @@ using MarketList.API.Services;
 using MarketList.Application.Interfaces;
 using MarketList.Application.Services;
 using MarketList.Infrastructure;
+using MarketList.Infrastructure.Configurations;
+using MarketList.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +48,10 @@ builder.Services.AddScoped<IProcessamentoListaService, ProcessamentoListaService
 builder.Services.AddScoped<ProcessamentoListaJob>();
 builder.Services.AddScoped<LimpezaHistoricoJob>();
 
+// Telegram options and client
+builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
+builder.Services.AddHttpClient<ITelegramClientService, MarketList.Infrastructure.Services.TelegramClientService>();
+
 // Hangfire
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddHangfire(config =>
@@ -78,7 +84,7 @@ app.UseAuthorization();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     // Em produção, adicionar autenticação
-    Authorization = []
+    Authorization = Array.Empty<Hangfire.Dashboard.IDashboardAuthorizationFilter>()
 });
 
 app.MapControllers();
@@ -92,7 +98,7 @@ try
         logger.LogInformation("Iniciando aplicação de migrations...");
         
         var context = scope.ServiceProvider.GetRequiredService<MarketList.Infrastructure.Data.AppDbContext>();
-        context.Database.Migrate();
+        await context.Database.MigrateAsync();
         
         logger.LogInformation("Migrations aplicadas com sucesso!");
     }
@@ -101,13 +107,13 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "Erro ao aplicar migrations");
-    throw;
+    throw new InvalidOperationException("Erro ao aplicar migrations durante inicialização da aplicação.", ex);
 }
 
 // Configurar Jobs Recorrentes do Hangfire
 ConfigurarJobsRecorrentes();
 
-app.Run();
+await app.RunAsync();
 
 void ConfigurarJobsRecorrentes()
 {

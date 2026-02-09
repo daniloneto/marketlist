@@ -87,12 +87,7 @@ public class ListaDeComprasService : IListaDeComprasService
         );
     }    public async Task<ListaDeComprasDto> CreateAsync(ListaDeComprasCreateDto dto, CancellationToken cancellationToken = default)
     {
-        // Validação: Se TipoEntrada == NotaFiscal, EmpresaId é obrigatório
-        if (dto.TipoEntrada == TipoEntrada.NotaFiscal && !dto.EmpresaId.HasValue)
-        {
-            throw new InvalidOperationException("EmpresaId é obrigatório quando TipoEntrada é NotaFiscal.");
-        }
-
+        // Nota: permitir EmpresaId nulo para NotaFiscal quando não for conhecido (ex: integração Telegram)
         // Validar se a empresa existe (se informada)
         if (dto.EmpresaId.HasValue)
         {
