@@ -17,7 +17,11 @@ export interface ToolCall {
   result?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_URL não configurada. Configure a URL da API no arquivo .env ou nas variáveis de ambiente.');
+}
 
 /**
  * Envia uma mensagem e obtém resposta completa

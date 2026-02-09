@@ -25,7 +25,11 @@ public class TelegramClientService : ITelegramClientService
         if (string.IsNullOrWhiteSpace(_options.BotToken))
             throw new InvalidOperationException("Telegram BotToken não configurado.");
 
-        var url = $"https://api.telegram.org/bot{_options.BotToken}/sendMessage";
+        if (string.IsNullOrWhiteSpace(_options.BaseUrl))
+            throw new InvalidOperationException("Telegram BaseUrl não configurado.");
+
+        // Construir endpoint a partir da base configurada
+        var endpoint = new Uri(new Uri(_options.BaseUrl), $"bot{_options.BotToken}/sendMessage");
 
         var payload = new
         {
@@ -33,7 +37,7 @@ public class TelegramClientService : ITelegramClientService
             text = texto
         };
 
-        var response = await _httpClient.PostAsJsonAsync(url, payload, cancellationToken);
+        var response = await _httpClient.PostAsJsonAsync(endpoint, payload, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }

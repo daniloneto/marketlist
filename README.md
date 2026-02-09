@@ -102,6 +102,28 @@ npm run dev
 
 O frontend estará disponível em: http://localhost:5173
 
+### Configuração
+
+Todas as URLs, tokens e endpoints de integração não devem ficar hardcoded no código. Use as configurações em `src/MarketList.API/appsettings.json`, `appsettings.Development.json` ou variáveis de ambiente.
+
+Principais chaves:
+- `Api:BaseUrl` - URL base da API (ex: http://localhost:5000)
+- `Api:AllowedOrigins` - origins permitidos para CORS
+- `MCP:Endpoint` - endpoint do provedor MCP (ollama, openai, etc.)
+- `Telegram:BotToken` - token do bot do Telegram
+- `Telegram:BaseUrl` - base URL do Telegram (ex: https://api.telegram.org)
+- `Telegram:WebhookPath` - path do webhook da API (ex: /api/integracoes/telegram/webhook)
+
+Exemplo de variáveis de ambiente no `.env` ou `docker-compose`:
+
+```
+ASPNETCORE_URLS=http://+:5000
+MCP_ENDPOINT=http://localhost:11434/api/generate
+MCP_API_KEY=
+TELEGRAM_BOT_TOKEN=
+VITE_API_URL=http://localhost:5000/api
+```
+
 ## 🤖 Assistente de Compras (Chat com IA)
 
 O MarketList inclui um assistente inteligente baseado em Model Context Protocol (MCP) que permite conversar sobre suas listas, produtos e preços.
