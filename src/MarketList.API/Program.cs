@@ -5,9 +5,16 @@ using MarketList.API.Services;
 using MarketList.Application.Interfaces;
 using MarketList.Application.Services;
 using MarketList.Infrastructure;
+using MarketList.Infrastructure.Configurations;
+using MarketList.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Bind ApiOptions and TelegramOptions
+builder.Services.Configure<MarketList.Infrastructure.Configurations.ApiOptions>(builder.Configuration.GetSection("Api"));
+builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -17,14 +24,26 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "MarketList API", Version = "v1" });
 });
 
-// CORS
+// CORS - read allowed origins from configuration
+var apiOptions = builder.Configuration.GetSection("Api").Get<MarketList.Infrastructure.Configurations.ApiOptions>() ?? new MarketList.Infrastructure.Configurations.ApiOptions();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (apiOptions.AllowedOrigins != null && apiOptions.AllowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(apiOptions.AllowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            // No hardcoded origins in code — fall back to permissive policy when not configured
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 
@@ -78,7 +97,7 @@ app.UseAuthorization();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     // Em produção, adicionar autenticação
-    Authorization = []
+    Authorization = Array.Empty<Hangfire.Dashboard.IDashboardAuthorizationFilter>()
 });
 
 app.MapControllers();
@@ -92,7 +111,7 @@ try
         logger.LogInformation("Iniciando aplicação de migrations...");
         
         var context = scope.ServiceProvider.GetRequiredService<MarketList.Infrastructure.Data.AppDbContext>();
-        context.Database.Migrate();
+        await context.Database.MigrateAsync();
         
         logger.LogInformation("Migrations aplicadas com sucesso!");
     }
@@ -101,13 +120,13 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogError(ex, "Erro ao aplicar migrations");
-    throw;
+    throw new InvalidOperationException("Erro ao aplicar migrations durante inicialização da aplicação.", ex);
 }
 
 // Configurar Jobs Recorrentes do Hangfire
 ConfigurarJobsRecorrentes();
 
-app.Run();
+await app.RunAsync();
 
 void ConfigurarJobsRecorrentes()
 {

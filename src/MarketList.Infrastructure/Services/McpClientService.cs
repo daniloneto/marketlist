@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +16,6 @@ public class McpClientService : IMcpClientService
     private readonly HttpClient _httpClient;
     private readonly ILogger<McpClientService> _logger;
     private readonly McpClientOptions _options;
-    private List<ToolDefinition> _tools = [];
 
     public McpClientService(
         HttpClient httpClient,
@@ -29,8 +29,8 @@ public class McpClientService : IMcpClientService
 
     public void SetTools(List<ToolDefinition> tools)
     {
-        _tools = tools;
-        _logger.LogInformation("Ferramentas MCP configuradas: {ToolCount}", tools.Count);
+        // Store tools if needed by future implementation
+        _logger.LogInformation("Ferramentas MCP configuradas: {ToolCount}", tools?.Count ?? 0);
     }
 
     public async Task<string> SendMessageAsync(
@@ -46,6 +46,7 @@ public class McpClientService : IMcpClientService
             _logger.LogDebug("Enviando para Ollama: {Request}", jsonContent);
             
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
             var response = await _httpClient.PostAsync(_options.Endpoint, content, cancellationToken);
 
             response.EnsureSuccessStatusCode();
@@ -56,8 +57,8 @@ public class McpClientService : IMcpClientService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao comunicar com Ollama");
-            throw;
+            _logger.LogError(ex, "Erro ao comunicar com Ollama: {Message}", ex.Message);
+            throw new InvalidOperationException("Erro ao comunicar-se com o provedor MCP.", ex);
         }
     }
 
@@ -100,7 +101,7 @@ public class McpClientService : IMcpClientService
         _logger.LogInformation("Stream Ollama finalizado");
     }
     
-    private (string? text, bool done) ParseStreamLine(string line)
+    private static (string? text, bool done) ParseStreamLine(string line)
     {
         try
         {
@@ -180,7 +181,7 @@ Lembre-se: você é um assistente que consulta um banco de dados real. Inventar 
         };
     }
 
-    private string ParseOllamaResponse(string responseBody)
+    private static string ParseOllamaResponse(string responseBody)
     {
         try
         {

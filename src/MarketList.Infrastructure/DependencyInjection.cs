@@ -2,12 +2,15 @@ using MarketList.Application.Interfaces;
 using MarketList.Application.Services;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
+using MarketList.Infrastructure.Configurations;
 using MarketList.Infrastructure.Data;
 using MarketList.Infrastructure.Repositories;
 using MarketList.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System;
 
 namespace MarketList.Infrastructure;
 
@@ -44,21 +47,46 @@ public static class DependencyInjection
         // MCP Client Configuration - Ollama
         var mcpSection = configuration.GetSection("MCP");
         services.Configure<McpClientOptions>(mcpSection);
+
+        // Integracoes options
+        var integracoesSection = configuration.GetSection("Integracoes");
+        services.Configure<IntegracoesOptions>(integracoesSection);
+
+        // Api options
+        var apiSection = configuration.GetSection("Api");
+        services.Configure<ApiOptions>(apiSection);
         
-        services.AddHttpClient<IMcpClientService, McpClientService>()
-            .ConfigureHttpClient((provider, client) =>
+        services.AddHttpClient<IMcpClientService, McpClientService>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<McpClientOptions>>().Value;
+            var integracoes = sp.GetRequiredService<IOptions<IntegracoesOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.Endpoint))
             {
-                var options = mcpSection.Get<McpClientOptions>();
-                if (options?.Endpoint != null)
-                {
-                    var uri = new Uri(options.Endpoint);
-                    client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}");
-                    client.Timeout = TimeSpan.FromMinutes(2); // Ollama pode demorar
-                }
-            });
+                var uri = new Uri(options.Endpoint);
+                client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}");
+                client.Timeout = TimeSpan.FromSeconds(integracoes.TimeoutSegundos);
+            }
+        });
+
+        // Telegram options
+        var telegramSection = configuration.GetSection("Telegram");
+        services.Configure<Configurations.TelegramOptions>(telegramSection);
+
+        services.AddHttpClient<Services.ITelegramClientService, Services.TelegramClientService>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<Configurations.TelegramOptions>>().Value;
+            var integracoes = sp.GetRequiredService<IOptions<IntegracoesOptions>>().Value;
+            if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+            {
+                client.BaseAddress = new Uri(options.BaseUrl);
+            }
+
+            client.Timeout = TimeSpan.FromSeconds(options.TimeoutSegundos > 0 ? options.TimeoutSegundos : integracoes.TimeoutSegundos);
+        });
 
         // Chat Assistant Service
         services.AddScoped<IChatAssistantService, ChatAssistantService>();
+        services.AddScoped<IEmpresaResolverService, EmpresaResolverService>();
         services.AddScoped<ToolExecutor>();        // Application Services
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
         services.AddScoped<ILeitorNotaFiscal, LeitorNotaFiscal>();
