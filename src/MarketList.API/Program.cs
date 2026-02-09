@@ -16,6 +16,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MarketList.Infrastructure.Configurations.ApiOptions>(builder.Configuration.GetSection("Api"));
 builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
 
+// Bind Chatbot options early so DI registration can be conditional
+builder.Services.Configure<ChatbotOptions>(builder.Configuration.GetSection("Chatbot"));
+var chatbotOptions = builder.Configuration.GetSection("Chatbot").Get<ChatbotOptions>() ?? new ChatbotOptions();
+
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -100,7 +104,28 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = Array.Empty<Hangfire.Dashboard.IDashboardAuthorizationFilter>()
 });
 
-app.MapControllers();
+// Map controllers conditionally: only add ChatController routes if Chatbot enabled
+if (chatbotOptions.Enabled)
+{
+    app.MapControllers();
+}
+else
+{
+    // Map all controllers except ChatController - use custom convention: register controllers normally but avoid mapping route for ChatController
+    // Simpler approach: don't map controllers and map endpoints for other controllers manually is complex. Instead, keep MapControllers but prevent ChatController from being discoverable by removing its route metadata at startup.
+    // As a safe and simple alternative, we will keep MapControllers but add a middleware to return 404 for any request under /api/chat when chatbot disabled.
+    app.MapControllers();
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/chat", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            await context.Response.WriteAsJsonAsync(new { error = "Chatbot desativado" });
+            return;
+        }
+        await next();
+    });
+}
 
 // Aplicar migrations automaticamente
 try

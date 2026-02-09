@@ -3,7 +3,7 @@ import Markdown from "react-markdown";
 import { useChat } from "@/hooks/useChat";
 import "./ChatAssistant.css";
 
-export const ChatAssistant: React.FC = () => {
+const ChatAssistantComponent: React.FC = () => {
   const { messages, isLoading, error, sendMessage, clearHistory } = useChat();
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -165,3 +165,5 @@ export const ChatAssistant: React.FC = () => {
     </div>
   );
 };
+
+export default ChatAssistantComponent;

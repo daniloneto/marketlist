@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import React, { useState, useRef, lazy, Suspense } from 'react';
 import {
   AppShell,
   Group,
@@ -26,11 +26,15 @@ import {
   IconAlertCircle,
 } from '@tabler/icons-react';
 import { backupService, type ImportResult } from '../services/backupService';
-import { ChatAssistant } from './ChatAssistant';
 import marketlistLogo from '../assets/marketlist.png';
 
+const ChatAssistant = lazy(async () => {
+  const mod = await import('./ChatAssistant');
+  return { default: mod.default };
+});
+
 interface LayoutProps {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 const navItems = [
@@ -237,7 +241,12 @@ export function Layout({ children }: LayoutProps) {
         </Stack>
       </Modal>
 
-      <ChatAssistant />
+      {import.meta.env.VITE_CHATBOT_ENABLED === 'true' && (
+        // Dynamic import ensures the chat bundle is not loaded when disabled
+        <Suspense fallback={null}>
+          <ChatAssistant />
+        </Suspense>
+      )}
     </AppShell>
   );
 }

@@ -44,6 +44,11 @@ public static class DependencyInjection
         services.AddScoped<IEmpresaRepository, EmpresaRepository>();
         services.AddScoped<IHistoricoPrecoRepository, HistoricoPrecoRepository>();
 
+        // Chatbot feature flag options
+        var chatbotSection = configuration.GetSection("Chatbot");
+        services.Configure<ChatbotOptions>(chatbotSection);
+        var chatbotOptions = chatbotSection.Get<ChatbotOptions>() ?? new ChatbotOptions();
+
         // MCP Client Configuration - Ollama
         var mcpSection = configuration.GetSection("MCP");
         services.Configure<McpClientOptions>(mcpSection);
@@ -55,20 +60,8 @@ public static class DependencyInjection
         // Api options
         var apiSection = configuration.GetSection("Api");
         services.Configure<ApiOptions>(apiSection);
-        
-        services.AddHttpClient<IMcpClientService, McpClientService>((sp, client) =>
-        {
-            var options = sp.GetRequiredService<IOptions<McpClientOptions>>().Value;
-            var integracoes = sp.GetRequiredService<IOptions<IntegracoesOptions>>().Value;
-            if (!string.IsNullOrWhiteSpace(options.Endpoint))
-            {
-                var uri = new Uri(options.Endpoint);
-                client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}");
-                client.Timeout = TimeSpan.FromSeconds(integracoes.TimeoutSegundos);
-            }
-        });
 
-        // Telegram options
+        // Register external integration HttpClients that are always needed (ex: Telegram)
         var telegramSection = configuration.GetSection("Telegram");
         services.Configure<Configurations.TelegramOptions>(telegramSection);
 
@@ -84,10 +77,35 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSegundos > 0 ? options.TimeoutSegundos : integracoes.TimeoutSegundos);
         });
 
-        // Chat Assistant Service
-        services.AddScoped<IChatAssistantService, ChatAssistantService>();
-        services.AddScoped<IEmpresaResolverService, EmpresaResolverService>();
-        services.AddScoped<ToolExecutor>();        // Application Services
+        // Conditionally register MCP, Chat Assistant and related services only when feature is enabled
+        if (chatbotOptions.Enabled)
+        {
+            // MCP HttpClient and implementation
+            services.AddHttpClient<IMcpClientService, McpClientService>((sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptions<McpClientOptions>>().Value;
+                var integracoes = sp.GetRequiredService<IOptions<IntegracoesOptions>>().Value;
+                if (!string.IsNullOrWhiteSpace(options.Endpoint))
+                {
+                    var uri = new Uri(options.Endpoint);
+                    client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}");
+                    client.Timeout = TimeSpan.FromSeconds(integracoes.TimeoutSegundos);
+                }
+            });
+
+            // Chat Assistant Service and tools
+            services.AddScoped<IChatAssistantService, ChatAssistantService>();
+            services.AddScoped<IEmpresaResolverService, EmpresaResolverService>();
+            services.AddScoped<ToolExecutor>();
+        }
+        else
+        {
+            // When disabled, avoid registering any MCP/LLM HttpClients or services that may trigger external calls.
+            // Register a NoOp IChatAssistantService so controllers can still be resolved but will return controlled errors.
+            services.AddScoped<IChatAssistantService, MarketList.Application.Services.DisabledChatAssistantService>();
+        }
+
+        // Application Services (always registered)
         services.AddScoped<IAnalisadorTextoService, AnalisadorTextoService>();
         services.AddScoped<ILeitorNotaFiscal, LeitorNotaFiscal>();
         services.AddScoped<IProcessamentoListaService, ProcessamentoListaService>();
