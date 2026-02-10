@@ -3,8 +3,8 @@ version: '3.8'
 services:
   api:
     build:
-      context: .
-      dockerfile: src/MarketList.API/Dockerfile
+      context: ./src
+      dockerfile: MarketList.API/Dockerfile
     container_name: marketlist-api-sqlite
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

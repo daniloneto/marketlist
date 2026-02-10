@@ -1,0 +1,36 @@
+# Binários e builds
+**/bin/
+**/obj/
+**/out/
+
+# Arquivos do Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+*.vscode/
+
+# Arquivos de teste
+**/TestResults/
+
+# NuGet
+*.nupkg
+**/packages/
+
+# Arquivos de configuração local
+appsettings.Development.json
+*.local.json
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Outros
+*.md
+LICENSE

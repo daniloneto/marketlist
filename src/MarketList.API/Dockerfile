@@ -6,12 +6,18 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["src/MarketList.API/MarketList.API.csproj", "MarketList.API/"]
-COPY ["src/MarketList.Application/MarketList.Application.csproj", "MarketList.Application/"]
-COPY ["src/MarketList.Domain/MarketList.Domain.csproj", "MarketList.Domain/"]
-COPY ["src/MarketList.Infrastructure/MarketList.Infrastructure.csproj", "MarketList.Infrastructure/"]
+
+# Copy csproj files - adjusted paths for root context
+COPY ["MarketList.API/MarketList.API.csproj", "MarketList.API/"]
+COPY ["MarketList.Application/MarketList.Application.csproj", "MarketList.Application/"]
+COPY ["MarketList.Domain/MarketList.Domain.csproj", "MarketList.Domain/"]
+COPY ["MarketList.Infrastructure/MarketList.Infrastructure.csproj", "MarketList.Infrastructure/"]
+
 RUN dotnet restore "MarketList.API/MarketList.API.csproj"
-COPY src/ .
+
+# Copy all source files
+COPY . .
+
 WORKDIR "/src/MarketList.API"
 RUN dotnet build "MarketList.API.csproj" -c Release -o /app/build
 

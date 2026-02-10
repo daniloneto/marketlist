@@ -62,11 +62,10 @@ services:
           curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
           echo "Modelo mistral baixado com sucesso!"
         fi
-
   api:
     build:
-      context: .
-      dockerfile: src/MarketList.API/Dockerfile
+      context: ./src
+      dockerfile: MarketList.API/Dockerfile
     container_name: marketlist-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
