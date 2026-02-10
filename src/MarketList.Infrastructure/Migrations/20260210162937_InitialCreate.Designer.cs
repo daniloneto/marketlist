@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketList.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260210001603_InitialCreate")]
+    [Migration("20260210162937_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -412,6 +412,40 @@ namespace MarketList.Infrastructure.Migrations
                     b.HasIndex("TextoNormalizado");
 
                     b.ToTable("sinonimos_produto", (string)null);
+                });
+
+            modelBuilder.Entity("MarketList.Domain.Entities.Usuario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("login");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("senha_hash");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
+
+                    b.ToTable("usuarios", (string)null);
                 });
 
             modelBuilder.Entity("MarketList.Domain.Entities.HistoricoPreco", b =>

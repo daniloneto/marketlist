@@ -42,6 +42,21 @@ namespace MarketList.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "usuarios",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    login = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    senha_hash = table.Column<string>(type: "TEXT", nullable: false),
+                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_usuarios", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "produtos",
                 columns: table => new
                 {
@@ -294,6 +309,12 @@ namespace MarketList.Infrastructure.Migrations
                 name: "IX_sinonimos_produto_texto_normalizado",
                 table: "sinonimos_produto",
                 column: "texto_normalizado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_login",
+                table: "usuarios",
+                column: "login",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -310,6 +331,9 @@ namespace MarketList.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "sinonimos_produto");
+
+            migrationBuilder.DropTable(
+                name: "usuarios");
 
             migrationBuilder.DropTable(
                 name: "listas_de_compras");

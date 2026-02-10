@@ -411,6 +411,40 @@ namespace MarketList.Infrastructure.Migrations
                     b.ToTable("sinonimos_produto", (string)null);
                 });
 
+            modelBuilder.Entity("MarketList.Domain.Entities.Usuario", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("login");
+
+                    b.Property<string>("SenhaHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("senha_hash");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
+
+                    b.ToTable("usuarios", (string)null);
+                });
+
             modelBuilder.Entity("MarketList.Domain.Entities.HistoricoPreco", b =>
                 {
                     b.HasOne("MarketList.Domain.Entities.Empresa", "Empresa")

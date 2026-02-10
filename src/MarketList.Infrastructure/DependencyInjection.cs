@@ -179,5 +179,7 @@ public static class DependencyInjection
         services.AddScoped<IProdutoResolverService, ProdutoResolverService>();
         services.AddScoped<ICategoriaClassificadorService, CategoriaClassificadorService>();
         services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
+        // Authentication / Password service
+        services.AddScoped<MarketList.Application.Interfaces.IPasswordService, PasswordService>();
     }
 }

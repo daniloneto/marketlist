@@ -354,3 +354,5 @@ hangfire.db
 
 # Project specific
 PRICE_LOOKUP_ADAPTER.md
+src/MarketList.API/marketlist.db-shm
+src/MarketList.API/marketlist.db-wal

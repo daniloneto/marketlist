@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MarketList.Application\MarketList.Application.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <ProjectReference Include="..\MarketList.Infrastructure\MarketList.Infrastructure.csproj" />
   </ItemGroup>
 

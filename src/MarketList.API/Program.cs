@@ -10,6 +10,11 @@ using MarketList.Infrastructure.Configurations;
 using MarketList.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using MarketList.Domain.Entities;
+using MarketList.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +32,13 @@ var chatbotOptions = builder.Configuration.GetSection("Chatbot").Get<ChatbotOpti
 
 // Add services to the container
 builder.Services.AddControllers();
+// Authorization: require authenticated by default, allow exceptions with [AllowAnonymous]
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -59,6 +71,36 @@ builder.Services.AddCors(options =>
 // Infrastructure (DbContext, Repositories, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Configure JWT Authentication
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSection.GetValue<string>("Key");
+var jwtIssuer = jwtSection.GetValue<string>("Issuer");
+var jwtAudience = jwtSection.GetValue<string>("Audience");
+var jwtExpMinutes = jwtSection.GetValue<int>("ExpirationMinutes", 60);
+
+if (!string.IsNullOrWhiteSpace(jwtKey))
+{
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = key,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+}
+
 // Application Services
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IProdutoService, ProdutoService>();
@@ -87,11 +129,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Required for endpoint routing so CORS policy is applied correctly
 app.UseRouting();
 
 app.UseCors("AllowReactApp");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Hangfire Dashboard (sem autenticação para desenvolvimento)
@@ -134,6 +176,30 @@ try
         
         var context = scope.ServiceProvider.GetRequiredService<MarketList.Infrastructure.Data.AppDbContext>();
         await context.Database.MigrateAsync();
+        
+        // Seed admin user if missing
+        try
+        {
+            var passwordService = scope.ServiceProvider.GetRequiredService<IPasswordService>();
+            var exists = await context.Set<Usuario>().AnyAsync(u => u.Login == "admin");
+            if (!exists)
+            {
+                var admin = new Usuario
+                {
+                    Id = Guid.NewGuid(),
+                    Login = "admin",
+                    SenhaHash = passwordService.HashSenha("admin")
+                };
+                context.Set<Usuario>().Add(admin);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Usuário admin criado (login=admin)." );
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger2 = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger2.LogError(ex, "Erro ao criar usuário admin");
+        }
         
         logger.LogInformation("Migrations aplicadas com sucesso!");
     }
