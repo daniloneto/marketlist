@@ -83,6 +83,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Required for endpoint routing so CORS policy is applied correctly
+app.UseRouting();
+
 app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
