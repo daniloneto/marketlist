@@ -13,4 +13,7 @@ public class TelegramOptions
 
     // Timeout in seconds for Telegram HTTP requests
     public int TimeoutSegundos { get; set; } = 30;
+
+    // Secret token required for incoming webhook requests (X-Telegram-Token or ?token=)
+    public string WebhookToken { get; set; } = string.Empty;
 }

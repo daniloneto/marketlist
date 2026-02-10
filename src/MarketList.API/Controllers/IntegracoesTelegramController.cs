@@ -3,6 +3,7 @@ using MarketList.Application.Interfaces;
 using MarketList.Infrastructure.Configurations;
 using MarketList.Infrastructure.Services;
 using MarketList.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -10,6 +11,7 @@ namespace MarketList.API.Controllers;
 
 [ApiController]
 [Route("api/integracoes/telegram")]
+[AllowAnonymous]
 public class IntegracoesTelegramController : ControllerBase
 {
     private readonly IListaDeComprasService _listaService;
@@ -35,6 +37,24 @@ public class IntegracoesTelegramController : ControllerBase
     [HttpPost("webhook")]
     public async Task<IActionResult> Webhook([FromBody] object updatePayload, CancellationToken cancellationToken)
     {
+        // Validate integration token (header X-Telegram-Token or query ?token=)
+        var integrationToken = string.Empty;
+        if (Request.Headers.TryGetValue("X-Telegram-Token", out var headerValues))
+        {
+            integrationToken = headerValues.FirstOrDefault() ?? string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(integrationToken) && Request.Query.TryGetValue("token", out var queryValues))
+        {
+            integrationToken = queryValues.FirstOrDefault() ?? string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.WebhookToken) || !string.Equals(integrationToken, _options.WebhookToken, StringComparison.Ordinal))
+        {
+            _logger.LogWarning("Telegram webhook unauthorized request. Missing or invalid token.");
+            return Unauthorized();
+        }
+
         try
         {
             // Extrair chatId e texto de forma simples para evitar dependência de SDK
@@ -53,12 +73,7 @@ public class IntegracoesTelegramController : ControllerBase
                 chatId = idVal;
             }
 
-            // Security: permitir apenas chatIds configurados
-            if (!_options.ChatIdsPermitidos.Contains(chatId.ToString()))
-            {
-                _logger.LogWarning("ChatId não autorizado: {ChatId}", chatId);
-                return Forbid();
-            }
+            // Note: removed restriction by configured ChatIdsPermitidos — accept any chatId
 
             string? texto = null;
             if (messageEl.TryGetProperty("text", out var textEl))
@@ -68,7 +83,15 @@ public class IntegracoesTelegramController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(texto))
             {
-                await _telegramClient.EnviarMensagemAsync(chatId, "Envie o texto da nota fiscal para importar", cancellationToken);
+                try
+                {
+                    await _telegramClient.EnviarMensagemAsync(chatId, "Envie o texto da nota fiscal para importar", cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao enviar mensagem ao Telegram (mensagem vazia)");
+                }
+
                 return Ok();
             }
 
@@ -91,7 +114,15 @@ public class IntegracoesTelegramController : ControllerBase
             var empresaId = await _empresaResolver.ResolverEmpresaIdPorNomeAsync(nomeEmpresa, cancellationToken);
             if (!empresaId.HasValue)
             {
-                await _telegramClient.EnviarMensagemAsync(chatId, $"Empresa '{nomeEmpresa}' não encontrada. Cadastre a empresa no sistema antes de importar a nota.", cancellationToken);
+                try
+                {
+                    await _telegramClient.EnviarMensagemAsync(chatId, $"Empresa '{nomeEmpresa}' não encontrada. Cadastre a empresa no sistema antes de importar a nota.", cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Falha ao enviar mensagem ao Telegram (empresa não encontrada)");
+                }
+
                 return Ok();
             }
 
@@ -102,7 +133,14 @@ public class IntegracoesTelegramController : ControllerBase
             _ = await _listaService.CreateAsync(createDto, cancellationToken);
 
             // Responder ao usuário
-            await _telegramClient.EnviarMensagemAsync(chatId, "Nota recebida e em processamento ✅", cancellationToken);
+            try
+            {
+                await _telegramClient.EnviarMensagemAsync(chatId, "Nota recebida e em processamento ✅", cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Falha ao enviar mensagem ao Telegram (confirmação)");
+            }
 
             return Ok();
         }

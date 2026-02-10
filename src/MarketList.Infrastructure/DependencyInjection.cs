@@ -177,6 +177,8 @@ public static class DependencyInjection
         services.AddScoped<IProcessamentoListaService, ProcessamentoListaService>();
         services.AddScoped<ITextoNormalizacaoService, TextoNormalizacaoService>();
         services.AddScoped<IProdutoResolverService, ProdutoResolverService>();
+        // Empresa resolver is used by Telegram integration to map company names to IDs
+        services.AddScoped<IEmpresaResolverService, MarketList.Application.Services.EmpresaResolverService>();
         services.AddScoped<ICategoriaClassificadorService, CategoriaClassificadorService>();
         services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
         // Authentication / Password service
