@@ -25,6 +25,8 @@ import {
   IconUpload,
   IconAlertCircle,
   IconLogout,
+  IconUser,
+  IconKey,
 } from '@tabler/icons-react';
 import { useAuth } from '../contexts/AuthContext';
 import { backupService, type ImportResult } from '../services/backupService';
@@ -56,7 +58,7 @@ export function Layout({ children }: LayoutProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
 
   const handleExport = async () => {
     setExportLoading(true);
@@ -145,6 +147,23 @@ export function Layout({ children }: LayoutProps) {
               leftSection={<item.icon size={20} />}
             />
           ))}
+
+          {isAuthenticated && (
+            <>
+              <MantineNavLink
+                component={NavLink}
+                to="/usuarios/criar"
+                label="Criar Usuário"
+                leftSection={<IconUser size={20} />}
+              />
+              <MantineNavLink
+                component={NavLink}
+                to="/usuarios/alterar-senha"
+                label="Alterar Senha"
+                leftSection={<IconKey size={20} />}
+              />
+            </>
+          )}
 
           <div style={{ flex: 1 }} />
 
