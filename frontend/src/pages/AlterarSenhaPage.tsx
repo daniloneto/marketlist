@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PasswordInput, Button, Stack, Card, Title } from '@mantine/core';
 import authService from '../services/authService';
 import { notifications } from '@mantine/notifications';
+import axios from 'axios';
 
 export function AlterarSenhaPage() {
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -23,7 +24,19 @@ export function AlterarSenhaPage() {
       setNovaSenha('');
       setConfirm('');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao alterar senha';
+      let message = 'Erro ao alterar senha';
+      if (axios.isAxiosError(err)) {
+        const resp = err.response?.data as any;
+        if (resp && typeof resp === 'object' && resp.error) {
+          message = resp.error;
+        } else if (err.response?.status === 401) {
+          message = 'Sessão expirada ou senha atual inválida';
+        } else if (err.message) {
+          message = err.message;
+        }
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       notifications.show({ title: 'Erro', message, color: 'red' });
     } finally {
       setLoading(false);

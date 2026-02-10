@@ -12,7 +12,10 @@ import {
   Checkbox,
   Alert,
   Image,
+  Burger,
+  Drawer,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   IconShoppingCart,
@@ -51,6 +54,8 @@ const navItems = [
 ];
 
 export function Layout({ children }: LayoutProps) {
+  const [opened, setOpened] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [exportLoading, setExportLoading] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
@@ -132,11 +137,20 @@ export function Layout({ children }: LayoutProps) {
     >
       <AppShell.Header>
         <Group h="100%" px="md">
+          {isMobile && (
+            <Burger
+              opened={opened}
+              onClick={() => setOpened((o) => !o)}
+              size="sm"
+              mr="md"
+            />
+          )}
+
           <Image src={marketlistLogo} alt="MarketList" h={40} fit="contain" />
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
+      <AppShell.Navbar p="md" style={{ display: isMobile ? 'none' : undefined }}>
         <Stack gap="xs" style={{ height: '100%' }}>
           {navItems.map((item) => (
             <MantineNavLink
@@ -145,6 +159,7 @@ export function Layout({ children }: LayoutProps) {
               to={item.to}
               label={item.label}
               leftSection={<item.icon size={20} />}
+              onClick={() => setOpened(false)}
             />
           ))}
 
@@ -152,13 +167,13 @@ export function Layout({ children }: LayoutProps) {
             <>
               <MantineNavLink
                 component={NavLink}
-                to="/usuarios/criar"
-                label="Criar Usuário"
+                to="/usuarios"
+                label="Usuários"
                 leftSection={<IconUser size={20} />}
               />
               <MantineNavLink
                 component={NavLink}
-                to="/usuarios/alterar-senha"
+                to="/minha-conta/senha"
                 label="Alterar Senha"
                 leftSection={<IconKey size={20} />}
               />
@@ -203,7 +218,77 @@ export function Layout({ children }: LayoutProps) {
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main>{children}</AppShell.Main>
+      <Drawer opened={opened} onClose={() => setOpened(false)} padding="md" position="left" size="75%">
+        <Stack gap="xs" style={{ height: '100%' }}>
+          {navItems.map((item) => (
+            <MantineNavLink
+              key={item.to + '-drawer'}
+              component={NavLink}
+              to={item.to}
+              label={item.label}
+              leftSection={<item.icon size={20} />}
+              onClick={() => setOpened(false)}
+            />
+          ))}
+
+          {isAuthenticated && (
+            <>
+              <MantineNavLink
+                component={NavLink}
+                to="/usuarios"
+                label="Usuários"
+                leftSection={<IconUser size={20} />}
+                onClick={() => setOpened(false)}
+              />
+              <MantineNavLink
+                component={NavLink}
+                to="/minha-conta/senha"
+                label="Alterar Senha"
+                leftSection={<IconKey size={20} />}
+                onClick={() => setOpened(false)}
+              />
+            </>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          <Divider my="sm" label="Backup" labelPosition="center" />
+
+          <Button
+            variant="light"
+            leftSection={<IconDownload size={18} />}
+            onClick={handleExport}
+            loading={exportLoading}
+            fullWidth
+            size="sm"
+          >
+            Exportar Backup
+          </Button>
+
+          <Button
+            variant="light"
+            leftSection={<IconUpload size={18} />}
+            onClick={() => { setImportModalOpen(true); setOpened(false); }}
+            fullWidth
+            size="sm"
+          >
+            Importar Backup
+          </Button>
+
+          <Button
+            variant="outline"
+            color="red"
+            leftSection={<IconLogout size={18} />}
+            onClick={() => { logout(); setOpened(false); }}
+            fullWidth
+            size="sm"
+          >
+            Logout
+          </Button>
+        </Stack>
+      </Drawer>
+
+      <AppShell.Main style={{ minWidth: 0 }}>{children}</AppShell.Main>
 
       <Modal
         opened={importModalOpen}

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import axios from 'axios';
 import authService from '../services/authService';
 
 type AuthContextType = {
@@ -30,9 +31,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       notifications.show({ title: 'Login', message: 'Autenticado com sucesso', color: 'green' });
       navigate('/');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro no login';
+      let message = 'Erro no login';
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        if (status === 401) message = 'Usuário e/ou senha inválidos ou inexistente';
+        else if (err.response?.data && typeof err.response.data === 'string') message = err.response.data;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       notifications.show({ title: 'Erro', message, color: 'red' });
-      throw err;
+      // erro já tratado e mostrado ao usuário; não relançar para evitar "Uncaught (in promise)"
     }
   };
 

@@ -9,3 +9,4 @@ export { LoginPage } from './LoginPage';
 export { RegistrarPage } from './RegistrarPage';
 export { AlterarSenhaPage } from './AlterarSenhaPage';
 export { CriarUsuarioPage } from './CriarUsuarioPage';
+export { UsuariosPage } from './UsuariosPage';

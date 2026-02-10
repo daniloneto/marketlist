@@ -9,7 +9,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import { Layout } from './components';
 import { PrivateRoute } from './components/PrivateRoute';
-import { LoginPage, RegistrarPage, AlterarSenhaPage, CriarUsuarioPage } from './pages';
+import { LoginPage, RegistrarPage, AlterarSenhaPage, CriarUsuarioPage, UsuariosPage } from './pages';
 import {
   ListasDeComprasPage,
   ListaDetalhePage,
@@ -56,9 +56,6 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/registrar" element={<PrivateRoute><RegistrarPage /></PrivateRoute>} />
-          <Route path="/usuarios/criar" element={<PrivateRoute><CriarUsuarioPage /></PrivateRoute>} />
-          <Route path="/alterar-senha" element={<PrivateRoute><AlterarSenhaPage /></PrivateRoute>} />
-          <Route path="/usuarios/alterar-senha" element={<PrivateRoute><AlterarSenhaPage /></PrivateRoute>} />
 
           <Route
             path="/*"
@@ -73,6 +70,9 @@ function App() {
                     <Route path="/revisao-produtos" element={<RevisaoProdutosPage />} />
                     <Route path="/historico-precos" element={<HistoricoPrecosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />
+                    <Route path="/usuarios" element={<UsuariosPage />} />
+                    <Route path="/usuarios/novo" element={<CriarUsuarioPage />} />
+                    <Route path="/minha-conta/senha" element={<AlterarSenhaPage />} />
                   </Routes>
                 </Layout>
               </PrivateRoute>

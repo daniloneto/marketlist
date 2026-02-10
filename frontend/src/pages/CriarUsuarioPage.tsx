@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button, Stack, Card, Title } from '@mantine/core';
 import authService from '../services/authService';
 import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
 
 export function CriarUsuarioPage() {
+  const navigate = useNavigate();
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -27,6 +29,8 @@ export function CriarUsuarioPage() {
       setLogin('');
       setSenha('');
       setConfirm('');
+      // navigate back to users list when used inside /usuarios
+      navigate('/usuarios');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar usuário';
       notifications.show({ title: 'Erro', message, color: 'red' });
