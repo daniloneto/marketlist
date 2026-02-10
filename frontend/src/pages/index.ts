@@ -5,3 +5,6 @@ export { ProdutosPage } from './ProdutosPage';
 export { HistoricoPrecosPage } from './HistoricoPrecosPage';
 export { EmpresasPage } from './EmpresasPage';
 export { RevisaoProdutosPage } from './RevisaoProdutosPage';
+export { LoginPage } from './LoginPage';
+export { RegistrarPage } from './RegistrarPage';
+export { AlterarSenhaPage } from './AlterarSenhaPage';

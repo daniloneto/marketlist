@@ -24,7 +24,9 @@ import {
   IconDownload,
   IconUpload,
   IconAlertCircle,
+  IconLogout,
 } from '@tabler/icons-react';
+import { useAuth } from '../contexts/AuthContext';
 import { backupService, type ImportResult } from '../services/backupService';
 import marketlistLogo from '../assets/marketlist.png';
 
@@ -54,6 +56,7 @@ export function Layout({ children }: LayoutProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { logout } = useAuth();
 
   const handleExport = async () => {
     setExportLoading(true);
@@ -166,6 +169,17 @@ export function Layout({ children }: LayoutProps) {
             size="sm"
           >
             Importar Backup
+          </Button>
+
+          <Button
+            variant="outline"
+            color="red"
+            leftSection={<IconLogout size={18} />}
+            onClick={() => logout()}
+            fullWidth
+            size="sm"
+          >
+            Logout
           </Button>
         </Stack>
       </AppShell.Navbar>

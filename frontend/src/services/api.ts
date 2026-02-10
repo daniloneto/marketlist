@@ -9,4 +9,18 @@ const api = axios.create({
   },
 });
 
+// Attach token from localStorage automatically
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem('ml_token');
+    if (token && config.headers) {
+      // eslint-disable-next-line no-param-reassign
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return config;
+});
+
 export default api;
