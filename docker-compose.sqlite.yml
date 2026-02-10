@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   # Ollama LLM Service (optional)
-  # Pode ser comentado se usar outro provider (OpenAI, Anthropic)
   ollama:
     image: ollama/ollama:latest
     container_name: marketlist-ollama-sqlite
@@ -12,14 +11,6 @@ services:
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
-    # Remova a linha abaixo se quiser executar apenas em CPU
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
 
   # Serviço para baixar o modelo Mistral automaticamente
   ollama-init:
@@ -45,10 +36,11 @@ services:
           curl -X POST http://ollama:11434/api/pull -d '{"name": "mistral"}'
           echo "Modelo mistral baixado com sucesso!"
         fi
+
   api:
     build:
-      context: ./src
-      dockerfile: MarketList.API/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: marketlist-api-sqlite
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

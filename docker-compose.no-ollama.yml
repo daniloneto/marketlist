@@ -18,10 +18,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   api:
     build:
-      context: ./src
-      dockerfile: MarketList.API/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: marketlist-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

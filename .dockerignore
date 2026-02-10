@@ -3,13 +3,16 @@
 **/obj/
 **/out/
 
+# Frontend (não necessário no build da API)
+frontend/
+
 # Arquivos do Visual Studio
 .vs/
 *.user
 *.suo
 *.userprefs
 *.csproj.user
-*.vscode/
+.vscode/
 
 # Arquivos de teste
 **/TestResults/
@@ -18,19 +21,19 @@
 *.nupkg
 **/packages/
 
-# Arquivos de configuração local
-appsettings.Development.json
-*.local.json
-
 # Git
 .git/
 .gitignore
 .gitattributes
 
-# Docker
-Dockerfile
+# Docker compose files (não precisa no contexto)
+docker-compose*.yml
 .dockerignore
+
+# Dados locais
+data/
 
 # Outros
 *.md
 LICENSE
+*.slnx
