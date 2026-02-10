@@ -14,20 +14,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel to listen on the port specified by Cloud Run.
-// Respect explicit URLs passed via --urls or ASPNETCORE_URLS and don't override them.
-var portEnv = Environment.GetEnvironmentVariable("PORT");
-var configuredUrls = builder.Configuration["urls"] ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
-if (string.IsNullOrEmpty(configuredUrls))
-{
-    if (!string.IsNullOrEmpty(portEnv))
-    {
-        // When running inside Cloud Run/container the PORT env var is provided.
-        // Bind to 0.0.0.0 so the container accepts external connections.
-        builder.WebHost.UseUrls($"http://0.0.0.0:{portEnv}");
-    }
-    // else: no explicit urls and no PORT - leave defaults (do not force 0.0.0.0:8080)
-}
+// Configure Kestrel to listen on the port specified by Cloud Run (or default to 8080)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // Bind ApiOptions and TelegramOptions
 builder.Services.Configure<MarketList.Infrastructure.Configurations.ApiOptions>(builder.Configuration.GetSection("Api"));
