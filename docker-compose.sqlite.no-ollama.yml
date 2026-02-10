@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/MarketList.API/Dockerfile
+    container_name: marketlist-api-sqlite
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - Database__Provider=Sqlite
+      - Database__ConnectionStrings__Sqlite=Data Source=/data/marketlist.db
+      # Configuração para usar OpenAI, Anthropic ou outro provider externo
+      - MCP__Provider=openai
+      - MCP__ApiKey=${OPENAI_API_KEY}
+      - MCP__Model=gpt-4
+      - MCP__Temperature=0.3
+      - MCP__MaxTokens=2048
+      # Descomente para usar Anthropic Claude
+      # - MCP__Provider=anthropic
+      # - MCP__ApiKey=${ANTHROPIC_API_KEY}
+      # - MCP__Model=claude-3-sonnet-20240229
+      # Ou use Azure OpenAI
+      # - MCP__Provider=azure
+      # - MCP__ApiKey=${AZURE_OPENAI_API_KEY}
+      # - MCP__Endpoint=${AZURE_OPENAI_ENDPOINT}
+      # - MCP__Model=gpt-4
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/data

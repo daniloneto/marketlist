@@ -4,7 +4,6 @@
     <ProjectReference Include="..\MarketList.Domain\MarketList.Domain.csproj" />
     <ProjectReference Include="..\MarketList.Application\MarketList.Application.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
@@ -12,6 +11,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>

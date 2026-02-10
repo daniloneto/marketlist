@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.PostgreSql;
+using Hangfire.InMemory;
 using MarketList.API.Jobs;
 using MarketList.API.Services;
 using MarketList.Application.Interfaces;
@@ -69,20 +70,9 @@ builder.Services.AddScoped<IProcessamentoListaService, ProcessamentoListaService
 builder.Services.AddScoped<ProcessamentoListaJob>();
 builder.Services.AddScoped<LimpezaHistoricoJob>();
 
-// Hangfire
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddHangfire(config =>
-{
-    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-          .UseSimpleAssemblyNameTypeSerializer()
-          .UseRecommendedSerializerSettings()
-          .UsePostgreSqlStorage(options =>
-          {
-              options.UseNpgsqlConnection(connectionString);
-          });
-});
-
-builder.Services.AddHangfireServer();
+// Configure Hangfire based on database provider
+var databaseOptions = builder.Configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
+ConfigureHangfire(builder.Services, databaseOptions);
 
 var app = builder.Build();
 
@@ -153,6 +143,42 @@ ConfigurarJobsRecorrentes();
 
 await app.RunAsync();
 
+void ConfigureHangfire(IServiceCollection services, DatabaseOptions databaseOptions)
+{
+    services.AddHangfire(config =>
+    {
+        config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+              .UseSimpleAssemblyNameTypeSerializer()
+              .UseRecommendedSerializerSettings();
+
+        // Configure storage based on database provider
+        var provider = databaseOptions.Provider.ToLower();
+        
+        if (provider == "sqlite")
+        {
+            // Use InMemory storage for Hangfire when using SQLite (no persistent job storage needed for now)
+            config.UseInMemoryStorage();
+        }
+        else if (provider == "postgres")
+        {
+            // PostgreSQL storage for Hangfire
+            var connectionString = databaseOptions.ConnectionStrings?.Postgres 
+                ?? throw new InvalidOperationException("PostgreSQL connection string not configured");
+            config.UsePostgreSqlStorage(options =>
+            {
+                options.UseNpgsqlConnection(connectionString);
+            });
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"Unsupported database provider for Hangfire: '{databaseOptions.Provider}'");
+        }
+    });
+
+    services.AddHangfireServer();
+}
+
 void ConfigurarJobsRecorrentes()
 {
     // Limpeza de histórico - executa diariamente às 3h da manhã
@@ -162,3 +188,4 @@ void ConfigurarJobsRecorrentes()
         "0 3 * * *", // Cron: todos os dias às 3:00
         new RecurringJobOptions { TimeZone = TimeZoneInfo.Local });
 }
+

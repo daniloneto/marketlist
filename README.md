@@ -6,8 +6,8 @@ Sistema de listas de compras com automação de processamento de itens.
 
 - **Backend**: .NET 9, Clean Architecture
 - **ORM**: Entity Framework Core 9
-- **Banco de dados**: PostgreSQL 16
-- **Processamento assíncrono**: Hangfire com PostgreSQL Storage
+- **Banco de dados**: PostgreSQL 16 ou SQLite (configurável)
+- **Processamento assíncrono**: Hangfire com PostgreSQL Storage (ou InMemory com SQLite)
 - **Frontend**: React 19 (TypeScript), Vite 7, Mantine UI v8
 - **State Management**: TanStack Query (React Query)
 - **Containerização**: Docker e Docker Compose
@@ -56,6 +56,8 @@ O projeto segue os princípios de **Clean Architecture**:
 
 ### Opção 1: Executar tudo com Docker Compose (Recomendado)
 
+#### 1a. Com PostgreSQL (padrão)
+
 ```bash
 docker-compose up --build
 ```
@@ -67,17 +69,32 @@ Isso irá:
 
 A API estará disponível em: http://localhost:5000
 
+#### 1b. Com SQLite (sem banco de dados externo)
+
+```bash
+docker-compose -f docker-compose.sqlite.yml up --build
+```
+
+Isso irá:
+- Compilar e iniciar a API com SQLite
+- Aplicar migrations automaticamente
+- Salvar o banco de dados em `./data/marketlist.db`
+
+A API estará disponível em: http://localhost:5000
+
 **Nota:** Para executar o frontend, ainda é necessário rodá-lo separadamente (veja passo 3 abaixo).
 
 ### Opção 2: Executar Manualmente
 
-#### 1. Iniciar o PostgreSQL
+#### 2a. Com PostgreSQL
+
+##### 1. Iniciar o PostgreSQL
 
 ```bash
 docker-compose up -d postgres
 ```
 
-#### 2. Executar a API
+##### 2. Executar a API
 
 ```bash
 cd src/MarketList.API
@@ -85,6 +102,25 @@ dotnet run
 ```
 
 **Nota:** As migrations são aplicadas automaticamente na inicialização da API.
+
+#### 2b. Com SQLite
+
+##### 1. Executar a API com SQLite
+
+Edite `appsettings.Development.json`:
+```json
+{
+  "Database": {
+    "Provider": "Sqlite"
+  }
+}
+```
+
+Então:
+```bash
+cd src/MarketList.API
+dotnet run
+```
 
 A API estará disponível em: http://localhost:5000
 
@@ -102,11 +138,93 @@ npm run dev
 
 O frontend estará disponível em: http://localhost:5173
 
-### Configuração
+## Banco de Dados
+
+O MarketList suporta dois provedores de banco de dados:
+
+### PostgreSQL (Recomendado para Produção)
+
+- **Vantagens**: Maior performance, melhor para múltiplos usuários, suporte completo a jobs do Hangfire
+- **Configuração**: Editar `appsettings.json`:
+
+```json
+{
+  "Database": {
+    "Provider": "Postgres",
+    "ConnectionStrings": {
+      "Postgres": "Host=localhost;Port=5432;Database=marketlist;Username=postgres;Password=postgres"
+    }
+  }
+}
+```
+
+### SQLite (Desenvolvimento Local Simplificado)
+
+- **Vantagens**: Sem dependências externas, fácil para testes locais, arquivo único
+- **Desvantagens**: Menos adequado para múltiplos usuários simultâneos
+- **Configuração**: Editar `appsettings.json`:
+
+```json
+{
+  "Database": {
+    "Provider": "Sqlite",
+    "ConnectionStrings": {
+      "Sqlite": "Data Source=marketlist.db"
+    }
+  }
+}
+```
+
+### Alternando Providers
+
+#### Via Arquivo de Configuração
+
+Edite `appsettings.Development.json` ou `appsettings.json`:
+
+```json
+{
+  "Database": {
+    "Provider": "Sqlite" // ou "Postgres"
+  }
+}
+```
+
+#### Via Variáveis de Ambiente
+
+```bash
+# Usar SQLite
+export Database__Provider=Sqlite
+export Database__ConnectionStrings__Sqlite=Data Source=marketlist.db
+
+# Ou usar PostgreSQL
+export Database__Provider=Postgres
+export Database__ConnectionStrings__Postgres=Host=localhost;Port=5432;Database=marketlist;Username=postgres;Password=postgres
+```
+
+#### Via Docker Compose
+
+O docker-compose já vem configurado com as variáveis de ambiente corretas:
+
+```yaml
+# docker-compose.yml (PostgreSQL)
+environment:
+  - Database__Provider=Postgres
+  - Database__ConnectionStrings__Postgres=Host=postgres;Port=5432;...
+
+# docker-compose.sqlite.yml (SQLite)
+environment:
+  - Database__Provider=Sqlite
+  - Database__ConnectionStrings__Sqlite=Data Source=/data/marketlist.db
+```
+
+## Configuração
 
 Todas as URLs, tokens e endpoints de integração não devem ficar hardcoded no código. Use as configurações em `src/MarketList.API/appsettings.json`, `appsettings.Development.json` ou variáveis de ambiente.
 
 Principais chaves:
+- `Database:Provider` - Provider do banco: "Postgres" ou "Sqlite"
+- `Database:ConnectionStrings:Postgres` - Connection string PostgreSQL
+- `Database:ConnectionStrings:Sqlite` - Connection string SQLite
 - `Api:BaseUrl` - URL base da API (ex: http://localhost:5000)
 - `Api:AllowedOrigins` - origins permitidos para CORS
 - `MCP:Endpoint` - endpoint do provedor MCP (ollama, openai, etc.)
@@ -118,6 +236,8 @@ Exemplo de variáveis de ambiente no `.env` ou `docker-compose`:
 
 ```
 ASPNETCORE_URLS=http://+:5000
+Database__Provider=Postgres
+Database__ConnectionStrings__Postgres=Host=localhost;Port=5432;Database=marketlist;Username=postgres;Password=postgres
 MCP_ENDPOINT=http://localhost:11434/api/generate
 MCP_API_KEY=
 TELEGRAM_BOT_TOKEN=

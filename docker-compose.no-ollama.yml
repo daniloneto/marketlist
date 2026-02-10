@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: marketlist-postgres
+    environment:
+      - POSTGRES_DB=marketlist
+      - POSTGRES_USER=marketlist
+      - POSTGRES_PASSWORD=marketlist123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketlist"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/MarketList.API/Dockerfile
+    container_name: marketlist-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - Database__Provider=Postgres
+      - Database__ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=marketlist;Username=marketlist;Password=marketlist123
+      # Configuração para usar OpenAI, Anthropic ou outro provider externo
+      - MCP__Provider=openai
+      - MCP__ApiKey=${OPENAI_API_KEY}
+      - MCP__Model=gpt-4
+      - MCP__Temperature=0.3
+      - MCP__MaxTokens=2048
+      # Descomente para usar Anthropic Claude
+      # - MCP__Provider=anthropic
+      # - MCP__ApiKey=${ANTHROPIC_API_KEY}
+      # - MCP__Model=claude-3-sonnet-20240229
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

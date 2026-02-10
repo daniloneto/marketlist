@@ -1,28 +1,11 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: marketlist-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: marketlist
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   # Ollama LLM Service (optional)
   # Pode ser comentado se usar outro provider (OpenAI, Anthropic)
   ollama:
     image: ollama/ollama:latest
-    container_name: marketlist-ollama
+    container_name: marketlist-ollama-sqlite
     ports:
       - "11434:11434"
     volumes:
@@ -41,7 +24,7 @@ services:
   # Serviço para baixar o modelo Mistral automaticamente
   ollama-init:
     image: curlimages/curl:latest
-    container_name: marketlist-ollama-init
+    container_name: marketlist-ollama-init-sqlite
     depends_on:
       - ollama
     restart: "no"
@@ -67,12 +50,12 @@ services:
     build:
       context: .
       dockerfile: src/MarketList.API/Dockerfile
-    container_name: marketlist-api
+    container_name: marketlist-api-sqlite
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
-      - Database__Provider=Postgres
-      - Database__ConnectionStrings__Postgres=Host=postgres;Port=5432;Database=marketlist;Username=postgres;Password=postgres
+      - Database__Provider=Sqlite
+      - Database__ConnectionStrings__Sqlite=Data Source=/data/marketlist.db
       - MCP__Provider=ollama
       - MCP__Endpoint=http://ollama:11434/api/generate
       - MCP__Model=mistral
@@ -80,14 +63,13 @@ services:
       - MCP__MaxTokens=2048
     ports:
       - "5000:5000"
+    volumes:
+      - ./data:/data
     depends_on:
-      postgres:
-        condition: service_healthy
       ollama:
         condition: service_started
       ollama-init:
         condition: service_completed_successfully
 
 volumes:
-  postgres_data:
   ollama_data:
