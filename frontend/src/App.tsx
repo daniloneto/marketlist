@@ -9,8 +9,8 @@ import { Routes, Route } from 'react-router-dom';
 
 import { Layout } from './components';
 import { PrivateRoute } from './components/PrivateRoute';
-import { LoginPage, RegistrarPage, AlterarSenhaPage, CriarUsuarioPage, UsuariosPage } from './pages';
-import {
+  import { LoginPage, RegistrarPage, AlterarSenhaPage, CriarUsuarioPage, UsuariosPage, ImportarNotaQrCodePage } from './pages';
+  import {
   ListasDeComprasPage,
   ListaDetalhePage,
   CategoriasPage,
@@ -73,6 +73,7 @@ function App() {
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/usuarios/novo" element={<CriarUsuarioPage />} />
                     <Route path="/minha-conta/senha" element={<AlterarSenhaPage />} />
+                    <Route path="/importar/nota-qrcode" element={<ImportarNotaQrCodePage />} />
                   </Routes>
                 </Layout>
               </PrivateRoute>
