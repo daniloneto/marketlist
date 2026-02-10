@@ -34,6 +34,7 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:5000
 ENV Database__Provider=Sqlite
 ENV Database__ConnectionStrings__Sqlite="Data Source=/data/marketlist.db"
+ENV Api__AllowedOrigins__0=https://marketlist-one.vercel.app
 
 # Criar diretório para o banco SQLite
 RUN mkdir -p /data
