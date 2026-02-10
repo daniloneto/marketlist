@@ -22,9 +22,6 @@ WORKDIR /app
 
 EXPOSE 8080
 
-# Ensure ASP.NET Core listens on all network interfaces on port 8080 (required by Cloud Run)
-ENV ASPNETCORE_URLS=http://+:8080
-
 # Criar diretório para SQLite (se usar)
 RUN mkdir -p /data
 
