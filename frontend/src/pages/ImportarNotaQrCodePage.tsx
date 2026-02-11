@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Container, Text, Stack, Button, Alert, Loader, Group, Center } from '@mantine/core';
+import { Container, Text, Stack, Button, Alert, Loader, Group, Center, Select } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import type { CameraDevice } from 'html5-qrcode';
 import { notaService } from '../services/notaService';
 
 const READER_ID = 'html5qr-code-reader';
@@ -9,6 +10,10 @@ const READER_ID = 'html5qr-code-reader';
 export function ImportarNotaQrCodePage() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanningRef = useRef(false);
+  const decodedRef = useRef(false);
+
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
   const [scannedUrl, setScannedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,35 +31,43 @@ export function ImportarNotaQrCodePage() {
     }
   }, []);
 
-  const startScanner = useCallback(async () => {
+  /** Start (or restart) the scanner with the given cameraId or facingMode fallback */
+  const startScanner = useCallback(async (cameraId?: string) => {
+    // Make sure any previous instance is stopped before creating a new one
+    await stopScanner();
+
     setCameraStarting(true);
     setError(null);
+    decodedRef.current = false;
 
     try {
-      // Create a fresh instance every time
-      scannerRef.current = new Html5Qrcode(READER_ID);
+      scannerRef.current = new Html5Qrcode(READER_ID, {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
 
-      // Responsive qrbox – 70 % of the container, max 250 px
       const qrboxSize = Math.min(250, Math.floor(window.innerWidth * 0.7));
 
+      // If we have a specific cameraId use it; otherwise default to rear camera
+      const cameraConfig: string | { facingMode: string } =
+        cameraId ?? { facingMode: 'environment' };
+
       await scannerRef.current.start(
-        { facingMode: 'environment' },          // rear camera
-        { fps: 10, qrbox: { width: qrboxSize, height: qrboxSize } },
+        cameraConfig,
+        { fps: 5, qrbox: { width: qrboxSize, height: qrboxSize } },
         (decodedText) => {
-          // Success – stop camera and surface the URL
+          if (decodedRef.current) return;
+          decodedRef.current = true;
           setScannedUrl(decodedText);
           stopScanner();
         },
-        () => {
-          // Scan frame – no match yet, nothing to do
-        },
+        () => { /* no match yet */ },
       );
 
       scanningRef.current = true;
     } catch (err) {
       console.error('Camera error:', err);
-      const msg =
-        err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? err.message : String(err);
 
       if (msg.includes('NotAllowedError') || msg.includes('Permission')) {
         setError('Permissão de câmera negada. Libere o acesso nas configurações do navegador.');
@@ -68,15 +81,44 @@ export function ImportarNotaQrCodePage() {
     }
   }, [stopScanner]);
 
-  // Start on mount, cleanup on unmount
+  // List cameras and auto-start with the best rear camera
   useEffect(() => {
-    startScanner();
+    (async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        setCameras(devices);
 
-    return () => {
-      stopScanner();
-    };
+        if (devices.length === 0) {
+          setError('Nenhuma câmera encontrada neste dispositivo.');
+          setCameraStarting(false);
+          return;
+        }
+
+        // Try to pick a rear camera by label heuristic
+        const rearCamera = devices.find((d) =>
+          /back|rear|traseira|environment/i.test(d.label),
+        );
+        const chosen = rearCamera ?? devices[devices.length - 1]; // last is usually rear on mobile
+        setSelectedCameraId(chosen.id);
+        await startScanner(chosen.id);
+      } catch {
+        // If getCameras fails (permission not yet granted), start with facingMode
+        await startScanner();
+      }
+    })();
+
+    return () => { stopScanner(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** User picks a different camera from the dropdown */
+  const handleCameraChange = async (value: string | null) => {
+    if (!value) return;
+    setSelectedCameraId(value);
+    setScannedUrl(null);
+    setSent(false);
+    await startScanner(value);
+  };
 
   const handleSend = async () => {
     if (!scannedUrl) return;
@@ -99,7 +141,7 @@ export function ImportarNotaQrCodePage() {
     setScannedUrl(null);
     setSent(false);
     setError(null);
-    await startScanner();
+    await startScanner(selectedCameraId ?? undefined);
   };
 
   return (
@@ -108,6 +150,20 @@ export function ImportarNotaQrCodePage() {
         <Text size="lg" fw={600}>
           Aponte a câmera para o QR Code da nota fiscal
         </Text>
+
+        {/* Camera selector – only shown when device has more than 1 camera */}
+        {cameras.length > 1 && (
+          <Select
+            label="Câmera"
+            placeholder="Selecione a câmera"
+            value={selectedCameraId}
+            onChange={handleCameraChange}
+            data={cameras.map((c, i) => ({
+              value: c.id,
+              label: c.label || `Câmera ${i + 1}`,
+            }))}
+          />
+        )}
 
         {/* Camera viewport – always in the DOM so Html5Qrcode can attach */}
         <div
@@ -151,7 +207,7 @@ export function ImportarNotaQrCodePage() {
           )}
 
           {error && !scannedUrl && (
-            <Button variant="outline" onClick={() => startScanner()}>
+            <Button variant="outline" onClick={() => startScanner(selectedCameraId ?? undefined)}>
               Tentar novamente
             </Button>
           )}
