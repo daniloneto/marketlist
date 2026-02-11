@@ -1,13 +1,16 @@
 import api from './api';
 
-export const notaService = {
-  async importarNotaPorQrCode(url: string) {
-    const resp = await api.post('/api/importacoes/nota-fiscal/qrcode', { url });
-    return resp.data;
-  },
-};
-
-export type ImportResult = {
+export interface ImportQrCodeResult {
   success: boolean;
   message?: string;
+  listaId?: string;
+  empresa?: string;
+  empresaId?: string | null;
+}
+
+export const notaService = {
+  async importarNotaPorQrCode(url: string): Promise<ImportQrCodeResult> {
+    const resp = await api.post<ImportQrCodeResult>('/api/importacoes/nota-fiscal/qrcode', { url });
+    return resp.data;
+  },
 };

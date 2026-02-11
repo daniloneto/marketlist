@@ -183,5 +183,13 @@ public static class DependencyInjection
         services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
         // Authentication / Password service
         services.AddScoped<MarketList.Application.Interfaces.IPasswordService, PasswordService>();
+
+        // NFC-e Crawler - HttpClient com timeout de 30s para acessar SEFAZ
+        services.AddHttpClient<INotaFiscalCrawlerService, NotaFiscalCrawlerService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("User-Agent", "MarketList/1.0");
+            client.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml");
+        });
     }
 }

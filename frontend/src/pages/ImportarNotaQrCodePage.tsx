@@ -3,7 +3,10 @@ import { Container, Text, Stack, Button, Alert, Loader, Group, Center, Select } 
 import { notifications } from '@mantine/notifications';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import type { CameraDevice } from 'html5-qrcode';
+import { useNavigate } from 'react-router-dom';
 import { notaService } from '../services/notaService';
+import type { ImportQrCodeResult } from '../services/notaService';
+import axios from 'axios';
 
 const READER_ID = 'html5qr-code-reader';
 
@@ -11,12 +14,14 @@ export function ImportarNotaQrCodePage() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanningRef = useRef(false);
   const decodedRef = useRef(false);
+  const navigate = useNavigate();
 
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string | null>(null);
   const [scannedUrl, setScannedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [result, setResult] = useState<ImportQrCodeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraStarting, setCameraStarting] = useState(true);
 
@@ -125,11 +130,21 @@ export function ImportarNotaQrCodePage() {
     setLoading(true);
     setError(null);
     try {
-      await notaService.importarNotaPorQrCode(scannedUrl);
+      const data = await notaService.importarNotaPorQrCode(scannedUrl);
+      setResult(data);
       setSent(true);
-      notifications.show({ title: 'Nota enviada', message: 'Nota enviada para processamento', color: 'green' });
+      notifications.show({
+        title: 'Nota enviada',
+        message: data.message || 'Nota enviada para processamento',
+        color: 'green',
+      });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro ao enviar a nota';
+      let msg = 'Erro ao enviar a nota';
+      if (axios.isAxiosError(e) && e.response?.data?.message) {
+        msg = e.response.data.message;
+      } else if (e instanceof Error) {
+        msg = e.message;
+      }
       setError(msg);
       notifications.show({ title: 'Erro', message: msg, color: 'red' });
     } finally {
@@ -140,6 +155,7 @@ export function ImportarNotaQrCodePage() {
   const handleScanAnother = async () => {
     setScannedUrl(null);
     setSent(false);
+    setResult(null);
     setError(null);
     await startScanner(selectedCameraId ?? undefined);
   };
@@ -202,7 +218,24 @@ export function ImportarNotaQrCodePage() {
 
           {loading && <Loader size="sm" />}
 
-          {sent && (
+          {sent && result && (
+            <Stack gap="xs" style={{ width: '100%' }}>
+              <Alert color="green" title="Nota importada com sucesso!">
+                {result.empresa && <Text size="sm">Empresa: <strong>{result.empresa}</strong></Text>}
+                {result.message && <Text size="sm">{result.message}</Text>}
+              </Alert>
+              <Group justify="flex-end">
+                {result.listaId && (
+                  <Button variant="light" onClick={() => navigate(`/listas/${result.listaId}`)}>
+                    Ver lista
+                  </Button>
+                )}
+                <Button onClick={handleScanAnother}>Ler outra nota</Button>
+              </Group>
+            </Stack>
+          )}
+
+          {sent && !result && (
             <Button onClick={handleScanAnother}>Ler outra nota</Button>
           )}
 
