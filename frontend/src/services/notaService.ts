@@ -10,7 +10,7 @@ export interface ImportQrCodeResult {
 
 export const notaService = {
   async importarNotaPorQrCode(url: string): Promise<ImportQrCodeResult> {
-    const resp = await api.post<ImportQrCodeResult>('/api/importacoes/nota-fiscal/qrcode', { url });
+    const resp = await api.post<ImportQrCodeResult>('/importacoes/nota-fiscal/qrcode', { url });
     return resp.data;
   },
 };
