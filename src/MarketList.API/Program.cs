@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel to listen on the port specified by Cloud Run (or default to 8080)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+builder.WebHost.UseUrls($"http://localhost:5000");
 
 // Bind ApiOptions and TelegramOptions
 builder.Services.Configure<MarketList.Infrastructure.Configurations.ApiOptions>(builder.Configuration.GetSection("Api"));

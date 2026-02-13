@@ -145,6 +145,8 @@ export function ListaDetalhePage() {
           <Card shadow="xs" padding="md">
             <Text size="sm" c="dimmed">Processado em</Text>
             <Text size="xl" fw={700}>{formatDate(lista.processadoEm)}</Text>
+            <Text size="sm" c="dimmed" mt="sm">Data da Compra</Text>
+            <Text size="lg" fw={600}>{formatDate(lista.dataCompra ?? null)}</Text>
           </Card>
         </Grid.Col>
       </Grid>

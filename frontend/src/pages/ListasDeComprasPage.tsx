@@ -57,6 +57,7 @@ export function ListasDeComprasPage() {
         }
         return null;
       },
+        dataCompra: undefined,
     },
   });
 
@@ -159,7 +160,8 @@ export function ListasDeComprasPage() {
     }).format(value);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -187,6 +189,7 @@ export function ListasDeComprasPage() {
               <Table.Th>Nome</Table.Th>
               <Table.Th>Tipo</Table.Th>
               <Table.Th>Empresa</Table.Th>
+              <Table.Th>Data Compra</Table.Th>
               <Table.Th>Status</Table.Th>
               <Table.Th>Itens</Table.Th>
               <Table.Th>Valor Total</Table.Th>
@@ -213,6 +216,7 @@ export function ListasDeComprasPage() {
                     '-'
                   )}
                 </Table.Td>
+                <Table.Td>{formatDate(lista.dataCompra ?? lista.createdAt)}</Table.Td>
                 <Table.Td>
                   <StatusBadge status={lista.status} />
                 </Table.Td>

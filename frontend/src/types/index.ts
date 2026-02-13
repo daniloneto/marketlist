@@ -143,6 +143,7 @@ export interface ListaDeComprasDto {
   valorTotal: number | null;
   empresaId: string | null;
   empresaNome: string | null;
+  dataCompra?: string | null;
 }
 
 export interface ListaDeComprasDetalhadaDto {
@@ -157,12 +158,16 @@ export interface ListaDeComprasDetalhadaDto {
   itens: ItemListaDeComprasDto[];
   empresaId: string | null;
   empresaNome: string | null;
+  dataCompra?: string | null;
 }
 
 export interface ListaDeComprasCreateDto {
   nome: string;
   textoOriginal: string;
-  tipoEntrada: TipoEntrada;  empresaId?: string | null;}
+  tipoEntrada: TipoEntrada;
+  empresaId?: string | null;
+  dataCompra?: string | null;
+}
 
 export interface ListaDeComprasUpdateDto {
   nome: string;
