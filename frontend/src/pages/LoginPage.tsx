@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, PasswordInput, Button, Stack, Card, Title, Image } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Stack, Card, Image } from '@mantine/core';
 import marketlistLogo from '../assets/marketlist.png';
 import { useAuth } from '../contexts/AuthContext';
 
