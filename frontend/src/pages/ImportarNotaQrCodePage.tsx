@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Container, Text, Stack, Button, Alert, Loader, Group, Center, Select } from '@mantine/core';
+import { Container, Text, Stack, Button, Alert, Loader, Group, Center, Select, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import type { CameraDevice } from 'html5-qrcode';
@@ -200,9 +200,12 @@ export function ImportarNotaQrCodePage() {
         )}
 
         {scannedUrl && (
-          <Alert color="blue" title="QR Code detectado">
-            {scannedUrl}
-          </Alert>
+          <TextInput
+            label="URL detectada do QR Code"
+            description="Você pode editar a URL antes de importar"
+            value={scannedUrl}
+            onChange={(e) => setScannedUrl(e.currentTarget.value)}
+          />
         )}
 
         {error && (
