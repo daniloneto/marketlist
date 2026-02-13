@@ -40,3 +40,24 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Form grid utilities */
+.form-grid {
+  width: 100%;
+}
+
+.form-grid--compact > * {
+  margin-bottom: 0.5rem;
+}
+
+/* Helper to make an element span full width of the grid */
+.form-grid-full {
+  grid-column: 1 / -1;
+}
+
+/* Small adjustments for very small screens */
+@media (max-width: 420px) {
+  #root {
+    padding: 1rem;
+  }
+}

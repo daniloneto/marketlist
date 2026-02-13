@@ -22,7 +22,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconLink } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
-import { LoadingState, ErrorState } from '../components';
+import { LoadingState, ErrorState, FormGrid } from '../components';
 import type { ProdutoPendenteDto, ProdutoAprovacaoDto } from '../types';
 
 export function RevisaoProdutosPage() {
@@ -267,18 +267,20 @@ export function RevisaoProdutosPage() {
               </Card>
             )}
 
-            <TextInput
-              label="Nome do Produto"
-              {...form.getInputProps('nomeCorrigido')}
-              placeholder="Corrija o nome se necessário"
-            />
+            <FormGrid>
+              <TextInput
+                label="Nome do Produto"
+                {...form.getInputProps('nomeCorrigido')}
+                placeholder="Corrija o nome se necessário"
+              />
 
-            <Select
-              label="Categoria"
-              data={categorias?.map((c) => ({ value: c.id, label: c.nome })) || []}
-              {...form.getInputProps('categoriaIdCorrigida')}
-              searchable
-            />
+              <Select
+                label="Categoria"
+                data={categorias?.map((c) => ({ value: c.id, label: c.nome })) || []}
+                {...form.getInputProps('categoriaIdCorrigida')}
+                searchable
+              />
+            </FormGrid>
 
             {selectedProduto.produtosSimilares.length > 0 && (
               <Card withBorder padding="md">

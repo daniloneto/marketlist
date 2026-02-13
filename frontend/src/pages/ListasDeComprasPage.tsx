@@ -21,7 +21,7 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle, IconBuilding } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { listaDeComprasService, empresaService } from '../services';
-import { LoadingState, ErrorState, StatusBadge } from '../components';
+import { LoadingState, ErrorState, StatusBadge, FormGrid } from '../components';
 import type { ListaDeComprasDto, ListaDeComprasCreateDto, EmpresaCreateDto } from '../types';
 import { TipoEntrada } from '../types';
 
@@ -267,15 +267,15 @@ export function ListasDeComprasPage() {
         centered
         styles={{
           body: { maxHeight: '70vh', overflow: 'auto' },
-        }}
-      >        <form onSubmit={createForm.onSubmit((values) => createMutation.mutate(values))}>
-          <Stack>
+        }}>
+        <form onSubmit={createForm.onSubmit((values) => createMutation.mutate(values))}>
+          <FormGrid>
             <TextInput
               label="Nome da Lista"
               placeholder="Ex: Compras do mês"
               {...createForm.getInputProps('nome')}
             />
-              <Select
+            <Select
               label="Tipo de Entrada"
               placeholder="Selecione o tipo"
               data={[
@@ -285,7 +285,6 @@ export function ListasDeComprasPage() {
               value={createForm.values.tipoEntrada.toString()}
               onChange={(value) => {
                 createForm.setFieldValue('tipoEntrada', Number.parseInt(value || '0', 10) as typeof TipoEntrada.ListaSimples);
-                // Limpa empresa se mudar para Lista Simples
                 if (Number.parseInt(value || '0', 10) === TipoEntrada.ListaSimples) {
                   createForm.setFieldValue('empresaId', undefined);
                 }
@@ -320,7 +319,7 @@ export function ListasDeComprasPage() {
                 Cole aqui o texto da nota fiscal. O sistema irá extrair automaticamente os produtos, quantidades, unidades e preços.
               </Alert>
             )}
-            
+
             <Textarea
               label="Lista de Itens"
               placeholder={
@@ -345,14 +344,15 @@ Vl. Total
               }
               minRows={15}
               {...createForm.getInputProps('textoOriginal')}
+              style={{ gridColumn: '1 / -1' }}
             />
-            
+
             {createForm.values.tipoEntrada === 0 && (
               <Text size="sm" c="dimmed">
                 O sistema irá processar automaticamente cada item, detectando quantidades e categorias.
               </Text>
             )}
-            
+
             <Group justify="flex-end">
               <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
                 Cancelar
@@ -361,7 +361,7 @@ Vl. Total
                 Criar Lista
               </Button>
             </Group>
-          </Stack>
+          </FormGrid>
         </form>
       </Modal>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TextInput, PasswordInput, Button, Stack, Card, Title } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Stack, Card, Title, Image } from '@mantine/core';
+import marketlistLogo from '../assets/marketlist.png';
 import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
@@ -21,7 +22,9 @@ export function LoginPage() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}>
       <Card shadow="sm" style={{ width: 420 }}>
-        <Title order={3} mb="md">Login</Title>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+          <Image src={marketlistLogo} alt="MarketList" h={56} fit="contain" />
+        </div>        
         <form onSubmit={submit}>
           <Stack>
             <TextInput label="Login" value={login} onChange={(e) => setLogin(e.currentTarget.value)} required />

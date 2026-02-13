@@ -19,7 +19,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconHistory, IconList, IconCopy } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
-import { LoadingState, ErrorState } from '../components';
+import { LoadingState, ErrorState, FormGrid } from '../components';
 import type { ProdutoDto, ProdutoCreateDto, HistoricoPrecoDto } from '../types';
 
 export function ProdutosPage() {
@@ -272,16 +272,11 @@ export function ProdutosPage() {
         title="Novo Produto"
       >
         <form onSubmit={form.onSubmit((values) => createMutation.mutate(values))}>
-          <Stack>
+          <FormGrid>
             <TextInput
               label="Nome"
               placeholder="Ex: Leite Integral"
               {...form.getInputProps('nome')}
-            />
-            <Textarea
-              label="Descrição"
-              placeholder="Descrição opcional"
-              {...form.getInputProps('descricao')}
             />
             <TextInput
               label="Unidade"
@@ -295,15 +290,21 @@ export function ProdutosPage() {
               searchable
               {...form.getInputProps('categoriaId')}
             />
-            <Group justify="flex-end">
-              <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" loading={createMutation.isPending}>
-                Criar
-              </Button>
-            </Group>
-          </Stack>
+            <Textarea
+              label="Descrição"
+              placeholder="Descrição opcional"
+              {...form.getInputProps('descricao')}
+              style={{ gridColumn: '1 / -1' }}
+            />
+          </FormGrid>
+          <Group justify="flex-end" mt="md">
+            <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" loading={createMutation.isPending}>
+              Criar
+            </Button>
+          </Group>
         </form>
       </Modal>
 
@@ -318,9 +319,8 @@ export function ProdutosPage() {
             updateMutation.mutate({ id: selectedProduto!.id, data: values })
           )}
         >
-          <Stack>
+          <FormGrid>
             <TextInput label="Nome" {...form.getInputProps('nome')} />
-            <Textarea label="Descrição" {...form.getInputProps('descricao')} />
             <TextInput label="Unidade" {...form.getInputProps('unidade')} />
             <Select
               label="Categoria"
@@ -328,15 +328,16 @@ export function ProdutosPage() {
               searchable
               {...form.getInputProps('categoriaId')}
             />
-            <Group justify="flex-end">
-              <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" loading={updateMutation.isPending}>
-                Salvar
-              </Button>
-            </Group>
-          </Stack>
+            <Textarea label="Descrição" {...form.getInputProps('descricao')} style={{ gridColumn: '1 / -1' }} />
+          </FormGrid>
+          <Group justify="flex-end" mt="md">
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" loading={updateMutation.isPending}>
+              Salvar
+            </Button>
+          </Group>
         </form>
       </Modal>
 
