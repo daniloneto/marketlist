@@ -118,8 +118,11 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
     {
         try
         {
-            // Localiza o nó <strong> que contém "Emissão"
-            var strongNode = doc.DocumentNode.SelectSingleNode("//strong[contains(text(),'Emissão')]");
+            // Localiza o nó <strong> que contém exatamente "Emissão:" (e não "Tipo de Emissão:")
+            var strongNode = doc.DocumentNode.SelectSingleNode("//strong[normalize-space(text())='Emissão:']");
+
+            // Fallback: se não encontrou com match exato, tenta o contains
+            strongNode ??= doc.DocumentNode.SelectSingleNode("//strong[contains(text(),'Emissão')]");
 
             if (strongNode == null)
             {
@@ -138,8 +141,8 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
             // Pega o InnerText do pai e extrai a parte após "Emissão:"
             var textoCompleto = LimparTexto(parentNode.InnerText);
 
-            // Localizar a parte após "Emissão:"
-            var indexEmissao = textoCompleto.IndexOf("Emissão:", StringComparison.OrdinalIgnoreCase);
+            // Localizar a ÚLTIMA ocorrência de "Emissão:" para evitar match com "Tipo de Emissão:"
+            var indexEmissao = textoCompleto.LastIndexOf("Emissão:", StringComparison.OrdinalIgnoreCase);
             if (indexEmissao < 0)
             {
                 _logger.LogWarning("Texto 'Emissão:' não encontrado no conteúdo do HTML. Usando DateTime.UtcNow como fallback.");
