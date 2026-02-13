@@ -45,11 +45,11 @@ public class ImportacoesController : ControllerBase
 
         try
         {
-            // 1. Baixar HTML e extrair texto (empresa + itens)
-            var textoCompleto = await _crawlerService.BaixarEExtrairTextoAsync(request.Url, cancellationToken);
+            // 1. Baixar HTML e extrair texto (empresa + itens) e data de emissão
+            var notaExtraida = await _crawlerService.BaixarEExtrairTextoAsync(request.Url, cancellationToken);
 
             // 2. Separar nome da empresa (primeira linha) do texto dos itens
-            var linhas = textoCompleto.Replace("\r\n", "\n").Split('\n', StringSplitOptions.None);
+            var linhas = notaExtraida.Texto.Replace("\r\n", "\n").Split('\n', StringSplitOptions.None);
             var nomeEmpresa = linhas[0].Trim();
             var textoItens = string.Join("\n", linhas.Skip(1)).Trim();
 
@@ -57,12 +57,14 @@ public class ImportacoesController : ControllerBase
             var empresaId = await _empresaResolver.ResolverEmpresaIdPorNomeAsync(nomeEmpresa, cancellationToken);
 
             // 4. Criar lista via pipeline existente (enfileira Hangfire automaticamente)
-            var nomeLista = $"QR Code - {nomeEmpresa} - {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}";
+            //    Usa a data de emissão da NFC-e em vez de DateTime.UtcNow
+            var nomeLista = $"QR Code - {nomeEmpresa} - {notaExtraida.DataEmissao:yyyy-MM-dd HH:mm:ss}";
             var createDto = new ListaDeComprasCreateDto(
                 nomeLista,
                 textoItens,
                 TipoEntrada.NotaFiscal,
-                empresaId
+                empresaId,
+                notaExtraida.DataEmissao
             );
 
             var lista = await _listaService.CreateAsync(createDto, cancellationToken);

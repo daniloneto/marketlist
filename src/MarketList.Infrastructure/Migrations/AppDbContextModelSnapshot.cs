@@ -203,6 +203,10 @@ namespace MarketList.Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTime?>("DataCompra")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("data_compra");
+
                     b.Property<Guid?>("EmpresaId")
                         .HasColumnType("TEXT")
                         .HasColumnName("empresa_id");

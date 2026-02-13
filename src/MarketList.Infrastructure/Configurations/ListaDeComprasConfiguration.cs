@@ -36,6 +36,9 @@ public class ListaDeComprasConfiguration : IEntityTypeConfiguration<ListaDeCompr
             .HasColumnName("erro_processamento")
             .HasMaxLength(2000);
 
+        builder.Property(l => l.DataCompra)
+            .HasColumnName("data_compra");
+
         builder.Property(l => l.CreatedAt)
             .HasColumnName("created_at");
 

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketList.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260210162937_InitialCreate")]
+    [Migration("20260213123635_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -205,6 +205,10 @@ namespace MarketList.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DataCompra")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("data_compra");
 
                     b.Property<Guid?>("EmpresaId")
                         .HasColumnType("TEXT")

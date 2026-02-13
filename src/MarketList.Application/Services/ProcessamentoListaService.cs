@@ -178,12 +178,14 @@ public class ProcessamentoListaService : IProcessamentoListaService
                 cancellationToken);
 
             // 3. Registrar no histórico de preços
+            //    Usa DataCompra da lista (data de emissão da NFC-e) quando disponível
+            var dataHistorico = lista.DataCompra ?? DateTime.UtcNow;
             var historicoPreco = new HistoricoPreco
             {
                 Id = Guid.NewGuid(),
                 ProdutoId = produto.Id,
                 PrecoUnitario = itemNota.PrecoUnitario,
-                DataConsulta = DateTime.UtcNow,
+                DataConsulta = dataHistorico,
                 FontePreco = "NotaFiscal",
                 EmpresaId = lista.EmpresaId,
                 CreatedAt = DateTime.UtcNow

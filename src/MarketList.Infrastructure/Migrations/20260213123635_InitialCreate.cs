@@ -117,6 +117,7 @@ namespace MarketList.Infrastructure.Migrations
                     status = table.Column<int>(type: "INTEGER", nullable: false),
                     processado_em = table.Column<DateTime>(type: "TEXT", nullable: true),
                     erro_processamento = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
+                    data_compra = table.Column<DateTime>(type: "TEXT", nullable: true),
                     empresa_id = table.Column<Guid>(type: "TEXT", nullable: true),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
                     updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)

@@ -1,6 +1,8 @@
 using HtmlAgilityPack;
+using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -25,7 +27,7 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
         _logger = logger;
     }
 
-    public async Task<string> BaixarEExtrairTextoAsync(string url, CancellationToken cancellationToken = default)
+    public async Task<NotaFiscalExtraidaDto> BaixarEExtrairTextoAsync(string url, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(url))
             throw new ArgumentException("A URL da NFC-e não pode ser vazia.", nameof(url));
@@ -79,9 +81,13 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
         // 5. Montar texto no formato do pipeline
         var texto = MontarTexto(nomeEmpresa, itens);
 
-        _logger.LogInformation("NFC-e processada com sucesso: {Empresa}, {QtdItens} itens extraídos", nomeEmpresa, itens.Count);
+        // 6. Extrair data de emissão
+        var dataEmissao = ExtrairDataEmissao(doc);
 
-        return texto;
+        _logger.LogInformation("NFC-e processada com sucesso: {Empresa}, {QtdItens} itens extraídos, Data emissão: {DataEmissao}", 
+            nomeEmpresa, itens.Count, dataEmissao);
+
+        return new NotaFiscalExtraidaDto(texto, dataEmissao);
     }
 
     /// <summary>
@@ -100,6 +106,84 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
             return string.Empty;
 
         return LimparTexto(node.InnerText);
+    }
+
+    /// <summary>
+    /// Extrai a data de emissão da NFC-e do HTML da SEFAZ-BA.
+    /// A data aparece na seção "Informações gerais da Nota" no formato:
+    /// <![CDATA[<strong> Emissão: </strong>04/02/2026 20:17:47-03:00  - Via Consumidor]]>
+    /// </summary>
+    /// <returns>DateTime da emissão ou DateTime.UtcNow como fallback</returns>
+    private DateTime ExtrairDataEmissao(HtmlDocument doc)
+    {
+        try
+        {
+            // Localiza o nó <strong> que contém "Emissão"
+            var strongNode = doc.DocumentNode.SelectSingleNode("//strong[contains(text(),'Emissão')]");
+
+            if (strongNode == null)
+            {
+                _logger.LogWarning("Tag <strong> com 'Emissão' não encontrada no HTML da NFC-e. Usando DateTime.UtcNow como fallback.");
+                return DateTime.UtcNow;
+            }
+
+            // O texto da data vem logo após o </strong>, no nó pai
+            var parentNode = strongNode.ParentNode;
+            if (parentNode == null)
+            {
+                _logger.LogWarning("Nó pai do <strong> de Emissão não encontrado. Usando DateTime.UtcNow como fallback.");
+                return DateTime.UtcNow;
+            }
+
+            // Pega o InnerText do pai e extrai a parte após "Emissão:"
+            var textoCompleto = LimparTexto(parentNode.InnerText);
+
+            // Localizar a parte após "Emissão:"
+            var indexEmissao = textoCompleto.IndexOf("Emissão:", StringComparison.OrdinalIgnoreCase);
+            if (indexEmissao < 0)
+            {
+                _logger.LogWarning("Texto 'Emissão:' não encontrado no conteúdo do HTML. Usando DateTime.UtcNow como fallback.");
+                return DateTime.UtcNow;
+            }
+
+            var textoAposEmissao = textoCompleto[(indexEmissao + "Emissão:".Length)..].Trim();
+
+            // Remover sufixo " - Via Consumidor" ou similar
+            var indexViaSuffix = textoAposEmissao.IndexOf(" - Via", StringComparison.OrdinalIgnoreCase);
+            if (indexViaSuffix > 0)
+            {
+                textoAposEmissao = textoAposEmissao[..indexViaSuffix].Trim();
+            }
+
+            // Tentar parse com timezone (ex: "04/02/2026 20:17:47-03:00")
+            if (DateTimeOffset.TryParse(textoAposEmissao, new CultureInfo("pt-BR"), DateTimeStyles.None, out var dtoOffset))
+            {
+                _logger.LogInformation("Data de emissão extraída com timezone: {DataEmissao}", dtoOffset);
+                return dtoOffset.UtcDateTime;
+            }
+
+            // Fallback: tentar parse sem timezone (ex: "04/02/2026 20:17:47")
+            var formats = new[]
+            {
+                "dd/MM/yyyy HH:mm:ss",
+                "dd/MM/yyyy HH:mm",
+                "dd/MM/yyyy"
+            };
+
+            if (DateTime.TryParseExact(textoAposEmissao, formats, new CultureInfo("pt-BR"), DateTimeStyles.None, out var dataEmissao))
+            {
+                _logger.LogInformation("Data de emissão extraída (sem timezone): {DataEmissao}", dataEmissao);
+                return dataEmissao;
+            }
+
+            _logger.LogWarning("Não foi possível fazer parse da data de emissão: '{TextoData}'. Usando DateTime.UtcNow como fallback.", textoAposEmissao);
+            return DateTime.UtcNow;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao extrair data de emissão do HTML da NFC-e. Usando DateTime.UtcNow como fallback.");
+            return DateTime.UtcNow;
+        }
     }
 
     /// <summary>

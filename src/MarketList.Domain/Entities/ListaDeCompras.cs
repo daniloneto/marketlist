@@ -11,6 +11,12 @@ public class ListaDeCompras : BaseEntity
     public DateTime? ProcessadoEm { get; set; }
     public string? ErroProcessamento { get; set; }
     
+    /// <summary>
+    /// Data da compra / data de emissão da NFC-e.
+    /// Preenchida automaticamente quando a lista é importada via QR Code.
+    /// </summary>
+    public DateTime? DataCompra { get; set; }
+    
     // Relacionamento com Empresa (nullable para listas antigas e listas simples)
     public Guid? EmpresaId { get; set; }
     public virtual Empresa? Empresa { get; set; }

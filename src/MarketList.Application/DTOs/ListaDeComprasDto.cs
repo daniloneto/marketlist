@@ -14,7 +14,8 @@ public record ListaDeComprasDto(
     int QuantidadeItens,
     decimal? ValorTotal,
     Guid? EmpresaId,
-    string? EmpresaNome
+    string? EmpresaNome,
+    DateTime? DataCompra = null
 );
 
 public record ListaDeComprasDetalhadaDto(
@@ -28,14 +29,16 @@ public record ListaDeComprasDetalhadaDto(
     string? ErroProcessamento,
     List<ItemListaDeComprasDto> Itens,
     Guid? EmpresaId,
-    string? EmpresaNome
+    string? EmpresaNome,
+    DateTime? DataCompra = null
 );
 
 public record ListaDeComprasCreateDto(
     string Nome,
     string TextoOriginal,
     TipoEntrada TipoEntrada = TipoEntrada.ListaSimples,
-    Guid? EmpresaId = null
+    Guid? EmpresaId = null,
+    DateTime? DataCompra = null
 );
 
 public record ListaDeComprasUpdateDto(

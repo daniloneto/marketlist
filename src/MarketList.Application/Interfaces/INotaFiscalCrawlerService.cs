@@ -1,3 +1,5 @@
+using MarketList.Application.DTOs;
+
 namespace MarketList.Application.Interfaces;
 
 /// <summary>
@@ -8,11 +10,12 @@ public interface INotaFiscalCrawlerService
 {
     /// <summary>
     /// Baixa o HTML da URL da NFC-e, faz o parse e retorna o texto
-    /// no formato esperado pelo <see cref="ILeitorNotaFiscal"/>.
+    /// no formato esperado pelo <see cref="ILeitorNotaFiscal"/>
+    /// junto com a data de emissão extraída do HTML.
     /// A primeira linha do texto retornado é o nome da empresa.
     /// </summary>
     /// <param name="url">URL da NFC-e (ex: SEFAZ-BA)</param>
     /// <param name="cancellationToken">Token de cancelamento</param>
-    /// <returns>Texto estruturado: empresa na primeira linha, itens abaixo</returns>
-    Task<string> BaixarEExtrairTextoAsync(string url, CancellationToken cancellationToken = default);
+    /// <returns>DTO com texto estruturado e data de emissão</returns>
+    Task<NotaFiscalExtraidaDto> BaixarEExtrairTextoAsync(string url, CancellationToken cancellationToken = default);
 }

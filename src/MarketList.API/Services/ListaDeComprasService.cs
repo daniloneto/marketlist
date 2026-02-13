@@ -43,7 +43,8 @@ public class ListaDeComprasService : IListaDeComprasService
             l.Itens.Count,
             l.Itens.Any() ? l.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null,
             l.EmpresaId,
-            l.Empresa?.Nome
+            l.Empresa?.Nome,
+            l.DataCompra
         ));
     }
 
@@ -83,7 +84,8 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.ErroProcessamento,
             itensDto,
             lista.EmpresaId,
-            lista.Empresa?.Nome
+            lista.Empresa?.Nome,
+            lista.DataCompra
         );
     }    public async Task<ListaDeComprasDto> CreateAsync(ListaDeComprasCreateDto dto, CancellationToken cancellationToken = default)
     {
@@ -105,6 +107,7 @@ public class ListaDeComprasService : IListaDeComprasService
             TextoOriginal = dto.TextoOriginal,
             TipoEntrada = dto.TipoEntrada,
             EmpresaId = dto.EmpresaId,
+            DataCompra = dto.DataCompra,
             Status = StatusLista.Pendente,
             CreatedAt = DateTime.UtcNow
         };
@@ -126,7 +129,8 @@ public class ListaDeComprasService : IListaDeComprasService
             0,
             null,
             lista.EmpresaId,
-            null
+            null,
+            lista.DataCompra
         );
     }
 
@@ -155,7 +159,8 @@ public class ListaDeComprasService : IListaDeComprasService
             lista.Itens.Count,
             lista.Itens.Any() ? lista.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null,
             lista.EmpresaId,
-            lista.Empresa?.Nome
+            lista.Empresa?.Nome,
+            lista.DataCompra
         );
     }
 
