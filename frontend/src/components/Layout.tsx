@@ -220,7 +220,7 @@ export function Layout({ children }: LayoutProps) {
       </AppShell.Navbar>
 
       <Drawer opened={opened} onClose={() => setOpened(false)} padding="md" position="left" size="75%">
-        <Stack gap="xs" style={{ height: '100%', paddingTop: 60 }}>
+        <Stack gap="xs" style={{ height: '100%' }}>
           {navItems.map((item) => (
             <MantineNavLink
               key={item.to + '-drawer'}
@@ -289,7 +289,7 @@ export function Layout({ children }: LayoutProps) {
         </Stack>
       </Drawer>
 
-      <AppShell.Main style={{ minWidth: 0 }}>{children}</AppShell.Main>
+      <AppShell.Main style={{ minWidth: 0, paddingTop: 20 }}>{children}</AppShell.Main>
 
       <Modal
         opened={importModalOpen}

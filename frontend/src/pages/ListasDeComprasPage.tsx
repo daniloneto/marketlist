@@ -16,6 +16,7 @@ import {
   Select,
   Alert,
 } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle, IconBuilding } from '@tabler/icons-react';
@@ -76,6 +77,8 @@ export function ListasDeComprasPage() {
       nome: '',
     },
   });
+
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const createMutation = useMutation({
     mutationFn: listaDeComprasService.create,
@@ -263,10 +266,11 @@ export function ListasDeComprasPage() {
         opened={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         title="Nova Lista de Compras"
-        size="lg"
-        centered
+        size={isMobile ? '100%' : 'lg'}
+        fullScreen={isMobile}
+        centered={!isMobile}
         styles={{
-          body: { maxHeight: '70vh', overflow: 'auto' },
+          body: { maxHeight: isMobile ? 'calc(100vh - 120px)' : '70vh', overflow: 'auto' },
         }}>
         <form onSubmit={createForm.onSubmit((values) => createMutation.mutate(values))}>
           <FormGrid>
@@ -342,7 +346,7 @@ Qtde.:1   UN: MCO1   Vl. Unit.: 1,89
 Vl. Total
 1,89`
               }
-              minRows={15}
+              minRows={isMobile ? 8 : 15}
               {...createForm.getInputProps('textoOriginal')}
               style={{ gridColumn: '1 / -1' }}
             />
