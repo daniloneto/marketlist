@@ -1,6 +1,6 @@
 import api from './api';
 
-export interface ImportQrCodeResult {
+export interface ImportNotaResult {
   success: boolean;
   message?: string;
   listaId?: string;
@@ -9,8 +9,13 @@ export interface ImportQrCodeResult {
 }
 
 export const notaService = {
-  async importarNotaPorQrCode(url: string): Promise<ImportQrCodeResult> {
-    const resp = await api.post<ImportQrCodeResult>('/importacoes/nota-fiscal/qrcode', { url });
+  async importarNotaPorQrCode(url: string): Promise<ImportNotaResult> {
+    const resp = await api.post<ImportNotaResult>('/importacoes/nota-fiscal/qrcode', { url });
+    return resp.data;
+  },
+
+  async importarNotaPorUrl(urlNota: string): Promise<ImportNotaResult> {
+    const resp = await api.post<ImportNotaResult>('/importacoes/nota-fiscal/por-url', { urlNota });
     return resp.data;
   },
 };

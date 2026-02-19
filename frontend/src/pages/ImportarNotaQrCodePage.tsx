@@ -5,7 +5,7 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import type { CameraDevice } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 import { notaService } from '../services/notaService';
-import type { ImportQrCodeResult } from '../services/notaService';
+import type { ImportNotaResult } from '../services/notaService';
 import axios from 'axios';
 
 const READER_ID = 'html5qr-code-reader';
@@ -21,7 +21,7 @@ export function ImportarNotaQrCodePage() {
   const [scannedUrl, setScannedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [result, setResult] = useState<ImportQrCodeResult | null>(null);
+  const [result, setResult] = useState<ImportNotaResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraStarting, setCameraStarting] = useState(true);
 
