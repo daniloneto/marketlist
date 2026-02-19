@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import axios from 'axios';
@@ -14,9 +14,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     else localStorage.removeItem(STORAGE_KEY);
   }, [token]);
 
-  const login = async (login: string, senha: string) => {
+  const login = useCallback(async (username: string, senha: string) => {
     try {
-      const t = await authService.login(login, senha);
+      const t = await authService.login(username, senha);
       setToken(t);
       notifications.show({ title: 'Login', message: 'Autenticado com sucesso', color: 'green' });
       navigate('/');
@@ -32,12 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       notifications.show({ title: 'Erro', message, color: 'red' });
       // erro já tratado e mostrado ao usuário; não relançar para evitar "Uncaught (in promise)"
     }
-  };
+  }, [navigate]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     navigate('/login');
-  };
+  }, [navigate]);
 
   return (
     <AuthContext.Provider value={{ token, isAuthenticated: !!token, login, logout }}>
