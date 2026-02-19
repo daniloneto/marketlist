@@ -51,7 +51,8 @@ const navItems = [
   { label: 'Categorias', icon: IconCategory, to: '/categorias' },
   { label: 'Empresas', icon: IconBuilding, to: '/empresas' },
   { label: 'Histórico de Preços', icon: IconChartLine, to: '/historico-precos' },
-  { label: 'Importar Nota por QR Code', icon: IconUpload, to: '/importar/nota-qrcode' },
+  { label: 'Importar Nota (QR Code)', icon: IconUpload, to: '/importar/nota-qrcode' },
+  { label: 'Importar Nota (Endereço)', icon: IconUpload, to: '/importar/nota-endereco' },
 ];
 
 export function Layout({ children }: LayoutProps) {
