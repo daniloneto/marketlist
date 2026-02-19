@@ -25,8 +25,8 @@ export function RegistrarPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}>
-      <Card shadow="sm" style={{ width: 420 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 16px 16px' }}>
+      <Card shadow="sm" style={{ width: '100%', maxWidth: 420 }}>
         <Title order={3} mb="md">Criar Usuário</Title>
         <form onSubmit={submit}>
           <Stack>

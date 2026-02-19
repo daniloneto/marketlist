@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, PasswordInput, Button, Stack, Card, Image } from '@mantine/core';
 import marketlistLogo from '../assets/marketlist.png';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 
 export function LoginPage() {
   const [login, setLogin] = useState('');
@@ -20,8 +20,8 @@ export function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}>
-      <Card shadow="sm" style={{ width: 420 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 16px 16px' }}>
+      <Card shadow="sm" style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
           <Image src={marketlistLogo} alt="MarketList" h={56} fit="contain" />
         </div>        

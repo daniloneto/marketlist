@@ -1,0 +1,12 @@
+import { createContext } from 'react';
+
+export type AuthContextType = {
+  token: string | null;
+  isAuthenticated: boolean;
+  login: (login: string, senha: string) => Promise<void>;
+  logout: () => void;
+};
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const STORAGE_KEY = 'ml_token';

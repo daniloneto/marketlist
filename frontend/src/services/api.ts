@@ -14,10 +14,9 @@ api.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem('ml_token');
     if (token && config.headers) {
-      // eslint-disable-next-line no-param-reassign
       config.headers.Authorization = `Bearer ${token}`;
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return config;

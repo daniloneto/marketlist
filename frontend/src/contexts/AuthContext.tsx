@@ -1,19 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import axios from 'axios';
 import authService from '../services/authService';
-
-type AuthContextType = {
-  token: string | null;
-  isAuthenticated: boolean;
-  login: (login: string, senha: string) => Promise<void>;
-  logout: () => void;
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const STORAGE_KEY = 'ml_token';
+import { AuthContext, STORAGE_KEY } from './auth-context';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(STORAGE_KEY));
@@ -55,11 +45,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
-}
-
-export default AuthContext;
