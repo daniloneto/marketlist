@@ -13,7 +13,10 @@ export function LoginPage() {
     e?.preventDefault();
     setLoading(true);
     try {
-      await doLogin(login, senha);
+      const isAuthenticated = await doLogin(login, senha);
+      if (!isAuthenticated) {
+        setSenha('');
+      }
     } finally {
       setLoading(false);
     }

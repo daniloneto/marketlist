@@ -14,12 +14,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     else localStorage.removeItem(STORAGE_KEY);
   }, [token]);
 
-  const login = useCallback(async (username: string, senha: string) => {
+  const login = useCallback(async (username: string, senha: string): Promise<boolean> => {
     try {
       const t = await authService.login(username, senha);
       setToken(t);
       notifications.show({ title: 'Login', message: 'Autenticado com sucesso', color: 'green' });
       navigate('/');
+      return true;
     } catch (err: unknown) {
       let message = 'Erro no login';
       if (axios.isAxiosError(err)) {
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       notifications.show({ title: 'Erro', message, color: 'red' });
       // erro já tratado e mostrado ao usuário; não relançar para evitar "Uncaught (in promise)"
+      return false;
     }
   }, [navigate]);
 
