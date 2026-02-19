@@ -31,7 +31,7 @@ public class ImportacaoNotaFiscalService : IImportacaoNotaFiscalService
         var notaExtraida = await _crawlerService.BaixarEExtrairTextoAsync(urlNota, cancellationToken);
 
         var linhas = notaExtraida.Texto.Replace("\r\n", "\n").Split('\n', StringSplitOptions.None);
-        if (linhas.Length == 0 || string.IsNullOrWhiteSpace(linhas[0]))
+        if (string.IsNullOrWhiteSpace(linhas[0]))
         {
             throw new InvalidOperationException("Não foi possível identificar a empresa da nota fiscal.");
         }
