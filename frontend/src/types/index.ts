@@ -31,6 +31,21 @@ export const UnidadeDeMedida = {
 
 export type UnidadeDeMedida = (typeof UnidadeDeMedida)[keyof typeof UnidadeDeMedida];
 
+export const PeriodoOrcamentoTipo = {
+  Semanal: 1,
+  Mensal: 2,
+} as const;
+
+export type PeriodoOrcamentoTipo = (typeof PeriodoOrcamentoTipo)[keyof typeof PeriodoOrcamentoTipo];
+
+export const StatusConsumoOrcamento = {
+  Normal: 0,
+  Alerta: 1,
+  Estourado: 2,
+} as const;
+
+export type StatusConsumoOrcamento = (typeof StatusConsumoOrcamento)[keyof typeof StatusConsumoOrcamento];
+
 // DTOs
 export interface CategoriaDto {
   id: string;
@@ -195,6 +210,44 @@ export interface ItemListaDeComprasCreateDto {
 export interface ItemListaDeComprasUpdateDto {
   quantidade: number;
   comprado: boolean;
+}
+
+export interface OrcamentoCategoriaDto {
+  id: string;
+  usuarioId: string;
+  categoriaId: string;
+  nomeCategoria: string;
+  periodoTipo: PeriodoOrcamentoTipo;
+  periodoReferencia: string;
+  valorLimite: number;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface CriarOrcamentoCategoriaRequest {
+  categoriaId: string;
+  periodoTipo: PeriodoOrcamentoTipo;
+  periodoReferencia?: string | null;
+  valorLimite: number;
+}
+
+export interface ItemResumoOrcamentoCategoriaDto {
+  categoriaId: string;
+  nomeCategoria: string;
+  totalEstimado: number;
+  itensSemPreco: number;
+  valorLimite: number;
+  percentualConsumido: number;
+  status: StatusConsumoOrcamento;
+}
+
+export interface ResumoOrcamentoListaDto {
+  listaId: string;
+  periodoReferencia: string;
+  periodoTipo: PeriodoOrcamentoTipo;
+  totalLista: number;
+  totalItensSemPreco: number;
+  itensPorCategoria: ItemResumoOrcamentoCategoriaDto[];
 }
 // Chat Types
 export interface ChatMessage {

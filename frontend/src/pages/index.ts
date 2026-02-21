@@ -13,3 +13,4 @@ export { UsuariosPage } from './UsuariosPage';
 export { ImportarNotaQrCodePage } from './ImportarNotaQrCodePage';
 
 export { ImportarNotaEnderecoPage } from './ImportarNotaEnderecoPage';
+export { OrcamentosPage } from './OrcamentosPage';

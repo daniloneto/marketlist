@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketList.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260213123635_InitialCreate")]
+    [Migration("20260221015503_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -254,6 +254,56 @@ namespace MarketList.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("listas_de_compras", (string)null);
+                });
+
+            modelBuilder.Entity("MarketList.Domain.Entities.OrcamentoCategoria", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CategoriaId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("categoria_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("PeriodoReferencia")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("periodo_referencia");
+
+                    b.Property<int>("PeriodoTipo")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("periodo_tipo");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<decimal>("ValorLimite")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("valor_limite");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.HasIndex("UsuarioId", "PeriodoTipo", "PeriodoReferencia");
+
+                    b.HasIndex("UsuarioId", "PeriodoTipo", "PeriodoReferencia", "CategoriaId")
+                        .IsUnique();
+
+                    b.ToTable("orcamentos_categoria", (string)null);
                 });
 
             modelBuilder.Entity("MarketList.Domain.Entities.Produto", b =>
@@ -499,6 +549,25 @@ namespace MarketList.Infrastructure.Migrations
                     b.Navigation("Empresa");
                 });
 
+            modelBuilder.Entity("MarketList.Domain.Entities.OrcamentoCategoria", b =>
+                {
+                    b.HasOne("MarketList.Domain.Entities.Categoria", "Categoria")
+                        .WithMany("Orcamentos")
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketList.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("MarketList.Domain.Entities.Produto", b =>
                 {
                     b.HasOne("MarketList.Domain.Entities.Categoria", "Categoria")
@@ -534,6 +603,8 @@ namespace MarketList.Infrastructure.Migrations
 
             modelBuilder.Entity("MarketList.Domain.Entities.Categoria", b =>
                 {
+                    b.Navigation("Orcamentos");
+
                     b.Navigation("Produtos");
                 });
 

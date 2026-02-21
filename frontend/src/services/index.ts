@@ -6,3 +6,4 @@ export { empresaService } from './empresaService';
 export { backupService } from './backupService';
 export { sendChatMessage, streamChatMessage, getAvailableTools } from './chatService';
 export { notaService } from './notaService';
+export { orcamentoService } from './orcamentoService';

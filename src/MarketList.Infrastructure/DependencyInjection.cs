@@ -94,6 +94,7 @@ public static class DependencyInjection
         services.AddScoped<IRepository<HistoricoPreco>, Repository<HistoricoPreco>>();
         services.AddScoped<IRepository<ListaDeCompras>, Repository<ListaDeCompras>>();
         services.AddScoped<IRepository<ItemListaDeCompras>, Repository<ItemListaDeCompras>>();
+        services.AddScoped<IRepository<OrcamentoCategoria>, Repository<OrcamentoCategoria>>();
         
         // Repositories - Specialized
         services.AddScoped<IProdutoRepository, ProdutoRepository>();
@@ -103,6 +104,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoriaRepository, CategoriaRepository>();
         services.AddScoped<IEmpresaRepository, EmpresaRepository>();
         services.AddScoped<IHistoricoPrecoRepository, HistoricoPrecoRepository>();
+        services.AddScoped<IOrcamentoCategoriaRepository, OrcamentoCategoriaRepository>();
     }
 
     private static void RegisterChatbotServices(IServiceCollection services, IConfiguration configuration)

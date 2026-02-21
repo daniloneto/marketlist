@@ -7,6 +7,7 @@ import type {
   ItemListaDeComprasDto,
   ItemListaDeComprasCreateDto,
   ItemListaDeComprasUpdateDto,
+  ResumoOrcamentoListaDto,
 } from '../types';
 
 export const listaDeComprasService = {
@@ -53,5 +54,10 @@ export const listaDeComprasService = {
 
   removeItem: async (listaId: string, itemId: string): Promise<void> => {
     await api.delete(`/listasdecompras/${listaId}/itens/${itemId}`);
+  },
+
+  getResumoOrcamento: async (listaId: string): Promise<ResumoOrcamentoListaDto> => {
+    const response = await api.get<ResumoOrcamentoListaDto>(`/listasdecompras/${listaId}/resumo-orcamento`);
+    return response.data;
   },
 };

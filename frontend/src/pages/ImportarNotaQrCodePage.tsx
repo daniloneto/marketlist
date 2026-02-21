@@ -60,13 +60,13 @@ export function ImportarNotaQrCodePage() {
       await scannerRef.current.start(
         cameraConfig,
         { fps: 5, qrbox: { width: qrboxSize, height: qrboxSize } },
-        (decodedText) => {
+        (decodedText: string, _decodedResult: unknown) => {
           if (decodedRef.current) return;
           decodedRef.current = true;
           setScannedUrl(decodedText);
           stopScanner();
         },
-        () => { /* no match yet */ },
+        (_errorMessage: string) => { /* no match yet */ },
       );
 
       scanningRef.current = true;
@@ -100,7 +100,7 @@ export function ImportarNotaQrCodePage() {
         }
 
         // Try to pick a rear camera by label heuristic
-        const rearCamera = devices.find((d) =>
+        const rearCamera = devices.find((d: CameraDevice) =>
           /back|rear|traseira|environment/i.test(d.label),
         );
         const chosen = rearCamera ?? devices[devices.length - 1]; // last is usually rear on mobile

@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketList.API.Controllers;
@@ -9,10 +11,14 @@ namespace MarketList.API.Controllers;
 public class ListasDeComprasController : ControllerBase
 {
     private readonly IListaDeComprasService _listaService;
+    private readonly IOrcamentoCategoriaService _orcamentoService;
 
-    public ListasDeComprasController(IListaDeComprasService listaService)
+    public ListasDeComprasController(
+        IListaDeComprasService listaService,
+        IOrcamentoCategoriaService orcamentoService)
     {
         _listaService = listaService;
+        _orcamentoService = orcamentoService;
     }
 
     /// <summary>
@@ -112,5 +118,41 @@ public class ListasDeComprasController : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+
+    [HttpGet("{id:guid}/resumo-orcamento")]
+    public async Task<ActionResult<ResumoOrcamentoListaDto>> ObterResumoOrcamento(
+        Guid id,
+        [FromQuery] PeriodoOrcamentoTipo periodoTipo = PeriodoOrcamentoTipo.Mensal,
+        CancellationToken cancellationToken = default)
+    {
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId is null)
+        {
+            return Unauthorized();
+        }
+
+        var resumo = await _orcamentoService.ObterResumoParaListaAsync(
+            usuarioId.Value,
+            id,
+            periodoTipo,
+            cancellationToken);
+        if (resumo is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(resumo);
+    }
+
+    private Guid? ObterUsuarioId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return Guid.TryParse(value, out var usuarioId) ? usuarioId : null;
     }
 }

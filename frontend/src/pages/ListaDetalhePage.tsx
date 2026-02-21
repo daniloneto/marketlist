@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Title,
   Paper,
@@ -14,12 +15,18 @@ import {
   Card,
   Grid,
   Alert,
+  Progress,
+  Badge,
 } from '@mantine/core';
 import { IconArrowLeft, IconTrash, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { listaDeComprasService } from '../services';
 import { LoadingState, ErrorState, StatusBadge } from '../components';
-import { StatusLista, type ItemListaDeComprasDto } from '../types';
+import {
+  StatusConsumoOrcamento,
+  StatusLista,
+  type ItemListaDeComprasDto,
+} from '../types';
 
 export function ListaDetalhePage() {
   const { id } = useParams<{ id: string }>();
@@ -30,10 +37,20 @@ export function ListaDetalhePage() {
     queryKey: ['lista', id],
     queryFn: () => listaDeComprasService.getById(id!),
     refetchInterval: (query) => {
-      // Refetch a cada 2 segundos se estiver processando
       const data = query.state.data;
       return data?.status === StatusLista.Processando ? 2000 : false;
     },
+  });
+
+  const {
+    data: resumoOrcamento,
+    isLoading: resumoLoading,
+    error: resumoError,
+    refetch: refetchResumo,
+  } = useQuery({
+    queryKey: ['resumo-orcamento', id],
+    queryFn: () => listaDeComprasService.getResumoOrcamento(id!),
+    enabled: !!id,
   });
 
   const updateItemMutation = useMutation({
@@ -41,6 +58,7 @@ export function ListaDetalhePage() {
       listaDeComprasService.updateItem(id!, itemId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lista', id] });
+      queryClient.invalidateQueries({ queryKey: ['resumo-orcamento', id] });
     },
   });
 
@@ -48,6 +66,7 @@ export function ListaDetalhePage() {
     mutationFn: (itemId: string) => listaDeComprasService.removeItem(id!, itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lista', id] });
+      queryClient.invalidateQueries({ queryKey: ['resumo-orcamento', id] });
       notifications.show({
         title: 'Sucesso',
         message: 'Item removido com sucesso!',
@@ -89,17 +108,55 @@ export function ListaDetalhePage() {
     });
   };
 
-  const calcularTotal = () => {
-    if (!lista?.itens) return null;
-    const total = lista.itens.reduce((acc, item) => {
-      return acc + (item.subTotal || 0);
-    }, 0);
-    return total > 0 ? total : null;
-  };
+  const alertas = resumoOrcamento?.itensPorCategoria.filter((item) => item.status === StatusConsumoOrcamento.Alerta).length ?? 0;
+  const estouradas = resumoOrcamento?.itensPorCategoria.filter((item) => item.status === StatusConsumoOrcamento.Estourado).length ?? 0;
+  const resumoVazio = (resumoOrcamento?.itensPorCategoria.length ?? 0) === 0;
+
+  let resumoContent: ReactNode;
+  if (resumoLoading) {
+    resumoContent = <LoadingState message="Carregando resumo de orcamento..." />;
+  } else if (resumoError) {
+    resumoContent = <ErrorState onRetry={refetchResumo} message="Nao foi possivel carregar o resumo de orcamento." />;
+  } else if (resumoVazio) {
+    resumoContent = <Text c="dimmed">Nenhum item para calcular resumo de orcamento.</Text>;
+  } else {
+    resumoContent = (
+      <Stack gap="md">
+        {resumoOrcamento?.itensPorCategoria.map((item) => {
+          const progressValue = Math.min(item.percentualConsumido, 100);
+          let color: 'green' | 'yellow' | 'red' = 'green';
+
+          if (item.status === StatusConsumoOrcamento.Estourado) {
+            color = 'red';
+          } else if (item.status === StatusConsumoOrcamento.Alerta) {
+            color = 'yellow';
+          }
+
+          return (
+            <Stack key={item.categoriaId} gap={4}>
+              <Group justify="space-between">
+                <Text fw={600}>{item.nomeCategoria}</Text>
+                <Text size="sm">
+                  {formatCurrency(item.totalEstimado)} / {formatCurrency(item.valorLimite)}
+                </Text>
+              </Group>
+              <Progress value={progressValue} color={color} />
+              <Group justify="space-between">
+                <Text size="xs" c="dimmed">{item.percentualConsumido.toFixed(1)}%</Text>
+                {item.itensSemPreco > 0 && (
+                  <Text size="xs" c="dimmed">{item.itensSemPreco} item(ns) sem preco.</Text>
+                )}
+              </Group>
+            </Stack>
+          );
+        })}
+      </Stack>
+    );
+  }
 
   if (isLoading) return <LoadingState />;
   if (error) return <ErrorState onRetry={refetch} />;
-  if (!lista) return <ErrorState message="Lista não encontrada" />;
+  if (!lista) return <ErrorState message="Lista nao encontrada" />;
 
   return (
     <>
@@ -111,20 +168,39 @@ export function ListaDetalhePage() {
           <Title order={2}>{lista.nome}</Title>
           <StatusBadge status={lista.status} />
         </Group>
-        <Button variant="light" leftSection={<IconRefresh size={16} />} onClick={() => refetch()}>
+        <Button
+          variant="light"
+          leftSection={<IconRefresh size={16} />}
+          onClick={() => {
+            refetch();
+            refetchResumo();
+          }}
+        >
           Atualizar
         </Button>
       </Group>
 
       {lista.status === StatusLista.Processando && (
         <Alert icon={<IconAlertCircle size={16} />} color="blue" mb="md">
-          A lista está sendo processada. Os itens serão exibidos em breve.
+          A lista esta sendo processada. Os itens serao exibidos em breve.
         </Alert>
       )}
 
       {lista.status === StatusLista.Erro && (
         <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
           Erro no processamento: {lista.erroProcessamento}
+        </Alert>
+      )}
+
+      {estouradas > 0 && (
+        <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
+          Orcamento estourado em {estouradas} categoria(s).
+        </Alert>
+      )}
+
+      {estouradas === 0 && alertas > 0 && (
+        <Alert icon={<IconAlertCircle size={16} />} color="yellow" mb="md">
+          Atencao: voce esta perto do limite em {alertas} categoria(s).
         </Alert>
       )}
 
@@ -138,7 +214,14 @@ export function ListaDetalhePage() {
         <Grid.Col span={{ base: 12, md: 4 }}>
           <Card shadow="xs" padding="md">
             <Text size="sm" c="dimmed">Valor Total Estimado</Text>
-            <Text size="xl" fw={700}>{formatCurrency(calcularTotal())}</Text>
+            <Text size="xl" fw={700}>
+              {formatCurrency(resumoOrcamento ? resumoOrcamento.totalLista : null)}
+            </Text>
+            {(resumoOrcamento?.totalItensSemPreco ?? 0) > 0 && (
+              <Text size="xs" c="dimmed" mt={4}>
+                {resumoOrcamento?.totalItensSemPreco} item(ns) sem preco: considerado R$ 0,00.
+              </Text>
+            )}
           </Card>
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 4 }}>
@@ -151,6 +234,17 @@ export function ListaDetalhePage() {
         </Grid.Col>
       </Grid>
 
+      <Paper shadow="xs" p="md" mb="md">
+        <Group justify="space-between" mb="sm">
+          <Title order={4}>Resumo de Orcamento por Categoria</Title>
+          {resumoOrcamento && (
+            <Badge variant="light">{resumoOrcamento.periodoReferencia}</Badge>
+          )}
+        </Group>
+
+        {resumoContent}
+      </Paper>
+
       {lista.textoOriginal && (
         <Paper shadow="xs" p="md" mb="md">
           <Text size="sm" fw={500} mb="xs">Texto Original:</Text>
@@ -162,7 +256,7 @@ export function ListaDetalhePage() {
 
       <Paper shadow="xs" p="md">
         <Title order={4} mb="md">Itens da Lista</Title>
-        
+
         {lista.itens.length === 0 ? (
           <Text c="dimmed" ta="center" py="xl">
             {lista.status === StatusLista.Processando
@@ -173,13 +267,13 @@ export function ListaDetalhePage() {
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th style={{ width: 50 }}>✓</Table.Th>
+                <Table.Th style={{ width: 50 }}>OK</Table.Th>
                 <Table.Th>Produto</Table.Th>
                 <Table.Th>Quantidade</Table.Th>
                 <Table.Th>Unidade</Table.Th>
-                <Table.Th>Preço Un.</Table.Th>
+                <Table.Th>Preco Un.</Table.Th>
                 <Table.Th>Subtotal</Table.Th>
-                <Table.Th>Ações</Table.Th>
+                <Table.Th>Acoes</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>

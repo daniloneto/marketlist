@@ -134,6 +134,36 @@ namespace MarketList.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "orcamentos_categoria",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    usuario_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    categoria_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    periodo_tipo = table.Column<int>(type: "INTEGER", nullable: false),
+                    periodo_referencia = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    valor_limite = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_orcamentos_categoria", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_orcamentos_categoria_categorias_categoria_id",
+                        column: x => x.categoria_id,
+                        principalTable: "categorias",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_orcamentos_categoria_usuarios_usuario_id",
+                        column: x => x.usuario_id,
+                        principalTable: "usuarios",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "historico_precos",
                 columns: table => new
                 {
@@ -271,6 +301,22 @@ namespace MarketList.Infrastructure.Migrations
                 column: "status");
 
             migrationBuilder.CreateIndex(
+                name: "IX_orcamentos_categoria_categoria_id",
+                table: "orcamentos_categoria",
+                column: "categoria_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orcamentos_categoria_usuario_id_periodo_tipo_periodo_referencia",
+                table: "orcamentos_categoria",
+                columns: new[] { "usuario_id", "periodo_tipo", "periodo_referencia" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_orcamentos_categoria_usuario_id_periodo_tipo_periodo_referencia_categoria_id",
+                table: "orcamentos_categoria",
+                columns: new[] { "usuario_id", "periodo_tipo", "periodo_referencia", "categoria_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_produtos_categoria_id",
                 table: "produtos",
                 column: "categoria_id");
@@ -328,16 +374,19 @@ namespace MarketList.Infrastructure.Migrations
                 name: "itens_lista_de_compras");
 
             migrationBuilder.DropTable(
+                name: "orcamentos_categoria");
+
+            migrationBuilder.DropTable(
                 name: "regras_classificacao_categoria");
 
             migrationBuilder.DropTable(
                 name: "sinonimos_produto");
 
             migrationBuilder.DropTable(
-                name: "usuarios");
+                name: "listas_de_compras");
 
             migrationBuilder.DropTable(
-                name: "listas_de_compras");
+                name: "usuarios");
 
             migrationBuilder.DropTable(
                 name: "produtos");
