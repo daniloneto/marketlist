@@ -26,8 +26,8 @@ export function AlterarSenhaPage() {
     } catch (err: unknown) {
       let message = 'Erro ao alterar senha';
       if (axios.isAxiosError(err)) {
-        const resp = err.response?.data as any;
-        if (resp && typeof resp === 'object' && resp.error) {
+        const resp = err.response?.data as { error?: string } | undefined;
+        if (resp && typeof resp.error === 'string') {
           message = resp.error;
         } else if (err.response?.status === 401) {
           message = 'Sessão expirada ou senha atual inválida';
@@ -44,8 +44,8 @@ export function AlterarSenhaPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}>
-      <Card shadow="sm" style={{ width: 420 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 16px 16px' }}>
+      <Card shadow="sm" style={{ width: '100%', maxWidth: 420 }}>
         <Title order={3} mb="md">Alterar Senha</Title>
         <form onSubmit={submit}>
           <Stack>

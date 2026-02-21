@@ -31,7 +31,7 @@ import {
   IconUser,
   IconKey,
 } from '@tabler/icons-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { backupService, type ImportResult } from '../services/backupService';
 import marketlistLogo from '../assets/marketlist.png';
 

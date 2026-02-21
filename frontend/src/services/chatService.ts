@@ -1,4 +1,4 @@
-import type { ChatMessage } from "@/types";
+import type { ChatMessage, ToolDefinition } from "@/types";
 
 export interface ChatMessageRequest {
   message: string;
@@ -107,7 +107,7 @@ export async function streamChatMessage(
 /**
  * Obtém lista de ferramentas disponíveis
  */
-export async function getAvailableTools(): Promise<any[]> {
+export async function getAvailableTools(): Promise<ToolDefinition[]> {
   const response = await fetch(`${API_BASE_URL}/chat/tools`, {
     method: "GET",
     headers: {
