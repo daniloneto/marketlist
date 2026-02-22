@@ -35,8 +35,15 @@ public class CatalogTaxonomyController : ControllerBase
     [HttpDelete("categories/{id:guid}")]
     public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await _service.DeleteCategoryAsync(id, cancellationToken);
-        return deleted ? NoContent() : BadRequest(new { error = "Categoria possui subcategorias ou produtos ativos associados." });
+        var result = await _service.DeleteCategoryAsync(id, cancellationToken);
+
+        return result switch
+        {
+            DeleteCategoryResult.Deleted => NoContent(),
+            DeleteCategoryResult.NotFound => NotFound(),
+            DeleteCategoryResult.HasDependencies => BadRequest(new { error = "Categoria possui subcategorias ou produtos ativos associados." }),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
     }
 
     [HttpGet("subcategories")]

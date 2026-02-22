@@ -37,21 +37,21 @@ public class CatalogTaxonomyService : ICatalogTaxonomyService
         return new CatalogCategoryDto(entity.Id, entity.Name);
     }
 
-    public async Task<bool> DeleteCategoryAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<DeleteCategoryResult> DeleteCategoryAsync(Guid id, CancellationToken cancellationToken = default)
     {
+        var entity = await _context.CatalogCategories.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity is null)
+            return DeleteCategoryResult.NotFound;
+
         var hasProducts = await _context.ProductCatalog.AnyAsync(x => x.CategoryId == id && x.IsActive, cancellationToken);
         var hasSubcategories = await _context.CatalogSubcategories.AnyAsync(x => x.CategoryId == id, cancellationToken);
 
         if (hasProducts || hasSubcategories)
-            return false;
-
-        var entity = await _context.CatalogCategories.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (entity is null)
-            return false;
+            return DeleteCategoryResult.HasDependencies;
 
         _context.CatalogCategories.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        return DeleteCategoryResult.Deleted;
     }
 
     public async Task<IReadOnlyList<CatalogSubcategoryDto>> GetSubcategoriesAsync(CancellationToken cancellationToken = default)

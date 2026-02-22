@@ -31,6 +31,12 @@ public record ProductCatalogUpdateDto(
 public record CatalogCategoryDto(Guid Id, string Name);
 public record CatalogCategoryCreateDto(string Name);
 public record CatalogCategoryUpdateDto(string Name);
+public enum DeleteCategoryResult
+{
+    NotFound,
+    HasDependencies,
+    Deleted
+}
 
 public record CatalogSubcategoryDto(Guid Id, Guid CategoryId, string CategoryName, string Name);
 public record CatalogSubcategoryCreateDto(Guid CategoryId, string Name);
