@@ -8,6 +8,8 @@ namespace MarketList.Infrastructure.Services;
 
 public class ProductResolutionService : IProductResolutionService
 {
+    private const double ContainmentLengthRatioThreshold = 0.6;
+
     private readonly AppDbContext _context;
     private readonly ITextoNormalizacaoService _normalizacaoService;
 
@@ -69,7 +71,11 @@ public class ProductResolutionService : IProductResolutionService
 
         if (a.Contains(b, StringComparison.OrdinalIgnoreCase) || b.Contains(a, StringComparison.OrdinalIgnoreCase))
         {
-            score = Math.Max(score, 85);
+            var ratio = (double)Math.Min(a.Length, b.Length) / Math.Max(a.Length, b.Length);
+            if (ratio >= ContainmentLengthRatioThreshold)
+            {
+                score = Math.Max(score, 85);
+            }
         }
 
         return Math.Round(Math.Clamp(score, 0, 100), 2);
