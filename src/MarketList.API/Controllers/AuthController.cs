@@ -42,9 +42,9 @@ public class AuthController : ControllerBase
             var token = GenerateToken(user);
             return Ok(new { token });
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex, "JWT configuration is invalid while generating login token.");
+            _logger.LogError(ex, "Failed to generate JWT token during login.");
             return Problem(statusCode: StatusCodes.Status500InternalServerError, title: "Authentication configuration error", detail: "JWT authentication is not configured correctly.");
         }
     }
