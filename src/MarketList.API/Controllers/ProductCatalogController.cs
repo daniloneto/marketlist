@@ -1,10 +1,12 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketList.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/admin/catalog-products")]
 public class ProductCatalogController : ControllerBase
 {

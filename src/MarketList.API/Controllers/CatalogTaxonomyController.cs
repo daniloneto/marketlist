@@ -25,6 +25,20 @@ public class CatalogTaxonomyController : ControllerBase
     public async Task<ActionResult<CatalogCategoryDto>> CreateCategory(CatalogCategoryCreateDto dto, CancellationToken cancellationToken)
         => Ok(await _service.CreateCategoryAsync(dto, cancellationToken));
 
+    [HttpPut("categories/{id:guid}")]
+    public async Task<ActionResult<CatalogCategoryDto>> UpdateCategory(Guid id, CatalogCategoryUpdateDto dto, CancellationToken cancellationToken)
+    {
+        var updated = await _service.UpdateCategoryAsync(id, dto, cancellationToken);
+        return updated is null ? NotFound() : Ok(updated);
+    }
+
+    [HttpDelete("categories/{id:guid}")]
+    public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken)
+    {
+        var deleted = await _service.DeleteCategoryAsync(id, cancellationToken);
+        return deleted ? NoContent() : BadRequest(new { error = "Categoria possui subcategorias ou produtos ativos associados." });
+    }
+
     [HttpGet("subcategories")]
     public async Task<ActionResult<IReadOnlyList<CatalogSubcategoryDto>>> GetSubcategories(CancellationToken cancellationToken)
         => Ok(await _service.GetSubcategoriesAsync(cancellationToken));

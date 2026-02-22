@@ -9,34 +9,74 @@ import type {
   ProdutoResumoDto 
 } from '../types';
 
+type ProductCatalogDto = {
+  id: string;
+  nameCanonical: string;
+  categoryId: string;
+  categoryName: string;
+  isActive: boolean;
+  createdAt: string;
+};
+
+const toProdutoDto = (item: ProductCatalogDto): ProdutoDto => ({
+  id: item.id,
+  nome: item.nameCanonical,
+  descricao: null,
+  unidade: null,
+  categoriaId: item.categoryId,
+  categoriaNome: item.categoryName,
+  ultimoPreco: null,
+  createdAt: item.createdAt,
+});
+
 export const produtoService = {
   getAll: async (): Promise<ProdutoDto[]> => {
-    const response = await api.get<ProdutoDto[]>('/produtos');
-    return response.data;
+    const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
+    return response.data.filter((x) => x.isActive).map(toProdutoDto);
   },
 
   getById: async (id: string): Promise<ProdutoDto> => {
-    const response = await api.get<ProdutoDto>(`/produtos/${id}`);
-    return response.data;
+    const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
+    const item = response.data.find((x) => x.id === id);
+    if (!item) {
+      throw new Error('Produto não encontrado');
+    }
+
+    return toProdutoDto(item);
   },
 
   getByCategoria: async (categoriaId: string): Promise<ProdutoDto[]> => {
-    const response = await api.get<ProdutoDto[]>(`/produtos/categoria/${categoriaId}`);
-    return response.data;
+    const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
+    return response.data
+      .filter((x) => x.categoryId === categoriaId && x.isActive)
+      .map(toProdutoDto);
   },
 
   create: async (data: ProdutoCreateDto): Promise<ProdutoDto> => {
-    const response = await api.post<ProdutoDto>('/produtos', data);
-    return response.data;
+    const response = await api.post<ProductCatalogDto>('/admin/catalog-products', {
+      nameCanonical: data.nome,
+      categoryId: data.categoriaId,
+      subcategoryId: null,
+    });
+    return toProdutoDto(response.data);
   },
 
   update: async (id: string, data: ProdutoUpdateDto): Promise<ProdutoDto> => {
-    const response = await api.put<ProdutoDto>(`/produtos/${id}`, data);
-    return response.data;
+    const current = await produtoService.getById(id);
+    const response = await api.put<ProductCatalogDto>(`/admin/catalog-products/${id}`, {
+      nameCanonical: data.nome,
+      categoryId: data.categoriaId,
+      subcategoryId: null,
+      isActive: true,
+    });
+    return {
+      ...toProdutoDto(response.data),
+      ultimoPreco: current.ultimoPreco,
+    };
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/produtos/${id}`);
+    await api.delete(`/admin/catalog-products/${id}`);
   },
 
   getHistoricoPrecos: async (id: string): Promise<HistoricoPrecoDto[]> => {

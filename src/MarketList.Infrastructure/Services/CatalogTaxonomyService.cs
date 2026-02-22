@@ -26,6 +26,34 @@ public class CatalogTaxonomyService : ICatalogTaxonomyService
         return new CatalogCategoryDto(entity.Id, entity.Name);
     }
 
+    public async Task<CatalogCategoryDto?> UpdateCategoryAsync(Guid id, CatalogCategoryUpdateDto dto, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.CatalogCategories.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity is null)
+            return null;
+
+        entity.Name = dto.Name.Trim();
+        await _context.SaveChangesAsync(cancellationToken);
+        return new CatalogCategoryDto(entity.Id, entity.Name);
+    }
+
+    public async Task<bool> DeleteCategoryAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var hasProducts = await _context.ProductCatalog.AnyAsync(x => x.CategoryId == id && x.IsActive, cancellationToken);
+        var hasSubcategories = await _context.CatalogSubcategories.AnyAsync(x => x.CategoryId == id, cancellationToken);
+
+        if (hasProducts || hasSubcategories)
+            return false;
+
+        var entity = await _context.CatalogCategories.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity is null)
+            return false;
+
+        _context.CatalogCategories.Remove(entity);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<IReadOnlyList<CatalogSubcategoryDto>> GetSubcategoriesAsync(CancellationToken cancellationToken = default)
         => await _context.CatalogSubcategories.AsNoTracking().Include(x => x.Category).OrderBy(x => x.Name)
             .Select(x => new CatalogSubcategoryDto(x.Id, x.CategoryId, x.Category.Name, x.Name)).ToListAsync(cancellationToken);
