@@ -31,9 +31,10 @@ const toProdutoDto = (item: ProductCatalogDto): ProdutoDto => ({
   createdAt: item.createdAt,
 });
 
-const getCatalogById = async (id: string): Promise<ProductCatalogDto> => {
+const getCatalogById = async (id: string, includeInactive = false): Promise<ProductCatalogDto> => {
+  // TODO: substituir por GET /admin/catalog-products/{id} quando o endpoint existir no backend.
   const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
-  const item = response.data.find((x) => x.id === id);
+  const item = response.data.find((x) => x.id === id && (includeInactive || x.isActive));
   if (!item) {
     throw new Error('Produto não encontrado');
   }
@@ -68,7 +69,7 @@ export const produtoService = {
   },
 
   update: async (id: string, data: ProdutoUpdateDto): Promise<ProdutoDto> => {
-    const current = await getCatalogById(id);
+    const current = await getCatalogById(id, true);
     const response = await api.put<ProductCatalogDto>(`/admin/catalog-products/${id}`, {
       nameCanonical: data.nome,
       categoryId: data.categoriaId,
