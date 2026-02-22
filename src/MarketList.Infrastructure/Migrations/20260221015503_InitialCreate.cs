@@ -56,6 +56,72 @@ namespace MarketList.Infrastructure.Migrations
                     table.PrimaryKey("PK_usuarios", x => x.id);
                 });
 
+
+            migrationBuilder.CreateTable(
+                name: "catalog_categories",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_catalog_categories", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "catalog_subcategories",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    category_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_catalog_subcategories", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_catalog_subcategories_catalog_categories_category_id",
+                        column: x => x.category_id,
+                        principalTable: "catalog_categories",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "product_catalog",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    name_canonical = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    name_normalized = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    category_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    subcategory_id = table.Column<Guid>(type: "TEXT", nullable: true),
+                    is_active = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_product_catalog", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_product_catalog_catalog_categories_category_id",
+                        column: x => x.category_id,
+                        principalTable: "catalog_categories",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_product_catalog_catalog_subcategories_subcategory_id",
+                        column: x => x.subcategory_id,
+                        principalTable: "catalog_subcategories",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateTable(
                 name: "produtos",
                 columns: table => new
@@ -228,6 +294,11 @@ namespace MarketList.Infrastructure.Migrations
                     preco_unitario = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
                     preco_total = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
                     texto_original = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    raw_name = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    resolved_name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    resolved_category_id = table.Column<Guid>(type: "TEXT", nullable: true),
+                    match_score = table.Column<decimal>(type: "TEXT", precision: 5, scale: 2, nullable: true),
+                    resolution_status = table.Column<int>(type: "INTEGER", nullable: true),
                     comprado = table.Column<bool>(type: "INTEGER", nullable: false),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
                     updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -248,6 +319,40 @@ namespace MarketList.Infrastructure.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+
+            migrationBuilder.CreateIndex(
+                name: "IX_catalog_categories_name",
+                table: "catalog_categories",
+                column: "name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_catalog_subcategories_category_id_name",
+                table: "catalog_subcategories",
+                columns: new[] { "category_id", "name" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_product_catalog_category_id",
+                table: "product_catalog",
+                column: "category_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_product_catalog_is_active",
+                table: "product_catalog",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_product_catalog_name_normalized",
+                table: "product_catalog",
+                column: "name_normalized",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_product_catalog_subcategory_id",
+                table: "product_catalog",
+                column: "subcategory_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_categorias_nome",
@@ -371,7 +476,13 @@ namespace MarketList.Infrastructure.Migrations
                 name: "historico_precos");
 
             migrationBuilder.DropTable(
+                name: "product_catalog");
+
+            migrationBuilder.DropTable(
                 name: "itens_lista_de_compras");
+
+            migrationBuilder.DropTable(
+                name: "catalog_subcategories");
 
             migrationBuilder.DropTable(
                 name: "orcamentos_categoria");
@@ -396,6 +507,9 @@ namespace MarketList.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "categorias");
+
+            migrationBuilder.DropTable(
+                name: "catalog_categories");
         }
     }
 }

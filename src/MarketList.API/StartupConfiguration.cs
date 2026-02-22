@@ -176,6 +176,8 @@ internal static class StartupConfiguration
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await context.Database.MigrateAsync();
             await EnsureAdminUserAsync(scope.ServiceProvider, context);
+            var catalogSeedService = scope.ServiceProvider.GetRequiredService<ICatalogSeedService>();
+            await catalogSeedService.SeedFromCsvAsync();
 
             logger.LogInformation("Migrations aplicadas com sucesso.");
         }
