@@ -14,8 +14,10 @@ type ProductCatalogDto = {
   nameCanonical: string;
   categoryId: string;
   categoryName: string;
+  subcategoryId: string | null;
   isActive: boolean;
   createdAt: string;
+  ultimoPreco?: number | null;
 };
 
 const toProdutoDto = (item: ProductCatalogDto): ProdutoDto => ({
@@ -25,9 +27,19 @@ const toProdutoDto = (item: ProductCatalogDto): ProdutoDto => ({
   unidade: null,
   categoriaId: item.categoryId,
   categoriaNome: item.categoryName,
-  ultimoPreco: null,
+  ultimoPreco: item.ultimoPreco ?? null,
   createdAt: item.createdAt,
 });
+
+const getCatalogById = async (id: string): Promise<ProductCatalogDto> => {
+  const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
+  const item = response.data.find((x) => x.id === id);
+  if (!item) {
+    throw new Error('Produto não encontrado');
+  }
+
+  return item;
+};
 
 export const produtoService = {
   getAll: async (): Promise<ProdutoDto[]> => {
@@ -36,13 +48,7 @@ export const produtoService = {
   },
 
   getById: async (id: string): Promise<ProdutoDto> => {
-    const response = await api.get<ProductCatalogDto[]>('/admin/catalog-products');
-    const item = response.data.find((x) => x.id === id);
-    if (!item) {
-      throw new Error('Produto não encontrado');
-    }
-
-    return toProdutoDto(item);
+    return toProdutoDto(await getCatalogById(id));
   },
 
   getByCategoria: async (categoriaId: string): Promise<ProdutoDto[]> => {
@@ -62,17 +68,14 @@ export const produtoService = {
   },
 
   update: async (id: string, data: ProdutoUpdateDto): Promise<ProdutoDto> => {
-    const current = await produtoService.getById(id);
+    const current = await getCatalogById(id);
     const response = await api.put<ProductCatalogDto>(`/admin/catalog-products/${id}`, {
       nameCanonical: data.nome,
       categoryId: data.categoriaId,
-      subcategoryId: null,
-      isActive: true,
+      subcategoryId: current.subcategoryId,
+      isActive: current.isActive,
     });
-    return {
-      ...toProdutoDto(response.data),
-      ultimoPreco: current.ultimoPreco,
-    };
+    return toProdutoDto(response.data);
   },
 
   delete: async (id: string): Promise<void> => {
