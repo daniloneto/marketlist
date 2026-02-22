@@ -292,7 +292,7 @@ export function Layout({ children }: LayoutProps) {
         </Stack>
       </Drawer>
 
-      <AppShell.Main style={{ minWidth: 0, paddingTop: 20 }}>{children}</AppShell.Main>
+      <AppShell.Main style={{ minWidth: 0 }}>{children}</AppShell.Main>
 
       <Modal
         opened={importModalOpen}
