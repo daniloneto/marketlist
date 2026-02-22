@@ -1,4 +1,6 @@
 using System.Globalization;
+using CsvHelper;
+using CsvHelper.Configuration;
 using MarketList.Application.Interfaces;
 using MarketList.Domain.Entities;
 using MarketList.Infrastructure.Data;
@@ -9,7 +11,6 @@ namespace MarketList.Infrastructure.Services;
 
 public class CatalogSeedService : ICatalogSeedService
 {
-    private const string Header = "Categoria,Subcategoria,Produto";
     private readonly AppDbContext _context;
     private readonly ITextoNormalizacaoService _normalizacaoService;
     private readonly ILogger<CatalogSeedService> _logger;
@@ -23,6 +24,12 @@ public class CatalogSeedService : ICatalogSeedService
 
     public async Task SeedFromCsvAsync(CancellationToken cancellationToken = default)
     {
+        if (await _context.ProductCatalog.AnyAsync(cancellationToken))
+        {
+            _logger.LogInformation("Seed de catálogo ignorado: tabela product_catalog já possui dados.");
+            return;
+        }
+
         var filePath = Path.Combine(AppContext.BaseDirectory, "supermercado.csv");
         if (!File.Exists(filePath))
         {
@@ -35,60 +42,93 @@ public class CatalogSeedService : ICatalogSeedService
             return;
         }
 
-        var lines = await File.ReadAllLinesAsync(filePath, cancellationToken);
-        if (lines.Length == 0 || !string.Equals(lines[0].Trim(), Header, StringComparison.Ordinal))
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            throw new InvalidOperationException($"Cabeçalho inválido no CSV. Esperado: {Header}");
+            Delimiter = ",",
+            HasHeaderRecord = true,
+            MissingFieldFound = null,
+            IgnoreBlankLines = true,
+            TrimOptions = TrimOptions.Trim
+        };
+
+        using var reader = new StreamReader(filePath);
+        using var csv = new CsvReader(reader, csvConfig);
+
+        await csv.ReadAsync();
+        csv.ReadHeader();
+
+        var headers = csv.HeaderRecord ?? [];
+        if (headers.Length != 3 || headers[0] != "Categoria" || headers[1] != "Subcategoria" || headers[2] != "Produto")
+        {
+            throw new InvalidOperationException("Cabeçalho inválido no CSV. Esperado: Categoria,Subcategoria,Produto");
         }
 
-        for (var i = 1; i < lines.Length; i++)
+        var categoriesByName = await _context.CatalogCategories.ToDictionaryAsync(x => x.Name, x => x, cancellationToken);
+        var subcategoriesByKey = await _context.CatalogSubcategories
+            .ToDictionaryAsync(x => $"{x.CategoryId}:{x.Name}", x => x, cancellationToken);
+        var productsByNormalized = await _context.ProductCatalog
+            .ToDictionaryAsync(x => x.NameNormalized, x => x, cancellationToken);
+
+        while (await csv.ReadAsync())
         {
-            if (string.IsNullOrWhiteSpace(lines[i])) continue;
-            var parts = lines[i].Split(',');
-            if (parts.Length < 3) continue;
-
-            var categoryName = parts[0].Trim();
-            var subcategoryName = parts[1].Trim();
-            var productName = parts[2].Trim();
-
-            if (string.IsNullOrWhiteSpace(categoryName) || string.IsNullOrWhiteSpace(productName)) continue;
-
-            var category = await _context.CatalogCategories.FirstOrDefaultAsync(x => x.Name == categoryName, cancellationToken);
-            if (category is null)
+            var row = new CatalogCsvRow
             {
-                category = new Category { Id = Guid.NewGuid(), Name = categoryName };
+                Categoria = csv.GetField("Categoria")?.Trim(),
+                Subcategoria = csv.GetField("Subcategoria")?.Trim(),
+                Produto = csv.GetField("Produto")?.Trim()
+            };
+
+            if (string.IsNullOrWhiteSpace(row.Categoria) || string.IsNullOrWhiteSpace(row.Produto))
+            {
+                continue;
+            }
+
+            if (!categoriesByName.TryGetValue(row.Categoria, out var category))
+            {
+                category = new Category { Id = Guid.NewGuid(), Name = row.Categoria };
                 _context.CatalogCategories.Add(category);
-                await _context.SaveChangesAsync(cancellationToken);
+                categoriesByName[row.Categoria] = category;
             }
 
             Subcategory? subcategory = null;
-            if (!string.IsNullOrWhiteSpace(subcategoryName))
+            if (!string.IsNullOrWhiteSpace(row.Subcategoria))
             {
-                subcategory = await _context.CatalogSubcategories
-                    .FirstOrDefaultAsync(x => x.CategoryId == category.Id && x.Name == subcategoryName, cancellationToken);
-                if (subcategory is null)
+                var subKey = $"{category.Id}:{row.Subcategoria}";
+                if (!subcategoriesByKey.TryGetValue(subKey, out subcategory))
                 {
-                    subcategory = new Subcategory { Id = Guid.NewGuid(), CategoryId = category.Id, Name = subcategoryName };
+                    subcategory = new Subcategory { Id = Guid.NewGuid(), CategoryId = category.Id, Name = row.Subcategoria };
                     _context.CatalogSubcategories.Add(subcategory);
-                    await _context.SaveChangesAsync(cancellationToken);
+                    subcategoriesByKey[subKey] = subcategory;
                 }
             }
 
-            var normalizedName = _normalizacaoService.Normalizar(productName);
-            var exists = await _context.ProductCatalog.AnyAsync(x => x.NameNormalized == normalizedName, cancellationToken);
-            if (!exists)
+            var normalizedName = _normalizacaoService.Normalizar(row.Produto);
+            if (productsByNormalized.ContainsKey(normalizedName))
             {
-                _context.ProductCatalog.Add(new ProductCatalog
-                {
-                    Id = Guid.NewGuid(),
-                    NameCanonical = productName,
-                    NameNormalized = normalizedName,
-                    CategoryId = category.Id,
-                    SubcategoryId = subcategory?.Id,
-                    IsActive = true
-                });
-                await _context.SaveChangesAsync(cancellationToken);
+                continue;
             }
+
+            var productCatalog = new ProductCatalog
+            {
+                Id = Guid.NewGuid(),
+                NameCanonical = row.Produto,
+                NameNormalized = normalizedName,
+                CategoryId = category.Id,
+                SubcategoryId = subcategory?.Id,
+                IsActive = true
+            };
+
+            _context.ProductCatalog.Add(productCatalog);
+            productsByNormalized[normalizedName] = productCatalog;
         }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private sealed class CatalogCsvRow
+    {
+        public string? Categoria { get; set; }
+        public string? Subcategoria { get; set; }
+        public string? Produto { get; set; }
     }
 }
