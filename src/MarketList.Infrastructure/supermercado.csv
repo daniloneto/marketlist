@@ -1,0 +1,760 @@
+Categoria,Subcategoria,Produto
+MERCEARIA,Grãos e Cereais,Arroz Branco 5kg
+MERCEARIA,Grãos e Cereais,Arroz Integral 5kg
+MERCEARIA,Grãos e Cereais,Arroz Parboilizado 5kg
+MERCEARIA,Grãos e Cereais,Feijão Carioca 1kg
+MERCEARIA,Grãos e Cereais,Feijão Preto 1kg
+MERCEARIA,Grãos e Cereais,Feijão Fradinho 1kg
+MERCEARIA,Grãos e Cereais,Feijão Mulatinho 1kg
+MERCEARIA,Grãos e Cereais,Lentilha 500g
+MERCEARIA,Grãos e Cereais,Grão de Bico 1kg
+MERCEARIA,Grãos e Cereais,Milho de Pipoca 500g
+MERCEARIA,Grãos e Cereais,Aveia em Flocos 500g
+MERCEARIA,Grãos e Cereais,Granola 500g
+MERCEARIA,Grãos e Cereais,Cereal Matinal 500g
+MERCEARIA,Grãos e Cereais,Cuscuz 500g
+MERCEARIA,Grãos e Cereais,Quinoa 500g
+MERCEARIA,Farinhas,Farinha de Trigo Comum 1kg
+MERCEARIA,Farinhas,Farinha de Trigo Integral 1kg
+MERCEARIA,Farinhas,Farinha de Mandioca 1kg
+MERCEARIA,Farinhas,Farinha de Milho 1kg
+MERCEARIA,Farinhas,Fubá 1kg
+MERCEARIA,Farinhas,Goma de Tapioca 500g
+MERCEARIA,Farinhas,Farinha de Centeio 500g
+MERCEARIA,Massas,Macarrão Integral 500g
+MERCEARIA,Massas,Macarrão Penne 500g
+MERCEARIA,Massas,Macarrão Espaguete 500g
+MERCEARIA,Massas,Macarrão Parafuso 500g
+MERCEARIA,Massas,Macarrão sem Glúten 400g
+MERCEARIA,Massas,Macarrão Ninho 500g
+MERCEARIA,Massas,Lasanha 500g
+MERCEARIA,Massas,Talharim 500g
+MERCEARIA,Óleos e Azeites,Óleo de Soja 900ml
+MERCEARIA,Óleos e Azeites,Óleo de Girassol 900ml
+MERCEARIA,Óleos e Azeites,Óleo de Milho 900ml
+MERCEARIA,Óleos e Azeites,Azeite de Oliva Extra Virgem 500ml
+MERCEARIA,Óleos e Azeites,Azeite de Oliva Comum 500ml
+MERCEARIA,Óleos e Azeites,Óleo de Coco 500ml
+MERCEARIA,Óleos e Azeites,Óleo de Amendoim 500ml
+MERCEARIA,Temperos e Condimentos,Sal Refinado 1kg
+MERCEARIA,Temperos e Condimentos,Sal Marinho 500g
+MERCEARIA,Temperos e Condimentos,Sal Iodado 1kg
+MERCEARIA,Temperos e Condimentos,Açúcar Cristal 1kg
+MERCEARIA,Temperos e Condimentos,Açúcar Refinado 1kg
+MERCEARIA,Temperos e Condimentos,Açúcar Demerara 1kg
+MERCEARIA,Temperos e Condimentos,Açúcar Mascavo 500g
+MERCEARIA,Temperos e Condimentos,Mel Puro 500g
+MERCEARIA,Temperos e Condimentos,Melado 500ml
+MERCEARIA,Temperos e Condimentos,Xarope de Guaraná 500ml
+MERCEARIA,Temperos e Condimentos,Ketchup 400g
+MERCEARIA,Temperos e Condimentos,Mostarda 150g
+MERCEARIA,Temperos e Condimentos,Maionese 500g
+MERCEARIA,Temperos e Condimentos,Vinagre Branco 750ml
+MERCEARIA,Temperos e Condimentos,Vinagre de Maçã 750ml
+MERCEARIA,Temperos e Condimentos,Vinagre Balsâmico 250ml
+MERCEARIA,Temperos e Condimentos,Shoyu 200ml
+MERCEARIA,Temperos e Condimentos,Molho de Pimenta 150ml
+MERCEARIA,Temperos e Condimentos,Pimenta do Reino Moída 50g
+MERCEARIA,Temperos e Condimentos,Pimenta Vermelha em Pó 100g
+MERCEARIA,Temperos e Condimentos,Páprica Doce 100g
+MERCEARIA,Temperos e Condimentos,Colorau 100g
+MERCEARIA,Temperos e Condimentos,Cominho em Pó 100g
+MERCEARIA,Temperos e Condimentos,Orégano Seco 100g
+MERCEARIA,Temperos e Condimentos,Alecrim Seco 100g
+MERCEARIA,Temperos e Condimentos,Tomilho Seco 100g
+MERCEARIA,Temperos e Condimentos,Louro em Folha 50g
+MERCEARIA,Temperos e Condimentos,Manjericão Seco 50g
+MERCEARIA,Temperos e Condimentos,Caldo Carne 150g
+MERCEARIA,Temperos e Condimentos,Caldo Frango 150g
+MERCEARIA,Temperos e Condimentos,Caldo Legumes 150g
+MERCEARIA,Enlatados e Conservas,Atum em Lata 170g
+MERCEARIA,Enlatados e Conservas,Sardinha em Lata 120g
+MERCEARIA,Enlatados e Conservas,Milho em Lata 200g
+MERCEARIA,Enlatados e Conservas,Ervilha em Lata 200g
+MERCEARIA,Enlatados e Conservas,Palmito em Lata 300g
+MERCEARIA,Enlatados e Conservas,Cenoura em Lata 200g
+MERCEARIA,Enlatados e Conservas,Beterraba em Lata 200g
+MERCEARIA,Enlatados e Conservas,Abacaxi em Calda 500g
+MERCEARIA,Enlatados e Conservas,Pêssego em Calda 500g
+MERCEARIA,Enlatados e Conservas,Pêra em Calda 500g
+MERCEARIA,Enlatados e Conservas,Ameixa em Calda 500g
+MERCEARIA,Molhos e Extratos,Molho de Tomate 340g
+MERCEARIA,Molhos e Extratos,Extrato de Tomate 350g
+MERCEARIA,Molhos e Extratos,Tomate Pelado 500g
+MERCEARIA,Molhos e Extratos,Molho Bolonhesa 500g
+MERCEARIA,Molhos e Extratos,Molho Branco Pronto 500ml
+MERCEARIA,Molhos e Extratos,Molho Agridoce 500ml
+MERCEARIA,Molhos e Extratos,Molho Inglês 100ml
+MERCEARIA,Molhos e Extratos,Molho de Soja Tipo Ponzu 500ml
+MERCEARIA,Leites e Derivados,Leite de Coco 200ml
+MERCEARIA,Leites e Derivados,Creme de Leite 200ml
+MERCEARIA,Leites e Derivados,Leite Condensado 395g
+MERCEARIA,Leites e Derivados,Leite em Pó Integral 400g
+MERCEARIA,Leites e Derivados,Leite em Pó Desnatado 400g
+MERCEARIA,Leites e Derivados,Leite Vegetal Amêndoa 1L
+MERCEARIA,Leites e Derivados,Leite Vegetal Arroz 1L
+MERCEARIA,Leites e Derivados,Leite Vegetal Soja 1L
+MERCEARIA,Leites e Derivados,Leite Vegetal Aveia 1L
+MERCEARIA,Legumes Secos,Abóbora Desidratada 100g
+MERCEARIA,Legumes Secos,Tomate Seco 100g
+MERCEARIA,Legumes Secos,Cogumelo Desidratado 50g
+MERCEARIA,Legumes Secos,Alga Nori 50g
+MERCEARIA,Conservas Importadas,Azeitona Preta 300g
+MERCEARIA,Conservas Importadas,Azeitona Verde 300g
+MERCEARIA,Conservas Importadas,Alcaparras 100g
+MERCEARIA,Conservas Importadas,Cornichons 370g
+MERCEARIA,Conservas Importadas,Abacate em Conserva 300g
+MERCEARIA,Frutos Secos,Castanha de Caju 200g
+MERCEARIA,Frutos Secos,Castanha do Pará 200g
+MERCEARIA,Frutos Secos,Amendoim Torrado 200g
+MERCEARIA,Frutos Secos,Amêndoa 200g
+MERCEARIA,Frutos Secos,Avelã 200g
+MERCEARIA,Frutos Secos,Noz 200g
+MERCEARIA,Frutos Secos,Damasco Seco 200g
+MERCEARIA,Frutos Secos,Uva Passa 200g
+MERCEARIA,Frutos Secos,Banana Passa 200g
+MERCEARIA,Frutos Secos,Coco Ralado 100g
+MERCEARIA,Açúcar e Adoçantes,Açúcar Luz 1kg
+MERCEARIA,Açúcar e Adoçantes,Xilitol 500g
+MERCEARIA,Açúcar e Adoçantes,Eritritol 500g
+MERCEARIA,Açúcar e Adoçantes,Adoçante Líquido 100ml
+MERCEARIA,Açúcar e Adoçantes,Adoçante em Pó 100g
+BEBIDAS,Café,Café em Pó Coado 500g
+BEBIDAS,Café,Café em Pó Espresso 500g
+BEBIDAS,Café,Café em Pó Gourmet 500g
+BEBIDAS,Café,Café Solúvel 100g
+BEBIDAS,Café,Café com Açúcar 500g
+BEBIDAS,Chás,Chá Preto 20 Saquinhos
+BEBIDAS,Chás,Chá Branco 20 Saquinhos
+BEBIDAS,Chás,Chá Verde 20 Saquinhos
+BEBIDAS,Chás,Chá Camomila 20 Saquinhos
+BEBIDAS,Chás,Chá Gengibre 20 Saquinhos
+BEBIDAS,Chás,Chá Hortelã 20 Saquinhos
+BEBIDAS,Chás,Chá Erva-Doce 20 Saquinhos
+BEBIDAS,Chás,Chá Mate 20 Saquinhos
+BEBIDAS,Chás,Chá Detox 20 Saquinhos
+BEBIDAS,Achocolatados,Achocolatado em Pó 400g
+BEBIDAS,Achocolatados,Achocolatado Quente 400g
+BEBIDAS,Achocolatados,Achocolatado com Fibras 400g
+BEBIDAS,Achocolatados,Achocolatado Diet 400g
+BEBIDAS,Refrigerantes,Refrigerante Cola 2L
+BEBIDAS,Refrigerantes,Refrigerante Cola Zero 2L
+BEBIDAS,Refrigerantes,Refrigerante Laranja 2L
+BEBIDAS,Refrigerantes,Refrigerante Guaraná 2L
+BEBIDAS,Refrigerantes,Refrigerante Limão 2L
+BEBIDAS,Refrigerantes,Refrigerante Uva 2L
+BEBIDAS,Refrigerantes,Refrigerante Abacaxi 2L
+BEBIDAS,Refrigerantes,Água Tônica 1L
+BEBIDAS,Sucos,Suco Natural Laranja 1L
+BEBIDAS,Sucos,Suco Natural Maçã 1L
+BEBIDAS,Sucos,Suco Concentrado Laranja 500ml
+BEBIDAS,Sucos,Suco Concentrado Maçã 500ml
+BEBIDAS,Sucos,Suco em Caixinha Laranja 200ml
+BEBIDAS,Sucos,Suco em Caixinha Maçã 200ml
+BEBIDAS,Sucos,Suco em Caixinha Pêssego 200ml
+BEBIDAS,Sucos,Suco em Caixinha Uva 200ml
+BEBIDAS,Água,Água Mineral com Gás 1.5L
+BEBIDAS,Água,Água Mineral sem Gás 1.5L
+BEBIDAS,Água,Água Mineral 5L
+BEBIDAS,Energéticos,Bebida Energética 250ml
+BEBIDAS,Energéticos,Bebida Isotônica 500ml
+BEBIDAS,Bebidas Alcoólicas,Cerveja Premium 600ml
+BEBIDAS,Bebidas Alcoólicas,Cerveja Comum 600ml
+BEBIDAS,Bebidas Alcoólicas,Cerveja Pilsen 600ml
+BEBIDAS,Bebidas Alcoólicas,Vinho Tinto Seco 750ml
+BEBIDAS,Bebidas Alcoólicas,Vinho Branco Seco 750ml
+BEBIDAS,Bebidas Alcoólicas,Vinho Rosé 750ml
+BEBIDAS,Bebidas Alcoólicas,Champagne 750ml
+BEBIDAS,Bebidas Alcoólicas,Vinho de Caixinha 1L
+BEBIDAS,Bebidas Alcoólicas,Vodka 1L
+BEBIDAS,Bebidas Alcoólicas,Rum 1L
+BEBIDAS,Bebidas Alcoólicas,Uísque 750ml
+BEBIDAS,Bebidas Alcoólicas,Cachaça 1L
+BEBIDAS,Bebidas Alcoólicas,Conhaque 750ml
+HORTIFRÚTI,Frutas Cítricas,Laranja Pera kg
+HORTIFRÚTI,Frutas Cítricas,Laranja Moro kg
+HORTIFRÚTI,Frutas Cítricas,Limão Tahiti kg
+HORTIFRÚTI,Frutas Cítricas,Limão Siciliano kg
+HORTIFRÚTI,Frutas Cítricas,Mexerica Ponkan kg
+HORTIFRÚTI,Frutas Cítricas,Tangerina kg
+HORTIFRÚTI,Frutas Cítricas,Grapefruit Branco kg
+HORTIFRÚTI,Frutas Cítricas,Grapefruit Rosa kg
+HORTIFRÚTI,Frutas Tropicais,Banana Prata kg
+HORTIFRÚTI,Frutas Tropicais,Banana Nanica kg
+HORTIFRÚTI,Frutas Tropicais,Banana Ouro kg
+HORTIFRÚTI,Frutas Tropicais,Banana da Terra kg
+HORTIFRÚTI,Frutas Tropicais,Abacaxi Havaiano kg
+HORTIFRÚTI,Frutas Tropicais,Abacaxi Pérola kg
+HORTIFRÚTI,Frutas Tropicais,Mamão Papaia kg
+HORTIFRÚTI,Frutas Tropicais,Mamão Formosa kg
+HORTIFRÚTI,Frutas Tropicais,Melancia kg
+HORTIFRÚTI,Frutas Tropicais,Melão Amarelo kg
+HORTIFRÚTI,Frutas Tropicais,Melão Cantaloupe kg
+HORTIFRÚTI,Frutas Tropicais,Manga Palmer kg
+HORTIFRÚTI,Frutas Tropicais,Manga Ubá kg
+HORTIFRÚTI,Frutas Tropicais,Coco Verde Unid
+HORTIFRÚTI,Frutas Vermelhas,Morango kg
+HORTIFRÚTI,Frutas Vermelhas,Framboesa kg
+HORTIFRÚTI,Frutas Vermelhas,Amora kg
+HORTIFRÚTI,Frutas Vermelhas,Mirtilo kg
+HORTIFRÚTI,Frutas Vermelhas,Cereja kg
+HORTIFRÚTI,Frutas de Clima Temperado,Maçã Fuji kg
+HORTIFRÚTI,Frutas de Clima Temperado,Maçã Gala kg
+HORTIFRÚTI,Frutas de Clima Temperado,Maçã Verde kg
+HORTIFRÚTI,Frutas de Clima Temperado,Pêra Williams kg
+HORTIFRÚTI,Frutas de Clima Temperado,Pêra Rocha kg
+HORTIFRÚTI,Frutas de Clima Temperado,Pêssego kg
+HORTIFRÚTI,Frutas de Clima Temperado,Nectarina kg
+HORTIFRÚTI,Frutas de Clima Temperado,Ameixa Roxa kg
+HORTIFRÚTI,Frutas de Clima Temperado,Ameixa Amarela kg
+HORTIFRÚTI,Frutas de Clima Temperado,Uva Branca kg
+HORTIFRÚTI,Frutas de Clima Temperado,Uva Roxa kg
+HORTIFRÚTI,Frutas Secas,Tâmara kg
+HORTIFRÚTI,Frutas Secas,Figo kg
+HORTIFRÚTI,Vegetais Folhosos,Alface Crespa kg
+HORTIFRÚTI,Vegetais Folhosos,Alface Americana kg
+HORTIFRÚTI,Vegetais Folhosos,Rúcula kg
+HORTIFRÚTI,Vegetais Folhosos,Couve Manteiga kg
+HORTIFRÚTI,Vegetais Folhosos,Espinafre kg
+HORTIFRÚTI,Vegetais Folhosos,Repolho Branco kg
+HORTIFRÚTI,Vegetais Folhosos,Repolho Roxo kg
+HORTIFRÚTI,Vegetais Folhosos,Escarola kg
+HORTIFRÚTI,Vegetais Folhosos,Agrião kg
+HORTIFRÚTI,Legumes,Tomate Caqui kg
+HORTIFRÚTI,Legumes,Tomate Comum kg
+HORTIFRÚTI,Legumes,Tomate Cereja kg
+HORTIFRÚTI,Legumes,Cenoura kg
+HORTIFRÚTI,Legumes,Cenoura Roxa kg
+HORTIFRÚTI,Legumes,Beterraba kg
+HORTIFRÚTI,Legumes,Nabo kg
+HORTIFRÚTI,Legumes,Abóbora Moranga kg
+HORTIFRÚTI,Legumes,Abóbora Italiana kg
+HORTIFRÚTI,Legumes,Abobrinha Italiana kg
+HORTIFRÚTI,Legumes,Abobrinha Verde kg
+HORTIFRÚTI,Legumes,Berinjela kg
+HORTIFRÚTI,Legumes,Chuchu kg
+HORTIFRÚTI,Legumes,Pimentão Vermelho kg
+HORTIFRÚTI,Legumes,Pimentão Amarelo kg
+HORTIFRÚTI,Legumes,Pimentão Verde kg
+HORTIFRÚTI,Legumes,Brócolis kg
+HORTIFRÚTI,Legumes,Couve Flor kg
+HORTIFRÚTI,Legumes,Repolho Doce kg
+HORTIFRÚTI,Legumes,Repolho de Água kg
+HORTIFRÚTI,Batata e Raízes,Batata Inglesa kg
+HORTIFRÚTI,Batata e Raízes,Batata Doce kg
+HORTIFRÚTI,Batata e Raízes,Batata Roxa kg
+HORTIFRÚTI,Batata e Raízes,Inhame kg
+HORTIFRÚTI,Batata e Raízes,Cará kg
+HORTIFRÚTI,Batata e Raízes,Mandioca kg
+HORTIFRÚTI,Aromáticas,Cebola Branca kg
+HORTIFRÚTI,Aromáticas,Cebola Roxa kg
+HORTIFRÚTI,Aromáticas,Alho kg
+HORTIFRÚTI,Aromáticas,Cebolinha kg
+HORTIFRÚTI,Aromáticas,Salsinha kg
+HORTIFRÚTI,Aromáticas,Coentro kg
+HORTIFRÚTI,Aromáticas,Hortelã kg
+HORTIFRÚTI,Aromáticas,Alecrim kg
+HORTIFRÚTI,Aromáticas,Tomilho kg
+HORTIFRÚTI,Aromáticas,Manjericão kg
+CARNES,Bovina,Bife Contrafilé kg
+CARNES,Bovina,Bife Mignon kg
+CARNES,Bovina,Alcatra kg
+CARNES,Bovina,Carne Moída kg
+CARNES,Bovina,Lagarto kg
+CARNES,Bovina,Músculo kg
+CARNES,Bovina,Ponta de Peito kg
+CARNES,Bovina,Costela kg
+CARNES,Bovina,Carne Seca kg
+CARNES,Suína,Bisteca Suína kg
+CARNES,Suína,Lombo de Porco kg
+CARNES,Suína,Costela Suína kg
+CARNES,Suína,Pernil Suíno kg
+CARNES,Suína,Toucinho kg
+CARNES,Suína,Barriga de Porco kg
+CARNES,Aves,Peito de Frango kg
+CARNES,Aves,Coxa de Frango kg
+CARNES,Aves,Sobrecoxa de Frango kg
+CARNES,Aves,Asa de Frango kg
+CARNES,Aves,Frango Inteiro kg
+CARNES,Aves,Frango Desfiado kg
+CARNES,Aves,Peito de Peru kg
+CARNES,Aves,Coxa de Peru kg
+CARNES,Aves,Ovos Galinha Dúzia
+CARNES,Aves,Ovos Caipira Dúzia
+CARNES,Aves,Ovos Vermelhos Dúzia
+CARNES,Peixes e Frutos do Mar,Filé de Merluza kg
+CARNES,Peixes e Frutos do Mar,Filé de Sardinha kg
+CARNES,Peixes e Frutos do Mar,Filé de Tilápia kg
+CARNES,Peixes e Frutos do Mar,Filé de Pargo kg
+CARNES,Peixes e Frutos do Mar,Filé de Dourado kg
+CARNES,Peixes e Frutos do Mar,Truta kg
+CARNES,Peixes e Frutos do Mar,Camarão Médio kg
+CARNES,Peixes e Frutos do Mar,Camarão Grande kg
+CARNES,Peixes e Frutos do Mar,Camarão Rosa kg
+CARNES,Peixes e Frutos do Mar,Lula kg
+CARNES,Peixes e Frutos do Mar,Polvo kg
+CARNES,Peixes e Frutos do Mar,Vieira kg
+CARNES,Peixes e Frutos do Mar,Ostra Dúzia
+CARNES,Peixes e Frutos do Mar,Mexilhão kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Meia Cura kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Meia Cura Fatiado 300g
+FRIOS E LATICÍNIOS,Queijos,Queijo Meia Cura Ralado 500g
+FRIOS E LATICÍNIOS,Queijos,Queijo Cheddar kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Muçarela kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Muçarela de Búfala kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Prato kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Prato Fatiado 300g
+FRIOS E LATICÍNIOS,Queijos,Queijo Branco kg
+FRIOS E LATICÍNIOS,Queijos,Queijo Camembert 200g
+FRIOS E LATICÍNIOS,Queijos,Queijo Brie 200g
+FRIOS E LATICÍNIOS,Queijos,Queijo Gorgonzola 200g
+FRIOS E LATICÍNIOS,Queijos,Queijo Roquefort 200g
+FRIOS E LATICÍNIOS,Queijos,Queijo Suíço 200g
+FRIOS E LATICÍNIOS,Queijos,Queijo Cottage 250g
+FRIOS E LATICÍNIOS,Queijos,Queijo Ricota 250g
+FRIOS E LATICÍNIOS,Embutidos,Presunto Cru 500g
+FRIOS E LATICÍNIOS,Embutidos,Presunto Cozido 500g
+FRIOS E LATICÍNIOS,Embutidos,Peito de Peru 500g
+FRIOS E LATICÍNIOS,Embutidos,Mortadela 500g
+FRIOS E LATICÍNIOS,Embutidos,Salame 500g
+FRIOS E LATICÍNIOS,Embutidos,Linguiça Frescal 500g
+FRIOS E LATICÍNIOS,Embutidos,Linguiça Calabresa 500g
+FRIOS E LATICÍNIOS,Embutidos,Linguiça Italiana 500g
+FRIOS E LATICÍNIOS,Embutidos,Salsichão 500g
+FRIOS E LATICÍNIOS,Embutidos,Salsicha Franca 500g
+FRIOS E LATICÍNIOS,Embutidos,Bacon 200g
+FRIOS E LATICÍNIOS,Embutidos,Apresuntado 500g
+FRIOS E LATICÍNIOS,Embutidos,Patê de Fígado 150g
+FRIOS E LATICÍNIOS,Embutidos,Requeijão 200g
+FRIOS E LATICÍNIOS,Embutidos,Requeijão Cremoso 500ml
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Integral 1L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Desnatado 1L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Semi-Desnatado 1L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Integral 2L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Desnatado 2L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Integral Longa Vida 1L
+FRIOS E LATICÍNIOS,Leites Frescos,Leite Desnatado Longa Vida 1L
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Natural 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Natural Integral 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Desnatado 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Grego 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Morango 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Frutas Vermelhas 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Banana 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Uva 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Mel 500ml
+FRIOS E LATICÍNIOS,Iogurtes,Iogurte Cremoso 250ml Pote
+FRIOS E LATICÍNIOS,Manteiga e Margarinas,Manteiga com Sal 200g
+FRIOS E LATICÍNIOS,Manteiga e Margarinas,Manteiga sem Sal 200g
+FRIOS E LATICÍNIOS,Manteiga e Margarinas,Margarina com Sal 500g
+FRIOS E LATICÍNIOS,Manteiga e Margarinas,Margarina sem Sal 500g
+FRIOS E LATICÍNIOS,Manteiga e Margarinas,Margarina Integral 500g
+PADARIA,Pães Diários,Pão Francês kg
+PADARIA,Pães Diários,Pão de Forma Integral 500g
+PADARIA,Pães Diários,Pão de Forma Branco 500g
+PADARIA,Pães Diários,Pão de Forma Centeio 500g
+PADARIA,Pães Diários,Pão Sírio 300g
+PADARIA,Pães Diários,Pão Árabe 300g
+PADARIA,Pães Diários,Pão Integral 500g
+PADARIA,Pães Diários,Pão Multigrãos 500g
+PADARIA,Pães Diários,Bisnaguinha 400g
+PADARIA,Pães para Lanches,Pão de Hambúrguer 300g
+PADARIA,Pães para Lanches,Pão de Cachorro Quente 300g
+PADARIA,Pães para Lanches,Brioches 300g
+PADARIA,Pães para Lanches,Croissant Congelado 300g
+PADARIA,Bolos e Tortas,Bolo de Chocolate 500g
+PADARIA,Bolos e Tortas,Bolo de Baunilha 500g
+PADARIA,Bolos e Tortas,Bolo de Cenoura 500g
+PADARIA,Bolos e Tortas,Bolo de Laranja 500g
+PADARIA,Bolos e Tortas,Bolo Integral 500g
+PADARIA,Bolos e Tortas,Bolo Sem Glúten 500g
+PADARIA,Bolos e Tortas,Torta de Chocolate 1kg
+PADARIA,Bolos e Tortas,Torta de Morango 1kg
+PADARIA,Biscoitos Doces,Biscoito de Água e Sal 200g
+PADARIA,Biscoitos Doces,Biscoito Integral 200g
+PADARIA,Biscoitos Doces,Biscoito Recheado Chocolate 200g
+PADARIA,Biscoitos Doces,Biscoito Recheado Morango 200g
+PADARIA,Biscoitos Doces,Biscoito Amanteigado 200g
+PADARIA,Biscoitos Doces,Biscoito Polvilho 200g
+PADARIA,Biscoitos Doces,Biscoito Rosca Doce 200g
+PADARIA,Biscoitos Doces,Biscoito Maisena 200g
+PADARIA,Biscoitos Doces,Biscoito Gengibre 200g
+PADARIA,Biscoitos Doces,Biscoito de Noz 200g
+PADARIA,Biscoitos Doces,Biscoito de Chocolate 200g
+PADARIA,Salgados,Coxinha Frango 80g
+PADARIA,Salgados,Empada Presunto 80g
+PADARIA,Salgados,Risoles Queijo 80g
+PADARIA,Salgados,Esfiha Carne 80g
+PADARIA,Salgados,Pastel Forno 80g
+PADARIA,Salgados,Bolinho Carne 80g
+PADARIA,Congelados de Padaria,Pão de Queijo Congelado 300g
+PADARIA,Congelados de Padaria,Bolo Pronto Congelado 500g
+PADARIA,Congelados de Padaria,Pizza Fresca Congelada 500g
+CONGELADOS,Legumes Congelados,Brócolis Congelado 500g
+CONGELADOS,Legumes Congelados,Couve Flor Congelada 500g
+CONGELADOS,Legumes Congelados,Milho Congelado 500g
+CONGELADOS,Legumes Congelados,Cenoura Congelada 500g
+CONGELADOS,Legumes Congelados,Misto Congelado 500g
+CONGELADOS,Proteínas Congeladas,Frango Desfiado Congelado 500g
+CONGELADOS,Proteínas Congeladas,Hambúrguer Congelado 300g
+CONGELADOS,Proteínas Congeladas,Almôndega Congelada 300g
+CONGELADOS,Proteínas Congeladas,Linguiça Congelada 300g
+CONGELADOS,Proteínas Congeladas,Nuggets Congelado 300g
+CONGELADOS,Proteínas Congeladas,Tiras de Peixe Congelado 400g
+CONGELADOS,Massas Congeladas,Macarrão Congelado 500g
+CONGELADOS,Massas Congeladas,Lasanha Congelada 500g
+CONGELADOS,Frutas Congeladas,Morango Congelado 300g
+CONGELADOS,Frutas Congeladas,Framboesa Congelada 300g
+CONGELADOS,Frutas Congeladas,Mirtilo Congelado 300g
+CONGELADOS,Frutas Congeladas,Polpa Açaí 500ml
+CONGELADOS,Frutas Congeladas,Polpa Morango 500ml
+CONGELADOS,Frutas Congeladas,Polpa Goiaba 500ml
+CONGELADOS,Sobremesas,Sorvete Baunilha 1.5L
+CONGELADOS,Sobremesas,Sorvete Chocolate 1.5L
+CONGELADOS,Sobremesas,Sorvete Morango 1.5L
+CONGELADOS,Sobremesas,Sorvete Açaí 1.5L
+CONGELADOS,Sobremesas,Sorvete Flocos 1.5L
+CONGELADOS,Sobremesas,Picolé Sabores 6 Unid
+CONGELADOS,Sobremesas,Picolé Fruta 6 Unid
+LIMPEZA,Detergentes e Desengorduran,Detergente Neutro 500ml
+LIMPEZA,Detergentes e Desengorduran,Detergente Concentrado 500ml
+LIMPEZA,Detergentes e Desengorduran,Desengordurador 500ml
+LIMPEZA,Detergentes e Desengorduran,Desinfetante 1L
+LIMPEZA,Detergentes e Desengorduran,Água Sanitária 1L
+LIMPEZA,Detergentes e Desengorduran,Cloro Puro 1L
+LIMPEZA,Detergentes e Desengorduran,Multiuso 500ml
+LIMPEZA,Sabões,Sabão em Barra 200g
+LIMPEZA,Sabões,Sabão em Pó 1kg
+LIMPEZA,Sabões,Sabão em Pó Comprimido 500g
+LIMPEZA,Sabões,Sabão Líquido 1L
+LIMPEZA,Amaciantes,Amaciante Concentrado 2L
+LIMPEZA,Amaciantes,Amaciante Líquido 1L
+LIMPEZA,Limpa Vidros,Limpa Vidro 500ml
+LIMPEZA,Limpa Vidros,Limpa Vidro Concentrado 500ml
+LIMPEZA,Limpadores Especiais,Limpa Alumínio 500ml
+LIMPEZA,Limpadores Especiais,Limpa Madeira 500ml
+LIMPEZA,Limpadores Especiais,Limpa Tapete 500ml
+LIMPEZA,Limpadores Especiais,Limpa Forno 500ml
+LIMPEZA,Vassouras e Panos,Vassoura de Nylon Unid
+LIMPEZA,Vassouras e Panos,Vassoura de Piaçava Unid
+LIMPEZA,Vassouras e Panos,Rodo 45cm Unid
+LIMPEZA,Vassouras e Panos,Pano de Chão Algodão Unid
+LIMPEZA,Vassouras e Panos,Pano de Prato 10 Unid
+LIMPEZA,Vassouras e Panos,Esponja de Aço 3 Unid
+LIMPEZA,Vassouras e Panos,Esponja Comum 3 Unid
+LIMPEZA,Escovas e Esponjas,Escova de Cerdas Duras Unid
+LIMPEZA,Escovas e Esponjas,Escova de Cerdas Macias Unid
+LIMPEZA,Escovas e Esponjas,Escova de Limpeza Geral Unid
+LIMPEZA,Utensílios,Pá de Lixo Unid
+LIMPEZA,Utensílios,Peneira para Lixo Unid
+HIGIENE PESSOAL,Higiene Oral,Creme Dental 100g
+HIGIENE PESSOAL,Higiene Oral,Creme Dental Branqueador 100g
+HIGIENE PESSOAL,Higiene Oral,Creme Dental Sensibilidade 100g
+HIGIENE PESSOAL,Higiene Oral,Creme Dental Infantil 100g
+HIGIENE PESSOAL,Higiene Oral,Enxaguante Bucal 250ml
+HIGIENE PESSOAL,Higiene Oral,Escova de Dente Macia Unid
+HIGIENE PESSOAL,Higiene Oral,Escova de Dente Média Unid
+HIGIENE PESSOAL,Higiene Oral,Escova de Dente Elétrica Unid
+HIGIENE PESSOAL,Higiene Oral,Fio Dental 50m
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Absorvente Diário 30 Unid
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Absorvente Noturno 20 Unid
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Absorvente Super 15 Unid
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Tampão 20 Unid
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Disco de Limpeza 3 Unid
+HIGIENE PESSOAL,Higiene Pessoal Feminina,Lenço Íntimo 10 Unid
+HIGIENE PESSOAL,Banho,Sabonete Líquido 250ml
+HIGIENE PESSOAL,Banho,Sabonete em Barra 100g
+HIGIENE PESSOAL,Banho,Sabonete Íntimo 250ml
+HIGIENE PESSOAL,Banho,Sabonete Neutro 250ml
+HIGIENE PESSOAL,Banho,Sabonete Exfoliante 250ml
+HIGIENE PESSOAL,Banho,Shampoo Normal 400ml
+HIGIENE PESSOAL,Banho,Shampoo Oleoso 400ml
+HIGIENE PESSOAL,Banho,Shampoo Seco 400ml
+HIGIENE PESSOAL,Banho,Shampoo Anticaspa 400ml
+HIGIENE PESSOAL,Banho,Condicionador 400ml
+HIGIENE PESSOAL,Banho,Condicionador Hidratante 400ml
+HIGIENE PESSOAL,Banho,Creme para Cabelo 250ml
+HIGIENE PESSOAL,Banho,Máscara Capilar 250ml
+HIGIENE PESSOAL,Banho,Gel de Banho 250ml
+HIGIENE PESSOAL,Banho,Espuma de Banho 250ml
+HIGIENE PESSOAL,Banho,Espuma de Barbear 200ml
+HIGIENE PESSOAL,Banho,Gel de Barbear 200ml
+HIGIENE PESSOAL,Barbear,Lâmina de Barbear Descartável 3 Unid
+HIGIENE PESSOAL,Barbear,Lâmina de Barbear Descartável 5 Unid
+HIGIENE PESSOAL,Barbear,Aparelho de Barbear Elétrico Unid
+HIGIENE PESSOAL,Desodorante,Desodorante Antitranspirante 200ml
+HIGIENE PESSOAL,Desodorante,Desodorante Rollon 50ml
+HIGIENE PESSOAL,Desodorante,Desodorante em Pó 100g
+HIGIENE PESSOAL,Desodorante,Desodorante Natural 100g
+HIGIENE PESSOAL,Higiene das Mãos,Álcool Gel 250ml
+HIGIENE PESSOAL,Higiene das Mãos,Sabonete para Mãos 250ml
+HIGIENE PESSOAL,Higiene das Mãos,Antisséptico 100ml
+HIGIENE PESSOAL,Papel Higiênico,Papel Higiênico 4 Rolos
+HIGIENE PESSOAL,Papel Higiênico,Papel Higiênico 8 Rolos
+HIGIENE PESSOAL,Papel Higiênico,Papel Higiênico 16 Rolos
+HIGIENE PESSOAL,Papel Higiênico,Papel Higiênico Folha Dupla 8 Rolos
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Loção Pós-Barba 100ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Desinfetante Pós-Barba 100ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Hidratante Facial 50ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Hidratante Corporal 200ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Protetor Solar 200ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Bloqueador Solar 100ml
+HIGIENE PESSOAL,Pósbarba e Cosméticos,Espelho de Mão Unid
+HIGIENE PESSOAL,Diversos,Cotonete 100 Unid
+HIGIENE PESSOAL,Diversos,Cotonete de Espuma 100 Unid
+HIGIENE PESSOAL,Diversos,Algodão 100g
+HIGIENE PESSOAL,Diversos,Gaze Estéril 50 Unid
+HIGIENE PESSOAL,Diversos,Esparadrapo 5m
+HIGIENE PESSOAL,Diversos,Band-Aid 30 Unid
+HIGIENE PESSOAL,Diversos,Termômetro Digital Unid
+HIGIENE PESSOAL,Diversos,Tesoura de Unha Unid
+HIGIENE PESSOAL,Diversos,Cortador de Unhas Unid
+HIGIENE PESSOAL,Diversos,Lima de Unha 2 Unid
+HIGIENE PESSOAL,Diversos,Escova de Unha Unid
+HIGIENE PESSOAL,Diversos,Pente Unid
+HIGIENE PESSOAL,Diversos,Escova de Cabelo Unid
+HIGIENE PESSOAL,Diversos,Secador de Cabelo Unid
+DIVERSOS,Papel e Papelaria,Papel Toalha 4 Rolos
+DIVERSOS,Papel e Papelaria,Papel Toalha 12 Rolos
+DIVERSOS,Papel e Papelaria,Guardanapo de Papel 50 Unid
+DIVERSOS,Papel e Papelaria,Guardanapo de Papel 100 Unid
+DIVERSOS,Papel e Papelaria,Prato de Papel Descartável 50 Unid
+DIVERSOS,Papel e Papelaria,Copo de Papel Descartável 50 Unid
+DIVERSOS,Papel e Papelaria,Talher Descartável 20 Unid
+DIVERSOS,Sacos e Embalagens,Sacos para Lixo Pequeno 10 Unid
+DIVERSOS,Sacos e Embalagens,Sacos para Lixo Médio 20 Unid
+DIVERSOS,Sacos e Embalagens,Sacos para Lixo Grande 30 Unid
+DIVERSOS,Sacos e Embalagens,Filme Plástico 28cm X 100m
+DIVERSOS,Sacos e Embalagens,Papel Alumínio 30cm X 100m
+DIVERSOS,Sacos e Embalagens,Papel Manteiga 30cm X 100m
+DIVERSOS,Sacos e Embalagens,Pote Plástico Pequeno 5 Unid
+DIVERSOS,Sacos e Embalagens,Pote Plástico Médio 5 Unid
+DIVERSOS,Sacos e Embalagens,Pote Plástico Grande 5 Unid
+DIVERSOS,Sacos e Embalagens,Caixa de Papelão Pequeninhas 10 Unid
+DIVERSOS,Sacos e Embalagens,Saco Ziplock Pequeno 100 Unid
+DIVERSOS,Sacos e Embalagens,Saco Ziplock Grande 50 Unid
+DIVERSOS,Utilidades,Palito de Dente 1000 Unid
+DIVERSOS,Utilidades,Fósforo com 40 Unid
+DIVERSOS,Utilidades,Velas de Parafina 3 Unid
+DIVERSOS,Utilidades,Velas Aromáticas Unid
+DIVERSOS,Utilidades,Pilhas AA 2 Unid
+DIVERSOS,Utilidades,Pilhas AAA 2 Unid
+DIVERSOS,Utilidades,Bateria 9v 1 Unid
+DIVERSOS,Utilidades,Isqueiro Descartável Unid
+DIVERSOS,Utilidades,Óleo para Queimador Unid
+DIVERSOS,Utilidades,Caneta Esferográfica 10 Unid
+DIVERSOS,Utilidades,Caneta Marcadora 5 Unid
+DIVERSOS,Utilidades,Lápis HB 6 Unid
+DIVERSOS,Utilidades,Caderno 200 Folhas Unid
+DIVERSOS,Utilidades,Blocode Notas Unid
+PET,Alimentos para Cães,Ração Cão Filhote 15kg
+PET,Alimentos para Cães,Ração Cão Adulto 15kg
+PET,Alimentos para Cães,Ração Cão Sênior 15kg
+PET,Alimentos para Cães,Ração Cão Premium 15kg
+PET,Alimentos para Cães,Ração Cão Castrado 15kg
+PET,Alimentos para Cães,Petisco para Cão 150g
+PET,Alimentos para Gatos,Ração Gato Filhote 3kg
+PET,Alimentos para Gatos,Ração Gato Adulto 3kg
+PET,Alimentos para Gatos,Ração Gato Sênior 3kg
+PET,Alimentos para Gatos,Ração Gato Premium 3kg
+PET,Alimentos para Gatos,Petisco para Gato 50g
+PET,Higiene de Pets,Shampoo para Cão 500ml
+PET,Higiene de Pets,Condicionador para Cão 500ml
+PET,Higiene de Pets,Shampoo para Gato 250ml
+PET,Higiene de Pets,Sabonete para Pets 100g
+PET,Higiene de Pets,Escova para Cão Unid
+PET,Higiene de Pets,Pente para Gato Unid
+PET,Acessórios,Coleira para Cão Unid
+PET,Acessórios,Coleira para Gato Unid
+PET,Acessórios,Guia para Cão Unid
+PET,Acessórios,Trela Retrátil Unid
+PET,Acessórios,Colchonete para Pets Unid
+PET,Acessórios,Cama para Pets Unid
+PET,Acessórios,Comedouro Unid
+PET,Acessórios,Bebedouro Unid
+PET,Acessórios,Brinquedo para Cão Unid
+PET,Acessórios,Brinquedo para Gato Unid
+PET,Acessórios,Areia para Gato 5kg
+PET,Acessórios,Sacos para Dejetos Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Torradeira Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Espremedor de Frutas Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Liquidificador Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Microondas Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Cafeteira Unid
+ELETRODOMÉSTICOS E BAZAR,Pequenos Eletrodomésticos,Fogão Portátil Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Jogo de Facas Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Jogo de Panelas Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Travessa Grande Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Prato Raso Branco 6 Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Tigela Plástica Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Jogo de Talheres Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Colher de Sopa Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Garfo de Chá Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Faca de Manteiga Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Peneira Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Ralador Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Forma Redonda Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Forma Quadrada Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Assadeira Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Panela de Pressão Unid
+ELETRODOMÉSTICOS E BAZAR,Cozinha,Peneira de Farinha Unid
+ELETRODOMÉSTICOS E BAZAR,Iluminação,Lâmpada LED 9W Unid
+ELETRODOMÉSTICOS E BAZAR,Iluminação,Lâmpada LED 12W Unid
+ELETRODOMÉSTICOS E BAZAR,Iluminação,Lâmpada Incandescente 60W Unid
+ELETRODOMÉSTICOS E BAZAR,Iluminação,Lâmpada Incandescente 100W Unid
+ELETRODOMÉSTICOS E BAZAR,Iluminação,Luminárias Unid
+ELETRODOMÉSTICOS E BAZAR,Câmaras,Câmara de Ar para Bicicleta Unid
+ELETRODOMÉSTICOS E BAZAR,Câmaras,Câmara de Ar para Carro Unid
+ELETRODOMÉSTICOS E BAZAR,Câmaras,Pneu de Bicicleta Unid
+ELETRODOMÉSTICOS E BAZAR,Câmaras,Pneu de Moto Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Martelo Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Chave de Fenda Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Chave Inglesa Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Chave de Grifo Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Alicate Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Pinca Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Nível Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Fita Métrica Unid
+ELETRODOMÉSTICOS E BAZAR,Ferramentas,Jogo de Chaves Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Almofada Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Quadro de Parede Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Vaso Decorativo Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Cortina 1 Metro Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Tapete 1.5m X 2m Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Relógio de Parede Unid
+ELETRODOMÉSTICOS E BAZAR,Decoração,Espelho Unid
+ELETRODOMÉSTICOS E BAZAR,Roupa de Cama,Jogo de Cama 3 Peças Unid
+ELETRODOMÉSTICOS E BAZAR,Roupa de Cama,Fronha 50cm X 70cm Unid
+ELETRODOMÉSTICOS E BAZAR,Roupa de Cama,Travesseiro Unid
+ELETRODOMÉSTICOS E BAZAR,Roupa de Cama,Edredom Unid
+ELETRODOMÉSTICOS E BAZAR,Roupa de Cama,Colcha Unid
+ELETRODOMÉSTICOS E BAZAR,Toalhas,Toalha de Banho Unid
+ELETRODOMÉSTICOS E BAZAR,Toalhas,Toalha de Rosto Unid
+ELETRODOMÉSTICOS E BAZAR,Toalhas,Toalha de Praia Unid
+ELETRODOMÉSTICOS E BAZAR,Toalhas,Jogo de Toalhas 3 Peças Unid
+BEBIDAS ESPECIAIS,Importadas,Cerveja Importada Alemã 600ml
+BEBIDAS ESPECIAIS,Importadas,Cerveja Importada Belga 600ml
+BEBIDAS ESPECIAIS,Importadas,Vinho Tinto Francês 750ml
+BEBIDAS ESPECIAIS,Importadas,Vinho Branco Francês 750ml
+BEBIDAS ESPECIAIS,Importadas,Espumante Italiano 750ml
+BEBIDAS ESPECIAIS,Importadas,Suco Orgânico 1L
+BEBIDAS ESPECIAIS,Importadas,Chá Britânico 25 Saquinhos
+BEBIDAS ESPECIAIS,Orgânicas,Suco Detox Orgânico 1L
+BEBIDAS ESPECIAIS,Orgânicas,Água de Coco Orgânica 1L
+BEBIDAS ESPECIAIS,Orgânicas,Leite Vegetal Orgânico 1L
+BEBIDAS ESPECIAIS,Orgânicas,Chá Orgânico 20 Saquinhos
+BEBIDAS ESPECIAIS,Orgânicas,Café Orgânico 500g
+BEBIDAS ESPECIAIS,Premium,Champagne 750ml
+BEBIDAS ESPECIAIS,Premium,Espumante Premium 750ml
+BEBIDAS ESPECIAIS,Premium,Vinho Tinto Reserva 750ml
+BEBIDAS ESPECIAIS,Premium,Vinho Branco Seleção 750ml
+SNACKS E GULOSEIMAS,Chocolates,Chocolate ao Leite 100g
+SNACKS E GULOSEIMAS,Chocolates,Chocolate Amargo 100g
+SNACKS E GULOSEIMAS,Chocolates,Chocolate Branco 100g
+SNACKS E GULOSEIMAS,Chocolates,Barra de Chocolate 200g
+SNACKS E GULOSEIMAS,Chocolates,Brigadeiro Unid
+SNACKS E GULOSEIMAS,Chocolates,Bombom 50g
+SNACKS E GULOSEIMAS,Doces e Balas,Chiclete 5 Unid
+SNACKS E GULOSEIMAS,Doces e Balas,Bala Ácida 50g
+SNACKS E GULOSEIMAS,Doces e Balas,Bala de Gelatina 50g
+SNACKS E GULOSEIMAS,Doces e Balas,Caramelo 100g
+SNACKS E GULOSEIMAS,Doces e Balas,Pirulito 5 Unid
+SNACKS E GULOSEIMAS,Doces e Balas,Goma de Frutas 50g
+SNACKS E GULOSEIMAS,Doces e Balas,Alcaçuz 100g
+SNACKS E GULOSEIMAS,Doces e Balas,Jujuba 100g
+SNACKS E GULOSEIMAS,Doces e Balas,Chicotinho de Ouro Unid
+SNACKS E GULOSEIMAS,Doces e Balas,Bala de Mel 100g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Pipoca de Microondas 100g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Pipoca Doce 100g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Milho para Pipoca 500g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Batata Palha 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Batata Frita 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Salgadinho Queijo 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Salgadinho Cebola 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Salgadinho Pizza 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Salgadinho Bacon 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Amendoim Crocante 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Castanha Crocante 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Rosquinha Salgada 150g
+SNACKS E GULOSEIMAS,Pipocas e Snacks Salgados,Chips 50g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolacha Cream Cracker 200g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolacha de Agua Sal 200g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolacha Integral 200g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolacha de Chocolate 200g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolinho de Chocolate 150g
+SNACKS E GULOSEIMAS,Bolachas e Bolinhos,Bolinho de Baunilha 150g
+LIVROS E REVISTAS,Livros,Livro Romance 200 Páginas Unid
+LIVROS E REVISTAS,Livros,Livro Suspense 300 Páginas Unid
+LIVROS E REVISTAS,Livros,Livro Ficção Científica 350 Páginas Unid
+LIVROS E REVISTAS,Livros,Livro Infantil 100 Páginas Unid
+LIVROS E REVISTAS,Livros,Livro Culinária 150 Páginas Unid
+LIVROS E REVISTAS,Revistas,Revista de Culinária Unid
+LIVROS E REVISTAS,Revistas,Revista de Lifestyle Unid
+LIVROS E REVISTAS,Revistas,Revista de Tecnologia Unid
+LIVROS E REVISTAS,Revistas,Revista de Saúde Unid
+PRODUTOS ORGNICOS,Frutas Orgânicas,Maçã Orgânica kg
+PRODUTOS ORGNICOS,Frutas Orgânicas,Laranja Orgânica kg
+PRODUTOS ORGNICOS,Frutas Orgânicas,Morango Orgânico kg
+PRODUTOS ORGNICOS,Frutas Orgânicas,Banana Orgânica kg
+PRODUTOS ORGNICOS,Vegetais Orgânicos,Alface Orgânica kg
+PRODUTOS ORGNICOS,Vegetais Orgânicos,Tomate Orgânico kg
+PRODUTOS ORGNICOS,Vegetais Orgânicos,Cenoura Orgânica kg
+PRODUTOS ORGNICOS,Produtos Orgânicos Embalados,Arroz Integral Orgânico 1kg
+PRODUTOS ORGNICOS,Produtos Orgânicos Embalados,Feijão Orgânico 1kg
+PRODUTOS ORGNICOS,Produtos Orgânicos Embalados,Aveia Orgânica 500g
+PRODUTOS ORGNICOS,Produtos Orgânicos Embalados,Mel Orgânico 500g
+PRODUTOS ORGNICOS,Produtos Orgânicos Embalados,Azeite Orgânico 500ml
+FITNESS E ESPORTES,Suplementos,Whey Protein 900g
+FITNESS E ESPORTES,Suplementos,Creatina Monohidratada 300g
+FITNESS E ESPORTES,Suplementos,BCAA 150 Cápsulas
+FITNESS E ESPORTES,Suplementos,Termogênico 60 Cápsulas
+FITNESS E ESPORTES,Suplementos,Multivitamínico 100 Cápsulas
+FITNESS E ESPORTES,Suplementos,Ômega 3 100 Cápsulas
+FITNESS E ESPORTES,Suplementos,Colágeno Hidrolisado 300g
+FITNESS E ESPORTES,Suplementos,Ferro 60 Cápsulas
+FITNESS E ESPORTES,Suplementos,Vitamina D 60 Cápsulas
+FITNESS E ESPORTES,Bebidas Energéticas Esportivas,Bebida Isotônica 500ml
+FITNESS E ESPORTES,Bebidas Energéticas Esportivas,Bebida Energética Pré Treino 250ml
+FITNESS E ESPORTES,Bebidas Energéticas Esportivas,Suco Energético Natural 1L
+FITNESS E ESPORTES,Artigos Esportivos,Garrafinha de Água Esportiva Unid
+FITNESS E ESPORTES,Artigos Esportivos,Mochila para Treino Unid
+FITNESS E ESPORTES,Artigos Esportivos,Toalha Esportiva Unid
+FITNESS E ESPORTES,Artigos Esportivos,Fone Esportivo Unid
+FITNESS E ESPORTES,Artigos Esportivos,Roupa Esportiva Unid
+ALIMENTOS NATURAIS,Sementes,Sementes de Chia 200g
+ALIMENTOS NATURAIS,Sementes,Sementes de Linhaça 200g
+ALIMENTOS NATURAIS,Sementes,Sementes de Girassol 200g
+ALIMENTOS NATURAIS,Sementes,Sementes de Abóbora 200g
+ALIMENTOS NATURAIS,Grãos Integrais,Quinoa Integral 500g
+ALIMENTOS NATURAIS,Grãos Integrais,Amaranto 500g
+ALIMENTOS NATURAIS,Grãos Integrais,Aveia em Flocos Integral 500g
+ALIMENTOS NATURAIS,Grãos Integrais,Centeio em Grãos 500g
+ALIMENTOS NATURAIS,Farinhas Integrais,Farinha de Coco 200g
+ALIMENTOS NATURAIS,Farinhas Integrais,Farinha de Amêndoa 200g
+ALIMENTOS NATURAIS,Farinhas Integrais,Farinha de Linhaça 200g
+ALIMENTOS NATURAIS,Farinhas Integrais,Farinha de Grão de Bico 200g
+ALIMENTOS NATURAIS,Adoçantes Naturais,Estévia 100g
+ALIMENTOS NATURAIS,Adoçantes Naturais,Mel Puro 500g
+ALIMENTOS NATURAIS,Adoçantes Naturais,Xarope de Agave 500ml
+ALIMENTOS NATURAIS,Adoçantes Naturais,Açúcar de Coco 200g
+ALIMENTOS NATURAIS,Óleos Naturais,Óleo de Gergelim 250ml
+ALIMENTOS NATURAIS,Óleos Naturais,Óleo de Abóbora 250ml
+ALIMENTOS NATURAIS,Óleos Naturais,Óleo de Argan 250ml
+ALIMENTOS NATURAIS,Óleos Naturais,Óleo MCT 250ml
+BAZAR,Brinquedos Infantis,Boneca Unid
+BAZAR,Brinquedos Infantis,Carrinho de Brinquedo Unid
+BAZAR,Brinquedos Infantis,Quebra Cabeça 100 Peças Unid
+BAZAR,Brinquedos Infantis,Jogo de Tabuleiro Unid
+BAZAR,Brinquedos Infantis,Blocos de Construção Unid
+BAZAR,Artigos de Papelaria,Caderno Universitário Unid
+BAZAR,Artigos de Papelaria,Lápis de Cor 24 Cores Unid
+BAZAR,Artigos de Papelaria,Marcador Permanente 12 Cores Unid
+BAZAR,Artigos de Papelaria,Apontador Unid
+BAZAR,Artigos de Papelaria,Borracha Unid
+BAZAR,Artigos de Papelaria,Adesivo para Notas 100 Folhas Unid
+BAZAR,Artigos de Presentes,Embrulho para Presente Unid
+BAZAR,Artigos de Presentes,Fita Decorativa 5m
+BAZAR,Artigos de Presentes,Laço Decorativo 10 Unid
+BAZAR,Artigos de Presentes,Cartão de Felicitações Unid
+BAZAR,Artigos de Presentes,Balão Decorativo 20 Unid
+BAZAR,Artigos de Presentes,Confete 30g
