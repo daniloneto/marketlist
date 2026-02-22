@@ -38,6 +38,7 @@ public record ProductResolutionResultDto(
     string RawName,
     string? ResolvedName,
     Guid? CategoryId,
+    string? CategoryName,
     Guid? SubcategoryId,
     decimal Score,
     ProductResolutionStatus Status);

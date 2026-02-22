@@ -17,7 +17,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private readonly IAnalisadorTextoService _analisadorTexto;
     private readonly ILeitorNotaFiscal _leitorNotaFiscal;
     private readonly IProdutoResolverService _produtoResolver;
-    private readonly ICategoriaClassificadorService _categoriaClassificador;
     private readonly IProductResolutionService _productResolutionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ProcessamentoListaService> _logger;
@@ -31,7 +30,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
         IAnalisadorTextoService analisadorTexto,
         ILeitorNotaFiscal leitorNotaFiscal,
         IProdutoResolverService produtoResolver,
-        ICategoriaClassificadorService categoriaClassificador,
         IProductResolutionService productResolutionService,
         IUnitOfWork unitOfWork,
         ILogger<ProcessamentoListaService> logger)
@@ -44,7 +42,6 @@ public class ProcessamentoListaService : IProcessamentoListaService
         _analisadorTexto = analisadorTexto;
         _leitorNotaFiscal = leitorNotaFiscal;
         _produtoResolver = produtoResolver;
-        _categoriaClassificador = categoriaClassificador;
         _productResolutionService = productResolutionService;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -127,8 +124,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
             try
             {
                 var resolution = await _productResolutionService.ResolveAsync(itemNota.NomeProduto, cancellationToken);
-                var nomeCategoria = _analisadorTexto.DetectarCategoria(itemNota.NomeProduto);
-                var categoria = await ObterOuCriarCategoriaAsync(nomeCategoria, cancellationToken);
+                var categoria = await ObterOuCriarCategoriaAsync(resolution.CategoryName, cancellationToken);
 
                 var produto = await ObterOuCriarProdutoAsync(
                     resolution.ResolvedName ?? itemNota.NomeProduto,
@@ -161,7 +157,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
                     TextoOriginal = itemNota.TextoOriginal,
                     RawName = itemNota.NomeProduto,
                     ResolvedName = resolution.ResolvedName,
-                    ResolvedCategoryId = resolution.CategoryId,
+                    ResolvedCategoryId = produto.CategoriaId,
                     MatchScore = resolution.Score,
                     ResolutionStatus = resolution.Status,
                     Comprado = false,
@@ -177,8 +173,10 @@ public class ProcessamentoListaService : IProcessamentoListaService
         }
     }
 
-    private async Task<Categoria> ObterOuCriarCategoriaAsync(string nomeCategoria, CancellationToken cancellationToken)
+    private async Task<Categoria> ObterOuCriarCategoriaAsync(string? nomeCategoria, CancellationToken cancellationToken)
     {
+        nomeCategoria = string.IsNullOrWhiteSpace(nomeCategoria) ? "Sem Categoria" : nomeCategoria.Trim();
+
         var categorias = await _categoriaRepository.GetAllAsync(cancellationToken);
         var categoria = categorias.FirstOrDefault(c => c.Nome.Equals(nomeCategoria, StringComparison.OrdinalIgnoreCase));
 
@@ -195,12 +193,12 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
     private async Task<Produto> ObterOuCriarProdutoAsync(string nomeProduto, string? unidade, string? codigoLoja, Categoria categoria, CancellationToken cancellationToken)
     {
-        var classificacao = await _categoriaClassificador.ClassificarAsync(nomeProduto, cancellationToken);
-        var resolucao = await _produtoResolver.ResolverProdutoAsync(nomeProduto, codigoLoja, classificacao.CategoriaId, cancellationToken);
+        var resolucao = await _produtoResolver.ResolverProdutoAsync(nomeProduto, codigoLoja, categoria.Id, cancellationToken);
         var produto = resolucao.Produto;
 
-        if (resolucao.FoiCriado && classificacao.Confianca == Confianca.Baixa)
+        if (produto.CategoriaId != categoria.Id)
         {
+            produto.CategoriaId = categoria.Id;
             produto.CategoriaPrecisaRevisao = true;
             await _produtoRepository.UpdateAsync(produto, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

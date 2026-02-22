@@ -23,6 +23,7 @@ public class ProductResolutionService : IProductResolutionService
         var normalized = _normalizacaoService.Normalizar(rawProductName);
         var candidates = await _context.ProductCatalog
             .Where(x => x.IsActive)
+            .Include(x => x.Category)
             .ToListAsync(cancellationToken);
 
         ProductCatalog? best = null;
@@ -40,10 +41,10 @@ public class ProductResolutionService : IProductResolutionService
 
         if (best is not null && bestScore >= 80)
         {
-            return new ProductResolutionResultDto(rawProductName, best.NameCanonical, best.CategoryId, best.SubcategoryId, bestScore, ProductResolutionStatus.Auto);
+            return new ProductResolutionResultDto(rawProductName, best.NameCanonical, best.CategoryId, best.Category.Name, best.SubcategoryId, bestScore, ProductResolutionStatus.Auto);
         }
 
-        return new ProductResolutionResultDto(rawProductName, null, null, null, bestScore, ProductResolutionStatus.PendingReview);
+        return new ProductResolutionResultDto(rawProductName, null, null, null, null, bestScore, ProductResolutionStatus.PendingReview);
     }
 
     private static decimal Similarity(string a, string b)
