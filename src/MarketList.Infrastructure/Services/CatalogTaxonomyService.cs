@@ -32,11 +32,17 @@ public class CatalogTaxonomyService : ICatalogTaxonomyService
 
     public async Task<CatalogSubcategoryDto> CreateSubcategoryAsync(CatalogSubcategoryCreateDto dto, CancellationToken cancellationToken = default)
     {
+        var category = await _context.CatalogCategories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == dto.CategoryId, cancellationToken);
+
+        if (category is null)
+            throw new InvalidOperationException($"Categoria {dto.CategoryId} não encontrada");
+
         var entity = new Subcategory { Id = Guid.NewGuid(), CategoryId = dto.CategoryId, Name = dto.Name.Trim() };
         _context.CatalogSubcategories.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var categoryName = await _context.CatalogCategories.Where(x => x.Id == dto.CategoryId).Select(x => x.Name).FirstAsync(cancellationToken);
-        return new CatalogSubcategoryDto(entity.Id, entity.CategoryId, categoryName, entity.Name);
+        return new CatalogSubcategoryDto(entity.Id, entity.CategoryId, category.Name, entity.Name);
     }
 }
