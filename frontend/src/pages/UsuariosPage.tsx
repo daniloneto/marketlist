@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Table, Button, Text, Title, Paper, Modal, TextInput, PasswordInput, Stack } from '@mantine/core';
+import { Table, Button, Text, Title, Paper, Modal, TextInput, PasswordInput, Stack, Group } from '@mantine/core';
 import usuariosService, { type UsuarioDto } from '../services/usuariosService';
 import authService from '../services/authService';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
@@ -90,12 +90,12 @@ export function UsuariosPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+      <Group justify="space-between" align="center" wrap="wrap" mb="md" gap="sm">
         <Title order={2}>Usuários</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpen(true)}>
           Novo Usuário
         </Button>
-      </div>
+      </Group>
 
       <Paper shadow="xs" p="md">
         <Table striped highlightOnHover>

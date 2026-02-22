@@ -191,9 +191,9 @@ export function ProdutosPage() {
 
   return (
     <>
-      <Group justify="space-between" mb="md">
+      <Group justify="space-between" align="center" wrap="wrap" mb="md" gap="sm">
         <Title order={2}>Produtos</Title>
-        <Group>
+        <Group wrap="wrap" gap="sm">
           <Button variant="light" leftSection={<IconList size={16} />} onClick={handleGerarLista}>
             Gerar lista simples
           </Button>
