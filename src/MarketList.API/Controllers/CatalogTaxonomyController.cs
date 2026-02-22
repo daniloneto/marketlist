@@ -45,5 +45,14 @@ public class CatalogTaxonomyController : ControllerBase
 
     [HttpPost("subcategories")]
     public async Task<ActionResult<CatalogSubcategoryDto>> CreateSubcategory(CatalogSubcategoryCreateDto dto, CancellationToken cancellationToken)
-        => Ok(await _service.CreateSubcategoryAsync(dto, cancellationToken));
+    {
+        try
+        {
+            return Ok(await _service.CreateSubcategoryAsync(dto, cancellationToken));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }
