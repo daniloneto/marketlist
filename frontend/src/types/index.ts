@@ -99,6 +99,7 @@ export interface ProdutoCreateDto {
   descricao?: string | null;
   unidade?: string | null;
   categoriaId: string;
+  subcategoriaId?: string | null;
 }
 
 export interface ProdutoUpdateDto {

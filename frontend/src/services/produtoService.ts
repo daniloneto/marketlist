@@ -63,7 +63,7 @@ export const produtoService = {
     const response = await api.post<ProductCatalogDto>('/admin/catalog-products', {
       nameCanonical: data.nome,
       categoryId: data.categoriaId,
-      subcategoryId: null,
+      subcategoryId: data.subcategoriaId ?? null,
     });
     return toProdutoDto(response.data);
   },
