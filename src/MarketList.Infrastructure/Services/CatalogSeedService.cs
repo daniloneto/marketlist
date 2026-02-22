@@ -27,6 +27,7 @@ public class CatalogSeedService : ICatalogSeedService
         if (await _context.ProductCatalog.AnyAsync(cancellationToken))
         {
             _logger.LogInformation("Seed de catálogo ignorado: tabela product_catalog já possui dados.");
+            await SyncLegacyCatalogAsync(cancellationToken);
             return;
         }
 
@@ -120,6 +121,73 @@ public class CatalogSeedService : ICatalogSeedService
 
             _context.ProductCatalog.Add(productCatalog);
             productsByNormalized[normalizedName] = productCatalog;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await SyncLegacyCatalogAsync(cancellationToken);
+    }
+
+    private async Task SyncLegacyCatalogAsync(CancellationToken cancellationToken)
+    {
+        var legacyCategoriesByName = await _context.Categorias
+            .ToDictionaryAsync(x => x.Nome, x => x, cancellationToken);
+
+        var catalogCategories = await _context.CatalogCategories
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+
+        foreach (var catalogCategory in catalogCategories)
+        {
+            if (legacyCategoriesByName.ContainsKey(catalogCategory.Name))
+            {
+                continue;
+            }
+
+            var legacyCategory = new Categoria
+            {
+                Id = Guid.NewGuid(),
+                Nome = catalogCategory.Name,
+                Descricao = "Importada do catálogo de referência"
+            };
+
+            _context.Categorias.Add(legacyCategory);
+            legacyCategoriesByName[legacyCategory.Nome] = legacyCategory;
+        }
+
+        var legacyProductsByNormalized = await _context.Produtos
+            .Where(x => x.NomeNormalizado != null)
+            .ToDictionaryAsync(x => x.NomeNormalizado!, x => x, cancellationToken);
+
+        var catalogProducts = await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(x => x.Category)
+            .Where(x => x.IsActive)
+            .ToListAsync(cancellationToken);
+
+        foreach (var catalogProduct in catalogProducts)
+        {
+            if (!legacyCategoriesByName.TryGetValue(catalogProduct.Category.Name, out var legacyCategory))
+            {
+                continue;
+            }
+
+            if (legacyProductsByNormalized.ContainsKey(catalogProduct.NameNormalized))
+            {
+                continue;
+            }
+
+            var legacyProduct = new Produto
+            {
+                Id = Guid.NewGuid(),
+                Nome = catalogProduct.NameCanonical,
+                NomeNormalizado = catalogProduct.NameNormalized,
+                CategoriaId = legacyCategory.Id,
+                Unidade = "un"
+            };
+
+            _context.Produtos.Add(legacyProduct);
+            legacyProductsByNormalized[legacyProduct.NomeNormalizado!] = legacyProduct;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
