@@ -34,6 +34,15 @@ public record CatalogCategoryCreateDto(string Name);
 public record CatalogSubcategoryDto(Guid Id, Guid CategoryId, string CategoryName, string Name);
 public record CatalogSubcategoryCreateDto(Guid CategoryId, string Name);
 
+
+public record ProductCatalogResolutionCandidateDto(
+    string NameCanonical,
+    string NameNormalized,
+    Guid CategoryId,
+    string CategoryName,
+    Guid? SubcategoryId
+);
+
 public record ProductResolutionResultDto(
     string RawName,
     string? ResolvedName,

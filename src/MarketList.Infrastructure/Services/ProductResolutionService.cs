@@ -1,6 +1,5 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
-using MarketList.Domain.Entities;
 using MarketList.Domain.Enums;
 using MarketList.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +17,27 @@ public class ProductResolutionService : IProductResolutionService
         _normalizacaoService = normalizacaoService;
     }
 
-    public async Task<ProductResolutionResultDto> ResolveAsync(string rawProductName, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ProductCatalogResolutionCandidateDto>> GetActiveCatalogSnapshotAsync(CancellationToken cancellationToken = default)
     {
-        var normalized = _normalizacaoService.Normalizar(rawProductName);
-        var candidates = await _context.ProductCatalog
+        return await _context.ProductCatalog
+            .AsNoTracking()
             .Where(x => x.IsActive)
             .Include(x => x.Category)
+            .Select(x => new ProductCatalogResolutionCandidateDto(
+                x.NameCanonical,
+                x.NameNormalized,
+                x.CategoryId,
+                x.Category.Name,
+                x.SubcategoryId))
             .ToListAsync(cancellationToken);
+    }
 
-        ProductCatalog? best = null;
+    public async Task<ProductResolutionResultDto> ResolveAsync(string rawProductName, IReadOnlyList<ProductCatalogResolutionCandidateDto>? catalogSnapshot = null, CancellationToken cancellationToken = default)
+    {
+        var normalized = _normalizacaoService.Normalizar(rawProductName);
+        var candidates = catalogSnapshot ?? await GetActiveCatalogSnapshotAsync(cancellationToken);
+
+        ProductCatalogResolutionCandidateDto? best = null;
         decimal bestScore = 0;
 
         foreach (var candidate in candidates)
@@ -41,7 +52,7 @@ public class ProductResolutionService : IProductResolutionService
 
         if (best is not null && bestScore >= 80)
         {
-            return new ProductResolutionResultDto(rawProductName, best.NameCanonical, best.CategoryId, best.Category.Name, best.SubcategoryId, bestScore, ProductResolutionStatus.Auto);
+            return new ProductResolutionResultDto(rawProductName, best.NameCanonical, best.CategoryId, best.CategoryName, best.SubcategoryId, bestScore, ProductResolutionStatus.Auto);
         }
 
         return new ProductResolutionResultDto(rawProductName, null, null, null, null, bestScore, ProductResolutionStatus.PendingReview);

@@ -119,11 +119,13 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private async Task ProcessarNotaFiscalAsync(ListaDeCompras lista, CancellationToken cancellationToken)
     {
         var itensNota = _leitorNotaFiscal.Ler(lista.TextoOriginal ?? string.Empty);
+        var catalogSnapshot = await _productResolutionService.GetActiveCatalogSnapshotAsync(cancellationToken);
+
         foreach (var itemNota in itensNota)
         {
             try
             {
-                var resolution = await _productResolutionService.ResolveAsync(itemNota.NomeProduto, cancellationToken);
+                var resolution = await _productResolutionService.ResolveAsync(itemNota.NomeProduto, catalogSnapshot, cancellationToken);
                 var categoria = await ObterOuCriarCategoriaAsync(resolution.CategoryName, cancellationToken);
 
                 var produto = await ObterOuCriarProdutoAsync(
