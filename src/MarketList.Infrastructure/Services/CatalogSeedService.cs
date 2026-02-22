@@ -5,6 +5,7 @@ using MarketList.Application.Interfaces;
 using MarketList.Domain.Entities;
 using MarketList.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace MarketList.Infrastructure.Services;
@@ -14,12 +15,14 @@ public class CatalogSeedService : ICatalogSeedService
     private readonly AppDbContext _context;
     private readonly ITextoNormalizacaoService _normalizacaoService;
     private readonly ILogger<CatalogSeedService> _logger;
+    private readonly string? _configuredCsvPath;
 
-    public CatalogSeedService(AppDbContext context, ITextoNormalizacaoService normalizacaoService, ILogger<CatalogSeedService> logger)
+    public CatalogSeedService(AppDbContext context, ITextoNormalizacaoService normalizacaoService, ILogger<CatalogSeedService> logger, IConfiguration configuration)
     {
         _context = context;
         _normalizacaoService = normalizacaoService;
         _logger = logger;
+        _configuredCsvPath = configuration["CatalogSeed:CsvPath"];
     }
 
     public async Task SeedFromCsvAsync(CancellationToken cancellationToken = default)
@@ -31,17 +34,7 @@ public class CatalogSeedService : ICatalogSeedService
             return;
         }
 
-        var filePath = Path.Combine(AppContext.BaseDirectory, "supermercado.csv");
-        if (!File.Exists(filePath))
-        {
-            filePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "MarketList.Infrastructure", "supermercado.csv"));
-        }
-
-        if (!File.Exists(filePath))
-        {
-            _logger.LogWarning("CSV de seed não encontrado: {Path}", filePath);
-            return;
-        }
+        var filePath = ResolveCsvPath();
 
         var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -125,6 +118,56 @@ public class CatalogSeedService : ICatalogSeedService
 
         await _context.SaveChangesAsync(cancellationToken);
         await SyncLegacyCatalogAsync(cancellationToken);
+    }
+
+    private string ResolveCsvPath()
+    {
+        if (!string.IsNullOrWhiteSpace(_configuredCsvPath))
+        {
+            var configuredPath = Path.GetFullPath(_configuredCsvPath);
+            if (File.Exists(configuredPath))
+            {
+                return configuredPath;
+            }
+
+            throw new InvalidOperationException($"CSV de seed não encontrado no caminho configurado 'CatalogSeed:CsvPath': {configuredPath}");
+        }
+
+        var assemblyDirectory = Path.GetDirectoryName(typeof(CatalogSeedService).Assembly.Location);
+        var baseDirectory = AppContext.BaseDirectory;
+
+        var searchRoots = new[] { assemblyDirectory, baseDirectory }
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x!)
+            .Distinct();
+
+        foreach (var startDirectory in searchRoots)
+        {
+            var current = new DirectoryInfo(startDirectory);
+
+            while (current is not null)
+            {
+                var directMatch = current.GetFiles("supermercado.csv", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                if (directMatch is not null)
+                {
+                    return directMatch.FullName;
+                }
+
+                var srcInfrastructure = Path.Combine(current.FullName, "src", "MarketList.Infrastructure");
+                if (Directory.Exists(srcInfrastructure))
+                {
+                    var scopedMatch = Directory.EnumerateFiles(srcInfrastructure, "supermercado.csv", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(scopedMatch))
+                    {
+                        return scopedMatch;
+                    }
+                }
+
+                current = current.Parent;
+            }
+        }
+
+        throw new InvalidOperationException("CSV de seed não encontrado. Configure 'CatalogSeed:CsvPath' ou disponibilize 'supermercado.csv' no diretório da aplicação/projeto.");
     }
 
     private async Task SyncLegacyCatalogAsync(CancellationToken cancellationToken)
