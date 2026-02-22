@@ -12,7 +12,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private readonly IRepository<ListaDeCompras> _listaRepository;
     private readonly IProdutoRepository _produtoRepository;
     private readonly IRepository<Categoria> _categoriaRepository;
-    private readonly IRepository<HistoricoPreco> _historicoPrecoRepository;
+    private readonly IHistoricoPrecoRepository _historicoPrecoRepository;
     private readonly IRepository<ItemListaDeCompras> _itemRepository;
     private readonly IAnalisadorTextoService _analisadorTexto;
     private readonly ILeitorNotaFiscal _leitorNotaFiscal;
@@ -25,7 +25,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
         IRepository<ListaDeCompras> listaRepository,
         IProdutoRepository produtoRepository,
         IRepository<Categoria> categoriaRepository,
-        IRepository<HistoricoPreco> historicoPrecoRepository,
+        IHistoricoPrecoRepository historicoPrecoRepository,
         IRepository<ItemListaDeCompras> itemRepository,
         IAnalisadorTextoService analisadorTexto,
         ILeitorNotaFiscal leitorNotaFiscal,
@@ -216,7 +216,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
     private async Task<decimal?> ObterUltimoPrecoAsync(Guid produtoId, CancellationToken cancellationToken)
     {
-        var historico = await _historicoPrecoRepository.GetAllAsync(cancellationToken);
-        return historico.Where(h => h.ProdutoId == produtoId).OrderByDescending(h => h.DataConsulta).FirstOrDefault()?.PrecoUnitario;
+        var ultimoHistorico = await _historicoPrecoRepository.GetLatestByProdutoIdAsync(produtoId, cancellationToken);
+        return ultimoHistorico?.PrecoUnitario;
     }
 }
