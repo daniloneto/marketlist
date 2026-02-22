@@ -20,7 +20,7 @@ public class CatalogTaxonomyService : ICatalogTaxonomyService
 
     public async Task<CatalogCategoryDto> CreateCategoryAsync(CatalogCategoryCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var entity = new Category { Id = Guid.NewGuid(), Name = dto.Name.Trim() };
+        var entity = new Category { Id = Guid.NewGuid(), Name = dto.Name.Trim(), CreatedAt = DateTime.UtcNow };
         _context.CatalogCategories.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
         return new CatalogCategoryDto(entity.Id, entity.Name);
@@ -39,7 +39,7 @@ public class CatalogTaxonomyService : ICatalogTaxonomyService
         if (category is null)
             throw new InvalidOperationException($"Categoria {dto.CategoryId} não encontrada");
 
-        var entity = new Subcategory { Id = Guid.NewGuid(), CategoryId = dto.CategoryId, Name = dto.Name.Trim() };
+        var entity = new Subcategory { Id = Guid.NewGuid(), CategoryId = dto.CategoryId, Name = dto.Name.Trim(), CreatedAt = DateTime.UtcNow };
         _context.CatalogSubcategories.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
