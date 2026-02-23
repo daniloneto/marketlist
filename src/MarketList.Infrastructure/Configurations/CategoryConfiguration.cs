@@ -14,9 +14,16 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         builder.Property(x => x.Id).HasColumnName("id");
         builder.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+        builder.Property(x => x.LegacyCategoriaId).HasColumnName("legacy_categoria_id");
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 
+        builder.HasOne(x => x.LegacyCategoria)
+            .WithMany()
+            .HasForeignKey(x => x.LegacyCategoriaId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(x => x.Name).IsUnique();
+        builder.HasIndex(x => x.LegacyCategoriaId).IsUnique();
     }
 }

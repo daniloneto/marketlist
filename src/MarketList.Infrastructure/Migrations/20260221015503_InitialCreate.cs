@@ -63,6 +63,7 @@ namespace MarketList.Infrastructure.Migrations
                 {
                     id = table.Column<Guid>(type: "TEXT", nullable: false),
                     name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    legacy_categoria_id = table.Column<Guid>(type: "TEXT", nullable: true),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
                     updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
@@ -101,6 +102,7 @@ namespace MarketList.Infrastructure.Migrations
                     name_normalized = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     category_id = table.Column<Guid>(type: "TEXT", nullable: false),
                     subcategory_id = table.Column<Guid>(type: "TEXT", nullable: true),
+                    legacy_produto_id = table.Column<Guid>(type: "TEXT", nullable: true),
                     is_active = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
                     updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -328,6 +330,12 @@ namespace MarketList.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_catalog_categories_legacy_categoria_id",
+                table: "catalog_categories",
+                column: "legacy_categoria_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_catalog_subcategories_category_id_name",
                 table: "catalog_subcategories",
                 columns: new[] { "category_id", "name" },
@@ -350,9 +358,31 @@ namespace MarketList.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_product_catalog_legacy_produto_id",
+                table: "product_catalog",
+                column: "legacy_produto_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_product_catalog_subcategory_id",
                 table: "product_catalog",
                 column: "subcategory_id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_catalog_categories_categorias_legacy_categoria_id",
+                table: "catalog_categories",
+                column: "legacy_categoria_id",
+                principalTable: "categorias",
+                principalColumn: "id",
+                onDelete: ReferentialAction.SetNull);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_product_catalog_produtos_legacy_produto_id",
+                table: "product_catalog",
+                column: "legacy_produto_id",
+                principalTable: "produtos",
+                principalColumn: "id",
+                onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.CreateIndex(
                 name: "IX_categorias_nome",

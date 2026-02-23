@@ -17,6 +17,7 @@ public class ProductCatalogConfiguration : IEntityTypeConfiguration<ProductCatal
         builder.Property(x => x.NameNormalized).HasColumnName("name_normalized").HasMaxLength(200).IsRequired();
         builder.Property(x => x.CategoryId).HasColumnName("category_id");
         builder.Property(x => x.SubcategoryId).HasColumnName("subcategory_id");
+        builder.Property(x => x.LegacyProdutoId).HasColumnName("legacy_produto_id");
         builder.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
@@ -31,7 +32,13 @@ public class ProductCatalogConfiguration : IEntityTypeConfiguration<ProductCatal
             .HasForeignKey(x => x.SubcategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(x => x.LegacyProduto)
+            .WithMany()
+            .HasForeignKey(x => x.LegacyProdutoId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(x => x.NameNormalized).IsUnique();
         builder.HasIndex(x => x.IsActive);
+        builder.HasIndex(x => x.LegacyProdutoId).IsUnique();
     }
 }
