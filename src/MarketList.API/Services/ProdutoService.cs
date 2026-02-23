@@ -11,102 +11,100 @@ public class ProdutoService : IProdutoService
 {
     private readonly AppDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ITextoNormalizacaoService _normalizacaoService;
 
-    public ProdutoService(AppDbContext context, IUnitOfWork unitOfWork)
+    public ProdutoService(AppDbContext context, IUnitOfWork unitOfWork, ITextoNormalizacaoService normalizacaoService)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _normalizacaoService = normalizacaoService;
     }
 
     public async Task<IEnumerable<ProdutoDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var produtos = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Include(p => p.HistoricoPrecos)
-            .OrderBy(p => p.Nome)
+        var produtos = await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.NameCanonical)
+            .Select(p => new ProdutoDto(
+                p.Id,
+                p.NameCanonical,
+                null,
+                null,
+                p.CategoryId,
+                p.Category.Name,
+                null,
+                p.CreatedAt
+            ))
             .ToListAsync(cancellationToken);
 
-        return produtos.Select(p => new ProdutoDto(
-            p.Id,
-            p.Nome,
-            p.Descricao,
-            p.Unidade,
-            p.CategoriaId,
-            p.Categoria.Nome,
-            p.HistoricoPrecos
-                .OrderByDescending(h => h.DataConsulta)
-                .Select(h => (decimal?)h.PrecoUnitario)
-                .FirstOrDefault(),
-            p.CreatedAt
-        ));
+        return produtos;
     }
 
     public async Task<ProdutoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var produto = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Include(p => p.HistoricoPrecos)
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        var produto = await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.Id == id && p.IsActive)
+            .Select(p => new ProdutoDto(
+                p.Id,
+                p.NameCanonical,
+                null,
+                null,
+                p.CategoryId,
+                p.Category.Name,
+                null,
+                p.CreatedAt
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (produto == null)
             return null;
 
-        return new ProdutoDto(
-            produto.Id,
-            produto.Nome,
-            produto.Descricao,
-            produto.Unidade,
-            produto.CategoriaId,
-            produto.Categoria.Nome,
-            produto.HistoricoPrecos
-                .OrderByDescending(h => h.DataConsulta)
-                .Select(h => (decimal?)h.PrecoUnitario)
-                .FirstOrDefault(),
-            produto.CreatedAt
-        );
+        return produto;
     }
 
     public async Task<ProdutoDto?> GetByNomeAsync(string nome, CancellationToken cancellationToken = default)
     {
-        var produto = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Include(p => p.HistoricoPrecos)
-            .FirstOrDefaultAsync(p => p.Nome.ToLower() == nome.ToLower(), cancellationToken);
+        var normalized = _normalizacaoService.Normalizar(nome);
+        var produto = await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.NameNormalized == normalized && p.IsActive)
+            .Select(p => new ProdutoDto(
+                p.Id,
+                p.NameCanonical,
+                null,
+                null,
+                p.CategoryId,
+                p.Category.Name,
+                null,
+                p.CreatedAt
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (produto == null)
             return null;
 
-        return new ProdutoDto(
-            produto.Id,
-            produto.Nome,
-            produto.Descricao,
-            produto.Unidade,
-            produto.CategoriaId,
-            produto.Categoria.Nome,
-            produto.HistoricoPrecos
-                .OrderByDescending(h => h.DataConsulta)
-                .Select(h => (decimal?)h.PrecoUnitario)
-                .FirstOrDefault(),
-            produto.CreatedAt
-        );
+        return produto;
     }
 
     public async Task<IEnumerable<ProdutoDto>> GetByCategoriaAsync(Guid categoriaId, CancellationToken cancellationToken = default)
     {
-        return await _context.Produtos
-            .Include(p => p.Categoria)
-            .Where(p => p.CategoriaId == categoriaId)
+        return await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.CategoryId == categoriaId && p.IsActive)
             .Select(p => new ProdutoDto(
                 p.Id,
-                p.Nome,
-                p.Descricao,
-                p.Unidade,
-                p.CategoriaId,
-                p.Categoria.Nome,
-                p.HistoricoPrecos
-                    .OrderByDescending(h => h.DataConsulta)
-                    .Select(h => (decimal?)h.PrecoUnitario)
-                    .FirstOrDefault(),
+                p.NameCanonical,
+                null,
+                null,
+                p.CategoryId,
+                p.Category.Name,
+                null,
                 p.CreatedAt
             ))
             .OrderBy(p => p.Nome)
@@ -115,29 +113,30 @@ public class ProdutoService : IProdutoService
 
     public async Task<ProdutoDto> CreateAsync(ProdutoCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var categoria = await _context.Categorias.FindAsync([dto.CategoriaId], cancellationToken)
+        var categoria = await _context.CatalogCategories.FindAsync([dto.CategoriaId], cancellationToken)
             ?? throw new InvalidOperationException("Categoria não encontrada");
 
-        var produto = new Produto
+        var produto = new ProductCatalog
         {
             Id = Guid.NewGuid(),
-            Nome = dto.Nome,
-            Descricao = dto.Descricao,
-            Unidade = dto.Unidade,
-            CategoriaId = dto.CategoriaId,
+            NameCanonical = dto.Nome,
+            NameNormalized = _normalizacaoService.Normalizar(dto.Nome),
+            CategoryId = dto.CategoriaId,
+            SubcategoryId = null,
+            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Produtos.Add(produto);
+        _context.ProductCatalog.Add(produto);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new ProdutoDto(
             produto.Id,
-            produto.Nome,
-            produto.Descricao,
-            produto.Unidade,
-            produto.CategoriaId,
-            categoria.Nome,
+            produto.NameCanonical,
+            null,
+            null,
+            produto.CategoryId,
+            categoria.Name,
             null,
             produto.CreatedAt
         );
@@ -145,46 +144,40 @@ public class ProdutoService : IProdutoService
 
     public async Task<ProdutoDto?> UpdateAsync(Guid id, ProdutoUpdateDto dto, CancellationToken cancellationToken = default)
     {
-        var produto = await _context.Produtos.FindAsync([id], cancellationToken);
+        var produto = await _context.ProductCatalog.FindAsync([id], cancellationToken);
         if (produto == null)
             return null;
 
-        var categoria = await _context.Categorias.FindAsync([dto.CategoriaId], cancellationToken)
+        var categoria = await _context.CatalogCategories.FindAsync([dto.CategoriaId], cancellationToken)
             ?? throw new InvalidOperationException("Categoria não encontrada");
 
-        produto.Nome = dto.Nome;
-        produto.Descricao = dto.Descricao;
-        produto.Unidade = dto.Unidade;
-        produto.CategoriaId = dto.CategoriaId;
+        produto.NameCanonical = dto.Nome;
+        produto.NameNormalized = _normalizacaoService.Normalizar(dto.Nome);
+        produto.CategoryId = dto.CategoriaId;
         produto.UpdatedAt = DateTime.UtcNow;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var ultimoPreco = await _context.HistoricoPrecos
-            .Where(h => h.ProdutoId == id)
-            .OrderByDescending(h => h.DataConsulta)
-            .Select(h => (decimal?)h.PrecoUnitario)
-            .FirstOrDefaultAsync(cancellationToken);
-
         return new ProdutoDto(
             produto.Id,
-            produto.Nome,
-            produto.Descricao,
-            produto.Unidade,
-            produto.CategoriaId,
-            categoria.Nome,
-            ultimoPreco,
+            produto.NameCanonical,
+            null,
+            null,
+            produto.CategoryId,
+            categoria.Name,
+            null,
             produto.CreatedAt
         );
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var produto = await _context.Produtos.FindAsync([id], cancellationToken);
+        var produto = await _context.ProductCatalog.FindAsync([id], cancellationToken);
         if (produto == null)
             return false;
 
-        _context.Produtos.Remove(produto);
+        produto.IsActive = false;
+        produto.UpdatedAt = DateTime.UtcNow;
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
@@ -192,36 +185,14 @@ public class ProdutoService : IProdutoService
 
     public async Task<string> GerarListaSimplesAsync(CancellationToken cancellationToken = default)
     {
-        var produtos = await _context.Produtos
-            .Include(p => p.Categoria)
-            .OrderBy(p => p.Categoria.Nome)
-            .ThenBy(p => p.Nome)
+        var produtos = await _context.ProductCatalog
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.Category.Name)
+            .ThenBy(p => p.NameCanonical)
             .ToListAsync(cancellationToken);
-
-        // Buscar a última quantidade de cada produto nas listas
-        var produtoIds = produtos.Select(p => p.Id).ToList();
-        var ultimasQuantidades = await _context.ItensListaDeCompras
-            .Where(i => produtoIds.Contains(i.ProdutoId))
-            .GroupBy(i => i.ProdutoId)
-            .Select(g => new
-            {
-                ProdutoId = g.Key,
-                Quantidade = g.OrderByDescending(i => i.CreatedAt).First().Quantidade
-            })
-            .ToDictionaryAsync(x => x.ProdutoId, x => x.Quantidade, cancellationToken);
-
-        // Buscar o último preço de cada produto
-        var ultimosPrecos = await _context.HistoricoPrecos
-            .Where(h => produtoIds.Contains(h.ProdutoId))
-            .GroupBy(h => h.ProdutoId)
-            .Select(g => new
-            {
-                ProdutoId = g.Key,
-                Preco = g.OrderByDescending(h => h.DataConsulta).First().PrecoUnitario
-            })
-            .ToDictionaryAsync(x => x.ProdutoId, x => x.Preco, cancellationToken);
-
-        var agrupados = produtos.GroupBy(p => p.Categoria.Nome);
+        var agrupados = produtos.GroupBy(p => p.Category.Name);
 
         var sb = new System.Text.StringBuilder();
         var primeiro = true;
@@ -235,24 +206,7 @@ public class ProdutoService : IProdutoService
 
             foreach (var produto in grupo)
             {
-                var quantidade = ultimasQuantidades.ContainsKey(produto.Id)
-                    ? ultimasQuantidades[produto.Id]
-                    : 1;
-
-                // Formatar quantidade: se for inteiro, sem casas decimais
-                var qtdFormatada = quantidade % 1 == 0
-                    ? quantidade.ToString("0")
-                    : quantidade.ToString("0.##");
-
-                var unidade = !string.IsNullOrWhiteSpace(produto.Unidade) 
-                    ? produto.Unidade.ToLower() 
-                    : "un";
-
-                var precoFormatado = ultimosPrecos.ContainsKey(produto.Id)
-                    ? ultimosPrecos[produto.Id].ToString("C", new System.Globalization.CultureInfo("pt-BR"))
-                    : "-";
-
-                sb.AppendLine($"{qtdFormatada} {unidade} {produto.Nome} {precoFormatado}");
+                sb.AppendLine($"1 un {produto.NameCanonical} -");
             }
 
             primeiro = false;

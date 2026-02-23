@@ -20,73 +20,77 @@ public class CategoriaService : ICategoriaService
 
     public async Task<IEnumerable<CategoriaDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var categorias = await _context.Categorias
-            .Include(c => c.Produtos)
-            .OrderBy(c => c.Nome)
+        var categorias = await _context.CatalogCategories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .Select(c => new CategoriaDto(
+                c.Id,
+                c.Name,
+                null,
+                c.CreatedAt,
+                c.Products.Count(p => p.IsActive)
+            ))
             .ToListAsync(cancellationToken);
 
-        return categorias.Select(c => new CategoriaDto(
-            c.Id,
-            c.Nome,
-            c.Descricao,
-            c.CreatedAt,
-            c.Produtos.Count
-        ));
+        return categorias;
     }
 
     public async Task<CategoriaDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var categoria = await _context.Categorias
-            .Include(c => c.Produtos)
-            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        var categoria = await _context.CatalogCategories
+            .AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new CategoriaDto(
+                c.Id,
+                c.Name,
+                null,
+                c.CreatedAt,
+                c.Products.Count(p => p.IsActive)
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (categoria == null)
             return null;
 
-        return new CategoriaDto(
-            categoria.Id,
-            categoria.Nome,
-            categoria.Descricao,
-            categoria.CreatedAt,
-            categoria.Produtos.Count
-        );
+        return categoria;
     }
 
     public async Task<CategoriaDto?> GetByNomeAsync(string nome, CancellationToken cancellationToken = default)
     {
-        var categoria = await _context.Categorias
-            .Include(c => c.Produtos)
-            .FirstOrDefaultAsync(c => c.Nome.ToLower() == nome.ToLower(), cancellationToken);
+        var categoria = await _context.CatalogCategories
+            .AsNoTracking()
+            .Where(c => c.Name.ToLower() == nome.ToLower())
+            .Select(c => new CategoriaDto(
+                c.Id,
+                c.Name,
+                null,
+                c.CreatedAt,
+                c.Products.Count(p => p.IsActive)
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (categoria == null)
             return null;
 
-        return new CategoriaDto(
-            categoria.Id,
-            categoria.Nome,
-            categoria.Descricao,
-            categoria.CreatedAt,
-            categoria.Produtos.Count
-        );
+        return categoria;
     }
 
     public async Task<CategoriaDto> CreateAsync(CategoriaCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var categoria = new Categoria
+        var categoria = new Category
         {
             Id = Guid.NewGuid(),
-            Nome = dto.Nome,
-            Descricao = dto.Descricao,
+            Name = dto.Nome,
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Categorias.Add(categoria);
+        _context.CatalogCategories.Add(categoria);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CategoriaDto(
             categoria.Id,
-            categoria.Nome,
-            categoria.Descricao,
+            categoria.Name,
+            null,
             categoria.CreatedAt,
             0
         );
@@ -94,22 +98,21 @@ public class CategoriaService : ICategoriaService
 
     public async Task<CategoriaDto?> UpdateAsync(Guid id, CategoriaUpdateDto dto, CancellationToken cancellationToken = default)
     {
-        var categoria = await _context.Categorias.FindAsync([id], cancellationToken);
+        var categoria = await _context.CatalogCategories.FindAsync([id], cancellationToken);
         if (categoria == null)
             return null;
 
-        categoria.Nome = dto.Nome;
-        categoria.Descricao = dto.Descricao;
+        categoria.Name = dto.Nome;
         categoria.UpdatedAt = DateTime.UtcNow;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var count = await _context.Produtos.CountAsync(p => p.CategoriaId == id, cancellationToken);
+        var count = await _context.ProductCatalog.CountAsync(p => p.CategoryId == id && p.IsActive, cancellationToken);
 
         return new CategoriaDto(
             categoria.Id,
-            categoria.Nome,
-            categoria.Descricao,
+            categoria.Name,
+            null,
             categoria.CreatedAt,
             count
         );
@@ -117,11 +120,17 @@ public class CategoriaService : ICategoriaService
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var categoria = await _context.Categorias.FindAsync([id], cancellationToken);
+        var categoria = await _context.CatalogCategories.FindAsync([id], cancellationToken);
         if (categoria == null)
             return false;
 
-        _context.Categorias.Remove(categoria);
+        var hasDependencies = await _context.ProductCatalog.AnyAsync(x => x.CategoryId == id && x.IsActive, cancellationToken)
+            || await _context.CatalogSubcategories.AnyAsync(x => x.CategoryId == id, cancellationToken);
+
+        if (hasDependencies)
+            return false;
+
+        _context.CatalogCategories.Remove(categoria);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
