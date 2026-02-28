@@ -10,20 +10,16 @@ namespace MarketList.Domain.Helpers
             var value = dateTime.Value;
             if (value.Kind == DateTimeKind.Utc)
                 return value;
-            if (value.Kind == DateTimeKind.Local)
-                return value.ToUniversalTime();
-            // Unspecified
-            return DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+            return TimeZoneInfo.ConvertTimeToUtc(value);
         }
 
         public static DateTime EnsureUtc(DateTime dateTime)
         {
             if (dateTime.Kind == DateTimeKind.Utc)
                 return dateTime;
-            if (dateTime.Kind == DateTimeKind.Local)
-                return dateTime.ToUniversalTime();
-            // Unspecified
-            return DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+
+            return TimeZoneInfo.ConvertTimeToUtc(dateTime);
         }
     }
 }
