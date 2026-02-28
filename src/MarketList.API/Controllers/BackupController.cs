@@ -336,6 +336,19 @@ public class BackupController : ControllerBase
             var columnName = prop.GetColumnName(storeObject) ?? prop.Name;
             var value = entityType.GetProperty(prop.Name)!.GetValue(entity);
 
+            // Corrige DateTimeKind para UTC se necessário
+            if (value is DateTime dt)
+            {
+                if (dt.Kind == DateTimeKind.Unspecified)
+                {
+                    value = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                }
+                else if (dt.Kind == DateTimeKind.Local)
+                {
+                    value = dt.ToUniversalTime();
+                }
+            }
+
             columns.Add(columnName);
 
             if (value == null)

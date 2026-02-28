@@ -43,6 +43,33 @@ public class AppDbContext : DbContext, IUnitOfWork
             }
         }
 
+        // Enforce UTC for all DateTime/DateTime? properties in all entities
+        foreach (var entry in ChangeTracker.Entries())
+        {
+            var entity = entry.Entity;
+            if (entity == null) continue;
+            var properties = entity.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var prop in properties)
+            {
+                if (prop.PropertyType == typeof(DateTime))
+                {
+                    var value = (DateTime)prop.GetValue(entity);
+                    if (value != default && value.Kind != DateTimeKind.Utc)
+                    {
+                        prop.SetValue(entity, DateTime.SpecifyKind(value, DateTimeKind.Utc));
+                    }
+                }
+                else if (prop.PropertyType == typeof(DateTime?))
+                {
+                    var value = (DateTime?)prop.GetValue(entity);
+                    if (value.HasValue && value.Value.Kind != DateTimeKind.Utc)
+                    {
+                        prop.SetValue(entity, DateTime.SpecifyKind(value.Value, DateTimeKind.Utc));
+                    }
+                }
+            }
+        }
+
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

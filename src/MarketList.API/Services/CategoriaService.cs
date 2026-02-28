@@ -77,7 +77,7 @@ public class CategoriaService : ICategoriaService
             Id = Guid.NewGuid(),
             Nome = dto.Nome,
             Descricao = dto.Descricao,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
         };
 
         _context.Categorias.Add(categoria);
@@ -100,7 +100,7 @@ public class CategoriaService : ICategoriaService
 
         categoria.Nome = dto.Nome;
         categoria.Descricao = dto.Descricao;
-        categoria.UpdatedAt = DateTime.UtcNow;
+        categoria.UpdatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

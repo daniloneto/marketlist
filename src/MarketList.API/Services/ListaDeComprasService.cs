@@ -107,9 +107,9 @@ public class ListaDeComprasService : IListaDeComprasService
             TextoOriginal = dto.TextoOriginal,
             TipoEntrada = dto.TipoEntrada,
             EmpresaId = dto.EmpresaId,
-            DataCompra = dto.DataCompra,
+            DataCompra = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(dto.DataCompra),
             Status = StatusLista.Pendente,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
         };
 
         _context.ListasDeCompras.Add(lista);
@@ -145,7 +145,7 @@ public class ListaDeComprasService : IListaDeComprasService
             return null;
 
         lista.Nome = dto.Nome;
-        lista.UpdatedAt = DateTime.UtcNow;
+        lista.UpdatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);        return new ListaDeComprasDto(
             lista.Id,
@@ -201,7 +201,7 @@ public class ListaDeComprasService : IListaDeComprasService
             Quantidade = dto.Quantidade,
             PrecoUnitario = ultimoPreco,
             Comprado = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
         };
 
         _context.ItensListaDeCompras.Add(item);
@@ -231,7 +231,7 @@ public class ListaDeComprasService : IListaDeComprasService
 
         item.Quantidade = dto.Quantidade;
         item.Comprado = dto.Comprado;
-        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);        return new ItemListaDeComprasDto(
             item.Id,

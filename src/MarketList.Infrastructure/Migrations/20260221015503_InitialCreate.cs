@@ -11,15 +11,16 @@ namespace MarketList.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            var isPostgres = migrationBuilder.ActiveProvider.Contains("Npgsql");
             migrationBuilder.CreateTable(
                 name: "categorias",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     nome = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     descricao = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -30,11 +31,11 @@ namespace MarketList.Infrastructure.Migrations
                 name: "empresas",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     cnpj = table.Column<string>(type: "TEXT", maxLength: 18, nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -45,11 +46,11 @@ namespace MarketList.Infrastructure.Migrations
                 name: "usuarios",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     login = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     senha_hash = table.Column<string>(type: "TEXT", nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -60,17 +61,21 @@ namespace MarketList.Infrastructure.Migrations
                 name: "produtos",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     nome_normalizado = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     descricao = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     unidade = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
                     codigo_loja = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    precisa_revisao = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    categoria_precisa_revisao = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
-                    categoria_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    precisa_revisao = isPostgres
+                        ? table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                        : table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    categoria_precisa_revisao = isPostgres
+                        ? table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                        : table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false),
+                    categoria_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -87,13 +92,13 @@ namespace MarketList.Infrastructure.Migrations
                 name: "regras_classificacao_categoria",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     termo_normalizado = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     prioridade = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
                     contagem_usos = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 0),
-                    categoria_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    categoria_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -110,17 +115,17 @@ namespace MarketList.Infrastructure.Migrations
                 name: "listas_de_compras",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     nome = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     texto_original = table.Column<string>(type: "TEXT", nullable: true),
                     tipo_entrada = table.Column<int>(type: "INTEGER", nullable: false),
                     status = table.Column<int>(type: "INTEGER", nullable: false),
-                    processado_em = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    processado_em = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true),
                     erro_processamento = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    data_compra = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    empresa_id = table.Column<Guid>(type: "TEXT", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    data_compra = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true),
+                    empresa_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: true) : table.Column<Guid>(type: "TEXT", nullable: true),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -137,14 +142,14 @@ namespace MarketList.Infrastructure.Migrations
                 name: "orcamentos_categoria",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    usuario_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    categoria_id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    usuario_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    categoria_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     periodo_tipo = table.Column<int>(type: "INTEGER", nullable: false),
                     periodo_referencia = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    valor_limite = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    valor_limite = isPostgres ? table.Column<decimal>(type: "numeric", precision: 18, scale: 2, nullable: false) : table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -167,14 +172,14 @@ namespace MarketList.Infrastructure.Migrations
                 name: "historico_precos",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    produto_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    preco_unitario = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    data_consulta = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    produto_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    preco_unitario = isPostgres ? table.Column<decimal>(type: "numeric", precision: 18, scale: 2, nullable: false) : table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    data_consulta = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
                     fonte_preco = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    empresa_id = table.Column<Guid>(type: "TEXT", nullable: true),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    empresa_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: true) : table.Column<Guid>(type: "TEXT", nullable: true),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -197,13 +202,13 @@ namespace MarketList.Infrastructure.Migrations
                 name: "sinonimos_produto",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
                     texto_original = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
                     texto_normalizado = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
                     fonte_origem = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    produto_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    produto_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -220,17 +225,19 @@ namespace MarketList.Infrastructure.Migrations
                 name: "itens_lista_de_compras",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    lista_de_compras_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    produto_id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    quantidade = table.Column<decimal>(type: "TEXT", precision: 18, scale: 3, nullable: false),
+                    id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    lista_de_compras_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    produto_id = isPostgres ? table.Column<Guid>(type: "uuid", nullable: false) : table.Column<Guid>(type: "TEXT", nullable: false),
+                    quantidade = isPostgres ? table.Column<decimal>(type: "numeric", precision: 18, scale: 3, nullable: false) : table.Column<decimal>(type: "TEXT", precision: 18, scale: 3, nullable: false),
                     unidade_de_medida = table.Column<int>(type: "INTEGER", nullable: true),
-                    preco_unitario = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
-                    preco_total = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
+                    preco_unitario = isPostgres ? table.Column<decimal>(type: "numeric", precision: 18, scale: 2, nullable: true) : table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
+                    preco_total = isPostgres ? table.Column<decimal>(type: "numeric", precision: 18, scale: 2, nullable: true) : table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: true),
                     texto_original = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    comprado = table.Column<bool>(type: "INTEGER", nullable: false),
-                    created_at = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    comprado = isPostgres
+                        ? table.Column<bool>(type: "boolean", nullable: false)
+                        : table.Column<bool>(type: "INTEGER", nullable: false),
+                    created_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: false) : table.Column<DateTime>(type: "TEXT", nullable: false),
+                    updated_at = isPostgres ? table.Column<DateTime>(type: "timestamp", nullable: true) : table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -306,12 +313,12 @@ namespace MarketList.Infrastructure.Migrations
                 column: "categoria_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_orcamentos_categoria_usuario_id_periodo_tipo_periodo_referencia",
+                name: "IX_orc_cat_userid_tipo_ref",
                 table: "orcamentos_categoria",
                 columns: new[] { "usuario_id", "periodo_tipo", "periodo_referencia" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_orcamentos_categoria_usuario_id_periodo_tipo_periodo_referencia_categoria_id",
+                name: "IX_orc_cat_userid_tipo_ref_catid",
                 table: "orcamentos_categoria",
                 columns: new[] { "usuario_id", "periodo_tipo", "periodo_referencia", "categoria_id" },
                 unique: true);

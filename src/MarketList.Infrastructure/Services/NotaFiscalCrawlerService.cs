@@ -162,7 +162,7 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
             if (DateTimeOffset.TryParse(textoAposEmissao, new CultureInfo("pt-BR"), DateTimeStyles.None, out var dtoOffset))
             {
                 _logger.LogInformation("Data de emissão extraída com timezone: {DataEmissao}", dtoOffset);
-                return dtoOffset.UtcDateTime;
+                return MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(dtoOffset.UtcDateTime);
             }
 
             // Fallback: tentar parse sem timezone (ex: "04/02/2026 20:17:47")
@@ -176,11 +176,11 @@ public class NotaFiscalCrawlerService : INotaFiscalCrawlerService
             if (DateTime.TryParseExact(textoAposEmissao, formats, new CultureInfo("pt-BR"), DateTimeStyles.None, out var dataEmissao))
             {
                 _logger.LogInformation("Data de emissão extraída (sem timezone): {DataEmissao}", dataEmissao);
-                return dataEmissao;
+                return MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(dataEmissao);
             }
 
             _logger.LogWarning("Não foi possível fazer parse da data de emissão: '{TextoData}'. Usando DateTime.UtcNow como fallback.", textoAposEmissao);
-            return DateTime.UtcNow;
+            return MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
         }
         catch (Exception ex)
         {
