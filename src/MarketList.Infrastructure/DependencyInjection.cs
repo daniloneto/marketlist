@@ -184,10 +184,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoriaClassificadorService, CategoriaClassificadorService>();
         services.AddScoped<IProdutoAprovacaoService, ProdutoAprovacaoService>();
         services.AddScoped<IImportacaoNotaFiscalService, ImportacaoNotaFiscalService>();
-        services.AddScoped<IProductCatalogService, ProductCatalogService>();
-        services.AddScoped<ICatalogTaxonomyService, CatalogTaxonomyService>();
-        services.AddScoped<IProductResolutionService, ProductResolutionService>();
-        services.AddScoped<ICatalogSeedService, CatalogSeedService>();
+        services.AddScoped<ICsvCatalogImportService, CsvCatalogImportService>();
         // Authentication / Password service
         services.AddScoped<MarketList.Application.Interfaces.IPasswordService, PasswordService>();
 

@@ -17,14 +17,12 @@ public class AuthController : ControllerBase
     private readonly MarketList.Infrastructure.Data.AppDbContext _context;
     private readonly IPasswordService _passwordService;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(MarketList.Infrastructure.Data.AppDbContext context, IPasswordService passwordService, IConfiguration configuration, ILogger<AuthController> logger)
+    public AuthController(MarketList.Infrastructure.Data.AppDbContext context, IPasswordService passwordService, IConfiguration configuration)
     {
         _context = context;
         _passwordService = passwordService;
         _configuration = configuration;
-        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -37,16 +35,8 @@ public class AuthController : ControllerBase
         if (!_passwordService.VerificarSenha(user.SenhaHash, req.Senha))
             return Unauthorized(new { error = "Invalid credentials" });
 
-        try
-        {
-            var token = GenerateToken(user);
-            return Ok(new { token });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to generate JWT token during login.");
-            return Problem(statusCode: StatusCodes.Status500InternalServerError, title: "Authentication configuration error", detail: "JWT authentication is not configured correctly.");
-        }
+        var token = GenerateToken(user);
+        return Ok(new { token });
     }
 
     [Authorize]
@@ -94,9 +84,6 @@ public class AuthController : ControllerBase
         var issuer = jwt.GetValue<string>("Issuer");
         var audience = jwt.GetValue<string>("Audience");
         var expMinutes = jwt.GetValue<int>("ExpirationMinutes", 60);
-
-        if (string.IsNullOrWhiteSpace(key))
-            throw new InvalidOperationException("Jwt:Key is not configured.");
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);

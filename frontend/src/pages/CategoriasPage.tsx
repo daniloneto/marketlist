@@ -112,7 +112,7 @@ export function CategoriasPage() {
 
   return (
     <>
-      <Group justify="space-between" align="center" wrap="wrap" mb="md" gap="sm">
+      <Group justify="space-between" mb="md">
         <Title order={2}>Categorias</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
           Nova Categoria

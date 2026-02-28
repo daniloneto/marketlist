@@ -6,7 +6,6 @@
   </ItemGroup>
   <ItemGroup>
   <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
-    <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
@@ -26,9 +25,7 @@
 
 
   <ItemGroup>
-    <None Update="supermercado.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="supermercado.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

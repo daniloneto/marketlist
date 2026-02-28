@@ -9,7 +9,6 @@ import type {
   ProdutoResumoDto 
 } from '../types';
 
-
 export const produtoService = {
   getAll: async (): Promise<ProdutoDto[]> => {
     const response = await api.get<ProdutoDto[]>('/produtos');

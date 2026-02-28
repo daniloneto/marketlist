@@ -110,7 +110,7 @@ export function EmpresasPage() {
 
   return (
     <>
-      <Group justify="space-between" align="center" wrap="wrap" mb="md" gap="sm">
+      <Group justify="space-between" mb="md">
         <Title order={2}>Empresas</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={handleCreate}>
           Nova Empresa

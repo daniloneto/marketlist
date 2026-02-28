@@ -39,25 +39,6 @@ public class ItemListaDeComprasConfiguration : IEntityTypeConfiguration<ItemList
             .HasColumnName("texto_original")
             .HasMaxLength(500);
 
-        builder.Property(i => i.RawName)
-            .HasColumnName("raw_name")
-            .HasMaxLength(500);
-
-        builder.Property(i => i.ResolvedName)
-            .HasColumnName("resolved_name")
-            .HasMaxLength(200);
-
-        builder.Property(i => i.ResolvedCategoryId)
-            .HasColumnName("resolved_category_id");
-
-        builder.Property(i => i.MatchScore)
-            .HasColumnName("match_score")
-            .HasPrecision(5, 2);
-
-        builder.Property(i => i.ResolutionStatus)
-            .HasColumnName("resolution_status")
-            .HasConversion<int?>();
-
         builder.Property(i => i.Comprado)
             .HasColumnName("comprado");
 

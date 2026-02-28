@@ -20,9 +20,6 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<RegraClassificacaoCategoria> RegrasClassificacaoCategoria => Set<RegraClassificacaoCategoria>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<OrcamentoCategoria> OrcamentosCategoria => Set<OrcamentoCategoria>();
-    public DbSet<Category> CatalogCategories => Set<Category>();
-    public DbSet<Subcategory> CatalogSubcategories => Set<Subcategory>();
-    public DbSet<ProductCatalog> ProductCatalog => Set<ProductCatalog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

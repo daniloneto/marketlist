@@ -11,11 +11,6 @@ public class ItemListaDeCompras : BaseEntity
     public decimal? PrecoUnitario { get; set; } // Último preço conhecido no momento da criação
     public decimal? PrecoTotal { get; set; } // Preço total do item (Quantidade * PrecoUnitario)
     public string? TextoOriginal { get; set; } // Linha original do texto
-    public string? RawName { get; set; }
-    public string? ResolvedName { get; set; }
-    public Guid? ResolvedCategoryId { get; set; }
-    public decimal? MatchScore { get; set; }
-    public ProductResolutionStatus? ResolutionStatus { get; set; }
     public bool Comprado { get; set; } = false;
     
     // Navegação
