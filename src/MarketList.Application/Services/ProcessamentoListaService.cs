@@ -171,10 +171,10 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
             // 2. Encontrar ou criar produto usando código da loja + nome
             var produto = await ObterOuCriarProdutoAsync(
-                itemNota.NomeProduto, 
-                itemNota.UnidadeDeMedida.ToString(), 
-                itemNota.CodigoLoja, 
-                categoria, 
+                itemNota.NomeProduto,
+                itemNota.UnidadeDeMedida.ToString(),
+                itemNota.CodigoLoja,
+                categoria,
                 cancellationToken);
 
             // 3. Registrar no histórico de preços
@@ -210,7 +210,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
             await _itemRepository.AddAsync(itemLista, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Item da nota adicionado: {Produto} - {Qtd} {Unidade} - R$ {Preco}", 
+            _logger.LogInformation("Item da nota adicionado: {Produto} - {Qtd} {Unidade} - R$ {Preco}",
                 itemNota.NomeProduto, itemNota.Quantidade, itemNota.UnidadeDeMedida, itemNota.PrecoUnitario);
         }
         catch (Exception ex)
@@ -223,7 +223,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
     private async Task<Categoria> ObterOuCriarCategoriaAsync(string nomeCategoria, CancellationToken cancellationToken)
     {
         var categorias = await _categoriaRepository.GetAllAsync(cancellationToken);
-        var categoria = categorias.FirstOrDefault(c => 
+        var categoria = categorias.FirstOrDefault(c =>
             c.Nome.Equals(nomeCategoria, StringComparison.OrdinalIgnoreCase));
 
         if (categoria == null)
@@ -242,10 +242,10 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
         return categoria;
     }    private async Task<Produto> ObterOuCriarProdutoAsync(
-        string nomeProduto, 
-        string? unidade, 
-        string? codigoLoja, 
-        Categoria categoria, 
+        string nomeProduto,
+        string? unidade,
+        string? codigoLoja,
+        Categoria categoria,
         CancellationToken cancellationToken)
     {
         // 1. Classificar a categoria automaticamente baseado no nome do produto

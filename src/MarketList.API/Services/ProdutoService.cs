@@ -244,8 +244,8 @@ public class ProdutoService : IProdutoService
                     ? quantidade.ToString("0")
                     : quantidade.ToString("0.##");
 
-                var unidade = !string.IsNullOrWhiteSpace(produto.Unidade) 
-                    ? produto.Unidade.ToLower() 
+                var unidade = !string.IsNullOrWhiteSpace(produto.Unidade)
+                    ? produto.Unidade.ToLower()
                     : "un";
 
                 var precoFormatado = ultimosPrecos.ContainsKey(produto.Id)
