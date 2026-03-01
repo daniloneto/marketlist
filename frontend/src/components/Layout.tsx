@@ -156,8 +156,8 @@ export function Layout({ children }: LayoutProps) {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md" style={{ display: isMobile ? 'none' : undefined }}>
-        <Stack gap="xs" style={{ height: '100%' }}>
+      <AppShell.Navbar p="md" style={{ display: isMobile ? 'none' : undefined, overflowY: 'auto' }}>
+        <Stack gap="xs" style={{ height: '100%', minHeight: 0 }}>
           {navItems.map((item) => (
             <MantineNavLink
               key={item.to}
@@ -225,7 +225,8 @@ export function Layout({ children }: LayoutProps) {
       </AppShell.Navbar>
 
       <Drawer opened={opened} onClose={() => setOpened(false)} padding="md" position="left" size="75%">
-        <Stack gap="xs" style={{ height: '100%' }}>
+        <div style={{ height: '100%', overflowY: 'auto' }}>
+        <Stack gap="xs" style={{ height: '100%', minHeight: 0 }}>
           {navItems.map((item) => (
             <MantineNavLink
               key={item.to + '-drawer'}
@@ -292,6 +293,7 @@ export function Layout({ children }: LayoutProps) {
             Logout
           </Button>
         </Stack>
+        </div>
       </Drawer>
 
       <AppShell.Main
