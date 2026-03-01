@@ -1,26 +1,32 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
+  Anchor,
+  Badge,
+  Button,
   Card,
   Checkbox,
   Group,
+  Modal,
+  NumberInput,
   Paper,
   Progress,
+  RingProgress,
   Select,
   SimpleGrid,
   Stack,
   Table,
   Text,
   Title,
-  Badge,
-  RingProgress,
-  Button,
+  Tooltip,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { IconAlertTriangle } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { categoriaService, orcamentoService } from '../services';
 import { ErrorState, LoadingState } from '../components';
+import { PeriodoOrcamentoTipo, type DashboardFinanceiroCategoriaDto } from '../types';
 
 const currency = (value: number | null) => {
   if (value === null) return 'Não definido';
@@ -42,7 +48,10 @@ const monthOptions = [
   { value: '12', label: 'Dezembro' },
 ];
 
+const toMonthlyPeriodoReferencia = (year: string, month: string) => `${year}-${month.padStart(2, '0')}`;
+
 export function DashboardPage() {
+  const queryClient = useQueryClient();
   const now = new Date();
   const [year, setYear] = useState(String(now.getFullYear()));
   const [month, setMonth] = useState(String(now.getMonth() + 1));
@@ -51,6 +60,10 @@ export function DashboardPage() {
   const [dataFim, setDataFim] = useState<string | null>(null);
   const [somenteComOrcamento, setSomenteComOrcamento] = useState(false);
   const [somenteComGasto, setSomenteComGasto] = useState(false);
+
+  const [orcamentoModalAberto, setOrcamentoModalAberto] = useState(false);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<DashboardFinanceiroCategoriaDto | null>(null);
+  const [novoOrcamento, setNovoOrcamento] = useState<number | string>(0);
 
   const { data: categorias } = useQuery({
     queryKey: ['categorias'],
@@ -71,6 +84,35 @@ export function DashboardPage() {
       }),
   });
 
+  const definirOrcamentoMutation = useMutation({
+    mutationFn: (payload: { categoriaId: string; valorLimite: number }) =>
+      orcamentoService.createOrUpdate({
+        categoriaId: payload.categoriaId,
+        periodoTipo: PeriodoOrcamentoTipo.Mensal,
+        periodoReferencia: toMonthlyPeriodoReferencia(year, month),
+        valorLimite: payload.valorLimite,
+      }),
+    onSuccess: () => {
+      notifications.show({
+        title: 'Sucesso',
+        message: 'Orçamento definido com sucesso.',
+        color: 'green',
+      });
+      setOrcamentoModalAberto(false);
+      setCategoriaSelecionada(null);
+      setNovoOrcamento(0);
+      queryClient.invalidateQueries({ queryKey: ['dashboard-financeiro'] });
+      dashboardQuery.refetch();
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Erro',
+        message: 'Não foi possível salvar o orçamento.',
+        color: 'red',
+      });
+    },
+  });
+
   const totalSpent = dashboardQuery.data?.summary.totalSpent ?? 0;
 
   const barData = useMemo(
@@ -86,6 +128,31 @@ export function DashboardPage() {
   };
 
   const topPercentage = dashboardQuery.data?.summary.totalPercentageUsed ?? 0;
+
+  const abrirModalDefinicaoOrcamento = (categoria: DashboardFinanceiroCategoriaDto) => {
+    setCategoriaSelecionada(categoria);
+    setNovoOrcamento(0);
+    setOrcamentoModalAberto(true);
+  };
+
+  const salvarOrcamentoDaCategoria = () => {
+    if (!categoriaSelecionada) return;
+    const valorNormalizado = Number(novoOrcamento);
+
+    if (!Number.isFinite(valorNormalizado) || valorNormalizado < 0) {
+      notifications.show({
+        title: 'Valor inválido',
+        message: 'Informe um valor de orçamento maior ou igual a zero.',
+        color: 'yellow',
+      });
+      return;
+    }
+
+    definirOrcamentoMutation.mutate({
+      categoriaId: categoriaSelecionada.categoryId,
+      valorLimite: valorNormalizado,
+    });
+  };
 
   return (
     <Stack>
@@ -107,6 +174,39 @@ export function DashboardPage() {
           </Stack>
         </SimpleGrid>
       </Paper>
+
+      <Modal
+        opened={orcamentoModalAberto}
+        onClose={() => {
+          if (definirOrcamentoMutation.isPending) return;
+          setOrcamentoModalAberto(false);
+        }}
+        title="Definir orçamento da categoria"
+        centered
+      >
+        <Stack>
+          <Text size="sm">
+            Categoria: <Text span fw={700}>{categoriaSelecionada?.categoryName ?? '-'}</Text>
+          </Text>
+          <Text size="sm">
+            Período: <Text span fw={700}>{month.padStart(2, '0')}/{year}</Text>
+          </Text>
+          <NumberInput
+            label="Valor do orçamento"
+            min={0}
+            step={10}
+            decimalScale={2}
+            fixedDecimalScale
+            prefix="R$ "
+            value={novoOrcamento}
+            onChange={setNovoOrcamento}
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setOrcamentoModalAberto(false)} disabled={definirOrcamentoMutation.isPending}>Cancelar</Button>
+            <Button onClick={salvarOrcamentoDaCategoria} loading={definirOrcamentoMutation.isPending}>Salvar orçamento</Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       {dashboardQuery.isLoading ? (
         <LoadingState />
@@ -184,7 +284,20 @@ export function DashboardPage() {
                 {dashboardQuery.data?.categories.map((item) => (
                   <Table.Tr key={item.categoryId}>
                     <Table.Td>{item.categoryName}</Table.Td>
-                    <Table.Td>{currency(item.budgetAmount)}</Table.Td>
+                    <Table.Td>
+                      {item.budgetAmount === null ? (
+                        <Group gap="xs">
+                          <Text size="sm">Não definido</Text>
+                          <Tooltip label="Definir orçamento para este período">
+                            <Anchor size="sm" onClick={() => abrirModalDefinicaoOrcamento(item)}>
+                              Definir orçamento
+                            </Anchor>
+                          </Tooltip>
+                        </Group>
+                      ) : (
+                        currency(item.budgetAmount)
+                      )}
+                    </Table.Td>
                     <Table.Td>{currency(item.spentAmount)}</Table.Td>
                     <Table.Td>{currency(item.remainingAmount)}</Table.Td>
                     <Table.Td>
