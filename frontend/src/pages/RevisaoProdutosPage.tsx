@@ -119,9 +119,6 @@ export function RevisaoProdutosPage() {
     vincularMutation.mutate({ idOrigem: selectedProduto.id, idDestino });
   };
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState message="Erro ao carregar produtos pendentes" onRetry={() => queryClient.invalidateQueries({ queryKey: ['produtosPendentes'] })} />;
-
   const produtosNomePendente = produtosPendentes?.filter(p => p.precisaRevisao) || [];
   const produtosCategoriaPendente = produtosPendentes?.filter(p => p.categoriaPrecisaRevisao) || [];
 
@@ -134,6 +131,11 @@ export function RevisaoProdutosPage() {
         </Badge>
       </Group>
 
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
+        <ErrorState message="Erro ao carregar produtos pendentes" onRetry={() => queryClient.invalidateQueries({ queryKey: ['produtosPendentes'] })} />
+      ) : (
       <Tabs defaultValue="nome">
         <Tabs.List>
           <Tabs.Tab value="nome">
@@ -250,6 +252,7 @@ export function RevisaoProdutosPage() {
           )}
         </Tabs.Panel>
       </Tabs>
+      )}
 
       {/* Modal de Revisão */}
       <Modal

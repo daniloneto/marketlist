@@ -105,9 +105,6 @@ export function EmpresasPage() {
     setCreateModalOpen(true);
   };
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState onRetry={refetch} />;
-
   return (
     <>
       <Group justify="space-between" mb="md">
@@ -118,7 +115,12 @@ export function EmpresasPage() {
       </Group>
 
       <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
@@ -158,7 +160,8 @@ export function EmpresasPage() {
               </Table.Tr>
             ))}
           </Table.Tbody>
-        </Table>
+          </Table>
+        )}
       </Paper>
 
       {/* Modal para criar empresa */}

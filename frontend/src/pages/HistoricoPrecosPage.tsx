@@ -52,9 +52,6 @@ export function HistoricoPrecosPage() {
     })) || []),
   ];
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState onRetry={refetch} />;
-
   return (
     <>
       <Group justify="space-between" mb="md">
@@ -75,7 +72,13 @@ export function HistoricoPrecosPage() {
       </Paper>
 
       <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <>
+            <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Produto</Table.Th>
@@ -94,12 +97,14 @@ export function HistoricoPrecosPage() {
               </Table.Tr>
             ))}
           </Table.Tbody>
-        </Table>
+            </Table>
 
-        {historico?.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl">
-            Nenhum histórico de preços encontrado
-          </Text>
+            {historico?.length === 0 && (
+              <Text c="dimmed" ta="center" py="xl">
+                Nenhum histórico de preços encontrado
+              </Text>
+            )}
+          </>
         )}
       </Paper>
     </>

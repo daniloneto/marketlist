@@ -107,9 +107,6 @@ export function CategoriasPage() {
     setCreateModalOpen(true);
   };
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState onRetry={refetch} />;
-
   return (
     <>
       <Group justify="space-between" mb="md">
@@ -120,7 +117,13 @@ export function CategoriasPage() {
       </Group>
 
       <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <>
+            <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
@@ -155,12 +158,14 @@ export function CategoriasPage() {
               </Table.Tr>
             ))}
           </Table.Tbody>
-        </Table>
+            </Table>
 
-        {categorias?.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl">
-            Nenhuma categoria encontrada
-          </Text>
+            {categorias?.length === 0 && (
+              <Text c="dimmed" ta="center" py="xl">
+                Nenhuma categoria encontrada
+              </Text>
+            )}
+          </>
         )}
       </Paper>
 

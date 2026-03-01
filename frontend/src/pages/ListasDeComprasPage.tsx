@@ -174,9 +174,6 @@ export function ListasDeComprasPage() {
     });
   };
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState onRetry={refetch} />;
-
   return (
     <>
       <Group justify="space-between" mb="md">
@@ -186,7 +183,14 @@ export function ListasDeComprasPage() {
         </Button>
       </Group>
 
-      <Paper shadow="xs" p="md">        <Table striped highlightOnHover>
+      <Paper shadow="xs" p="md">
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <>
+            <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
@@ -252,12 +256,14 @@ export function ListasDeComprasPage() {
               </Table.Tr>
             ))}
           </Table.Tbody>
-        </Table>
+            </Table>
 
-        {listas?.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl">
-            Nenhuma lista de compras encontrada
-          </Text>
+            {listas?.length === 0 && (
+              <Text c="dimmed" ta="center" py="xl">
+                Nenhuma lista de compras encontrada
+              </Text>
+            )}
+          </>
         )}
       </Paper>
 
