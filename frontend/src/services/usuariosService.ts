@@ -7,13 +7,13 @@ export type UsuarioDto = {
   criadoEm: string;
 };
 
-const getAll = async (): Promise<UsuarioDto[]> => {
-  const res = await api.get<PaginatedResponse<UsuarioDto>>('/usuarios', { params: { pageNumber: 1, pageSize: 100 } });
-  return res.data.items;
+const getAll = async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<UsuarioDto>> => {
+  const res = await api.get<PaginatedResponse<UsuarioDto>>('/usuarios', {
+    params: { pageNumber, pageSize },
+  });
+  return res.data;
 };
 
-const remove = async (id: string) => {
-  return api.delete(`/usuarios/${id}`);
-};
+const remove = async (id: string) => api.delete(`/usuarios/${id}`);
 
 export default { getAll, remove };

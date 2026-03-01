@@ -54,7 +54,7 @@ export function DashboardPage() {
 
   const { data: categorias } = useQuery({
     queryKey: ['categorias'],
-    queryFn: categoriaService.getAll,
+    queryFn: categoriaService.getAllItems,
   });
 
   const dashboardQuery = useQuery({

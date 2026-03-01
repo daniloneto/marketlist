@@ -1,12 +1,12 @@
 import api from './api';
-import type { HistoricoPrecoDto ,
-  PaginatedResponse
-} from '../types';
+import type { HistoricoPrecoDto, PaginatedResponse } from '../types';
 
 export const historicoPrecoService = {
-  getAll: async (): Promise<HistoricoPrecoDto[]> => {
-    const response = await api.get<PaginatedResponse<HistoricoPrecoDto>>('/historicoprecos', { params: { pageNumber: 1, pageSize: 100 } });
-    return response.data.items;
+  getAll: async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<HistoricoPrecoDto>> => {
+    const response = await api.get<PaginatedResponse<HistoricoPrecoDto>>('/historicoprecos', {
+      params: { pageNumber, pageSize },
+    });
+    return response.data;
   },
 
   getByProduto: async (produtoId: string): Promise<HistoricoPrecoDto[]> => {

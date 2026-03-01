@@ -15,17 +15,19 @@ export const orcamentoService = {
 
   listByPeriodo: async (
     periodoTipo: PeriodoOrcamentoTipo,
-    periodoRef?: string | null
-  ): Promise<OrcamentoCategoriaDto[]> => {
+    periodoRef?: string | null,
+    pageNumber = 1,
+    pageSize = 10,
+  ): Promise<PaginatedResponse<OrcamentoCategoriaDto>> => {
     const response = await api.get<PaginatedResponse<OrcamentoCategoriaDto>>('/orcamentos', {
       params: {
         periodoTipo,
         periodoRef: periodoRef || undefined,
-        pageNumber: 1,
-        pageSize: 100,
+        pageNumber,
+        pageSize,
       },
     });
-    return response.data.items;
+    return response.data;
   },
 
   getDashboardFinanceiro: async (params: {

@@ -9,23 +9,34 @@ import {
   Select,
 } from '@mantine/core';
 import { historicoPrecoService, produtoService } from '../services';
-import { LoadingState, ErrorState } from '../components';
+import { LoadingState, ErrorState, PaginationControls } from '../components';
 
 export function HistoricoPrecosPage() {
   const [produtoId, setProdutoId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: produtos } = useQuery({
     queryKey: ['produtos'],
-    queryFn: produtoService.getAll,
+    queryFn: produtoService.getAllItems,
   });
 
-  const { data: historico, isLoading, error, refetch } = useQuery({
-    queryKey: ['historico', produtoId],
-    queryFn: () =>
-      produtoId
-        ? historicoPrecoService.getByProduto(produtoId)
-        : historicoPrecoService.getAll(),
+  const historicoPaginadoQuery = useQuery({
+    queryKey: ['historico', 'all', page, pageSize],
+    queryFn: () => historicoPrecoService.getAll(page, pageSize),
+    enabled: !produtoId,
   });
+
+  const historicoProdutoQuery = useQuery({
+    queryKey: ['historico', 'produto', produtoId],
+    queryFn: () => historicoPrecoService.getByProduto(produtoId!),
+    enabled: !!produtoId,
+  });
+
+  const historico = produtoId ? historicoProdutoQuery.data : historicoPaginadoQuery.data?.items;
+  const isLoading = produtoId ? historicoProdutoQuery.isLoading : historicoPaginadoQuery.isLoading;
+  const error = produtoId ? historicoProdutoQuery.error : historicoPaginadoQuery.error;
+  const refetch = () => (produtoId ? historicoProdutoQuery.refetch() : historicoPaginadoQuery.refetch());
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -64,7 +75,7 @@ export function HistoricoPrecosPage() {
           placeholder="Selecione um produto"
           data={produtosOptions}
           value={produtoId || ''}
-          onChange={(value) => setProdutoId(value || null)}
+          onChange={(value) => { setProdutoId(value || null); setPage(1); }}
           searchable
           clearable
           style={{ maxWidth: 300 }}
@@ -99,10 +110,20 @@ export function HistoricoPrecosPage() {
           </Table.Tbody>
             </Table>
 
-            {historico?.length === 0 && (
+            {(historico?.length ?? 0) === 0 && (
               <Text c="dimmed" ta="center" py="xl">
                 Nenhum histórico de preços encontrado
               </Text>
+            )}
+            {!produtoId && historicoPaginadoQuery.data && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={historicoPaginadoQuery.data.totalCount}
+                totalPages={historicoPaginadoQuery.data.totalPages}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
             )}
           </>
         )}

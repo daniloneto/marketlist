@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from '@mantine/form';
@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { categoriaService, orcamentoService } from '../services';
-import { ErrorState, LoadingState } from '../components';
+import { ErrorState, LoadingState, PaginationControls } from '../components';
 import {
   PeriodoOrcamentoTipo,
   type CriarOrcamentoCategoriaRequest,
@@ -47,6 +47,8 @@ const getDefaultPeriodoRef = (periodoTipo: PeriodoOrcamentoTipoType): string => 
 
 export function OrcamentosPage() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const form = useForm<FormValues>({
     initialValues: {
@@ -67,12 +69,12 @@ export function OrcamentosPage() {
 
   const { data: categorias, isLoading: categoriasLoading, error: categoriasError, refetch: refetchCategorias } = useQuery({
     queryKey: ['categorias'],
-    queryFn: categoriaService.getAll,
+    queryFn: categoriaService.getAllItems,
   });
 
   const { data: orcamentos, isLoading: orcamentosLoading, error: orcamentosError, refetch: refetchOrcamentos } = useQuery({
-    queryKey: ['orcamentos', periodoTipoSelecionado, periodoRefSelecionado],
-    queryFn: () => orcamentoService.listByPeriodo(periodoTipoSelecionado, periodoRefSelecionado),
+    queryKey: ['orcamentos', periodoTipoSelecionado, periodoRefSelecionado, page, pageSize],
+    queryFn: () => orcamentoService.listByPeriodo(periodoTipoSelecionado, periodoRefSelecionado, page, pageSize),
   });
 
   const categoriaOptions = useMemo(
@@ -124,6 +126,7 @@ export function OrcamentosPage() {
     orcamentosContent = <ErrorState onRetry={refetchOrcamentos} />;
   } else {
     orcamentosContent = (
+      <>
       <Table striped highlightOnHover>
         <Table.Thead>
           <Table.Tr>
@@ -133,7 +136,7 @@ export function OrcamentosPage() {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {orcamentos?.map((orcamento) => (
+          {orcamentos?.items.map((orcamento) => (
             <Table.Tr key={orcamento.id}>
               <Table.Td>{orcamento.nomeCategoria}</Table.Td>
               <Table.Td>{orcamento.periodoReferencia}</Table.Td>
@@ -142,6 +145,17 @@ export function OrcamentosPage() {
           ))}
         </Table.Tbody>
       </Table>
+      {orcamentos && (
+        <PaginationControls
+          page={page}
+          pageSize={pageSize}
+          totalCount={orcamentos.totalCount}
+          totalPages={orcamentos.totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+        />
+      )}
+    </>
     );
   }
 
@@ -165,6 +179,7 @@ export function OrcamentosPage() {
                   const tipo = Number(value) as PeriodoOrcamentoTipoType;
                   form.setFieldValue('periodoTipo', value);
                   form.setFieldValue('periodoReferencia', getDefaultPeriodoRef(tipo));
+                  setPage(1);
                 }}
                 required
               />
@@ -173,6 +188,7 @@ export function OrcamentosPage() {
                 label="Periodo de referencia"
                 placeholder={periodoTipoSelecionado === PeriodoOrcamentoTipo.Mensal ? 'YYYY-MM' : 'YYYY-Www'}
                 {...form.getInputProps('periodoReferencia')}
+                onBlur={() => setPage(1)}
               />
             </Group>
 
@@ -213,7 +229,7 @@ export function OrcamentosPage() {
 
         {orcamentosContent}
 
-        {(orcamentos?.length ?? 0) === 0 && !orcamentosLoading && (
+        {(orcamentos?.items.length ?? 0) === 0 && !orcamentosLoading && (
           <Text c="dimmed" ta="center" py="md">
             Nenhum orcamento cadastrado para este periodo.
           </Text>
