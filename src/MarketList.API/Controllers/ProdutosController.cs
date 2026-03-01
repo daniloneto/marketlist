@@ -28,12 +28,18 @@ public class ProdutosController : ControllerBase
     /// Lista todos os produtos
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<PagedResultDto<ProdutoDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PagedResultDto<ProdutoDto>>> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? nome = null,
+        [FromQuery] Guid? categoriaId = null,
+        [FromQuery] bool? comPreco = null,
+        CancellationToken cancellationToken = default)
     {
         if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
             return BadRequest(new { error = erro });
 
-        var produtos = await _produtoService.GetAllAsync(pageNumber, pageSize, cancellationToken);
+        var produtos = await _produtoService.GetAllAsync(pageNumber, pageSize, nome, categoriaId, comPreco, cancellationToken);
         return Ok(produtos);
     }
 

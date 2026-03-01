@@ -19,10 +19,35 @@ public class ProdutoService : IProdutoService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<PagedResultDto<ProdutoDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<ProdutoDto>> GetAllAsync(
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? nome = null,
+        Guid? categoriaId = null,
+        bool? comPreco = null,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Produtos
             .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(nome))
+        {
+            var nomeFiltro = nome.Trim().ToLower();
+            query = query.Where(p => p.Nome.ToLower().Contains(nomeFiltro));
+        }
+
+        if (categoriaId.HasValue)
+        {
+            query = query.Where(p => p.CategoriaId == categoriaId.Value);
+        }
+
+        if (comPreco == true)
+        {
+            query = query.Where(p => p.HistoricoPrecos.Any(h => h.PrecoUnitario > 0m));
+        }
+
+        var queryDto = query
             .OrderBy(p => p.Nome)
             .Select(p => new ProdutoDto(
                 p.Id,
@@ -32,12 +57,13 @@ public class ProdutoService : IProdutoService
                 p.CategoriaId,
                 p.Categoria.Nome,
                 p.HistoricoPrecos
+                    .Where(h => h.PrecoUnitario > 0m)
                     .OrderByDescending(h => h.DataConsulta)
                     .Select(h => (decimal?)h.PrecoUnitario)
                     .FirstOrDefault(),
                 p.CreatedAt));
 
-        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+        return await queryDto.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ProdutoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

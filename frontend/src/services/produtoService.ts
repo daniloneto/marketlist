@@ -11,9 +11,23 @@ import type {
 } from '../types';
 
 export const produtoService = {
-  getAll: async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<ProdutoDto>> => {
+  getAll: async (
+    pageNumber = 1,
+    pageSize = 10,
+    filters?: {
+      nome?: string;
+      categoriaId?: string | null;
+      comPreco?: boolean;
+    },
+  ): Promise<PaginatedResponse<ProdutoDto>> => {
     const response = await api.get<PaginatedResponse<ProdutoDto>>('/produtos', {
-      params: { pageNumber, pageSize },
+      params: {
+        pageNumber,
+        pageSize,
+        nome: filters?.nome || undefined,
+        categoriaId: filters?.categoriaId || undefined,
+        comPreco: filters?.comPreco ? true : undefined,
+      },
     });
     return response.data;
   },
