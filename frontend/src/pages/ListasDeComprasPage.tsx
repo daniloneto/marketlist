@@ -22,6 +22,7 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle, IconBuilding } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { listaDeComprasService, empresaService } from '../services';
+import { formatDateTimeInUserTimeZone, formatExtractedDateTime } from '../utils/date';
 import { LoadingState, ErrorState, StatusBadge, FormGrid, PaginationControls } from '../components';
 import type { ListaDeComprasDto, ListaDeComprasCreateDto, EmpresaCreateDto } from '../types';
 import { TipoEntrada } from '../types';
@@ -167,13 +168,7 @@ export function ListasDeComprasPage() {
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
   return (
@@ -225,7 +220,7 @@ export function ListasDeComprasPage() {
                     '-'
                   )}
                 </Table.Td>
-                <Table.Td>{formatDate(lista.dataCompra ?? lista.createdAt)}</Table.Td>
+                <Table.Td>{lista.dataCompra ? formatExtractedDateTime(lista.dataCompra) : formatDate(lista.createdAt)}</Table.Td>
                 <Table.Td>
                   <StatusBadge status={lista.status} />
                 </Table.Td>

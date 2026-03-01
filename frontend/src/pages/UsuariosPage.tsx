@@ -4,6 +4,7 @@ import { Table, Button, Text, Title, Paper, Modal, TextInput, PasswordInput, Sta
 import usuariosService, { type UsuarioDto } from '../services/usuariosService';
 import authService from '../services/authService';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
 import { LoadingState, ErrorState, PaginationControls } from '../components';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
@@ -73,7 +74,7 @@ export function UsuariosPage() {
       <Table.Td>
         <Text fw={500}>{u.login}</Text>
       </Table.Td>
-      <Table.Td>{new Date(u.criadoEm).toLocaleString()}</Table.Td>
+      <Table.Td>{formatDateTimeInUserTimeZone(u.criadoEm)}</Table.Td>
       <Table.Td>
         <Button
           color="red"

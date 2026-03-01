@@ -9,6 +9,7 @@ import {
   Select,
 } from '@mantine/core';
 import { historicoPrecoService, produtoService } from '../services';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
 import { LoadingState, ErrorState, PaginationControls } from '../components';
 
 export function HistoricoPrecosPage() {
@@ -46,13 +47,7 @@ export function HistoricoPrecosPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
   const produtosOptions = [

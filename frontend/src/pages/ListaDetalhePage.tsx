@@ -21,6 +21,7 @@ import {
 import { IconArrowLeft, IconTrash, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { listaDeComprasService } from '../services';
+import { formatDateTimeInUserTimeZone, formatExtractedDateTime } from '../utils/date';
 import { LoadingState, ErrorState, StatusBadge } from '../components';
 import {
   StatusConsumoOrcamento,
@@ -99,13 +100,7 @@ export function ListaDetalhePage() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
   const alertas = resumoOrcamento?.itensPorCategoria.filter((item) => item.status === StatusConsumoOrcamento.Alerta).length ?? 0;
@@ -229,7 +224,7 @@ export function ListaDetalhePage() {
             <Text size="sm" c="dimmed">Processado em</Text>
             <Text size="xl" fw={700}>{formatDate(lista.processadoEm)}</Text>
             <Text size="sm" c="dimmed" mt="sm">Data da Compra</Text>
-            <Text size="lg" fw={600}>{formatDate(lista.dataCompra ?? null)}</Text>
+            <Text size="lg" fw={600}>{formatExtractedDateTime(lista.dataCompra ?? null)}</Text>
           </Card>
         </Grid.Col>
       </Grid>

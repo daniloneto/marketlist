@@ -22,6 +22,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconLink } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
 import { LoadingState, ErrorState, FormGrid, PaginationControls } from '../components';
 import type { ProdutoPendenteDto, ProdutoAprovacaoDto } from '../types';
 
@@ -179,7 +180,7 @@ export function RevisaoProdutosPage() {
                         <Table.Td><Text fw={500}>{produto.nome}</Text></Table.Td>
                         <Table.Td>{produto.codigoLoja ? <Badge color="blue" variant="light">{produto.codigoLoja}</Badge> : <Text c="dimmed" size="sm">N/A</Text>}</Table.Td>
                         <Table.Td>{produto.categoriaNome}</Table.Td>
-                        <Table.Td><Text size="sm">{new Date(produto.createdAt).toLocaleDateString('pt-BR')}</Text></Table.Td>
+                        <Table.Td><Text size="sm">{formatDateTimeInUserTimeZone(produto.createdAt)}</Text></Table.Td>
                         <Table.Td>
                           <Button size="xs" variant="light" leftSection={<IconCheck size={16} />} onClick={() => handleRevisar(produto)}>
                             Revisar
@@ -214,7 +215,7 @@ export function RevisaoProdutosPage() {
                       <Table.Tr key={produto.id}>
                         <Table.Td><Text fw={500}>{produto.nome}</Text></Table.Td>
                         <Table.Td><Badge color="orange" variant="light">{produto.categoriaNome}</Badge></Table.Td>
-                        <Table.Td><Text size="sm">{new Date(produto.createdAt).toLocaleDateString('pt-BR')}</Text></Table.Td>
+                        <Table.Td><Text size="sm">{formatDateTimeInUserTimeZone(produto.createdAt)}</Text></Table.Td>
                         <Table.Td>
                           <Button size="xs" variant="light" leftSection={<IconCheck size={16} />} onClick={() => handleRevisar(produto)}>
                             Revisar

@@ -20,6 +20,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconHistory, IconList, IconCopy, IconFilter, IconX } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
 import { LoadingState, ErrorState, FormGrid, PaginationControls } from '../components';
 import type { ProdutoDto, ProdutoCreateDto, HistoricoPrecoDto } from '../types';
 
@@ -185,13 +186,7 @@ export function ProdutosPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
   const categoriasOptions = [{ value: '', label: 'Todas' }, ...(categorias ?? []).map((c) => ({ value: c.id, label: c.nome }))];
