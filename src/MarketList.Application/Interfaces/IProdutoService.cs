@@ -4,7 +4,7 @@ namespace MarketList.Application.Interfaces;
 
 public interface IProdutoService
 {
-    Task<IEnumerable<ProdutoDto>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<PagedResultDto<ProdutoDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
     Task<ProdutoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<ProdutoDto?> GetByNomeAsync(string nome, CancellationToken cancellationToken = default);
     Task<IEnumerable<ProdutoDto>> GetByCategoriaAsync(Guid categoriaId, CancellationToken cancellationToken = default);

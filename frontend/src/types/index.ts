@@ -47,6 +47,14 @@ export const StatusConsumoOrcamento = {
 export type StatusConsumoOrcamento = (typeof StatusConsumoOrcamento)[keyof typeof StatusConsumoOrcamento];
 
 // DTOs
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface CategoriaDto {
   id: string;
   nome: string;

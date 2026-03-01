@@ -1,6 +1,7 @@
 using Hangfire;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Enums;
 using MarketList.Domain.Interfaces;
@@ -23,29 +24,29 @@ public class ListaDeComprasService : IListaDeComprasService
         _context = context;
         _unitOfWork = unitOfWork;
         _backgroundJobClient = backgroundJobClient;
-    }    public async Task<IEnumerable<ListaDeComprasDto>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        var listas = await _context.ListasDeCompras
-            .Include(l => l.Itens)
-            .Include(l => l.Empresa)
-            .OrderByDescending(l => l.CreatedAt)
-            .ToListAsync(cancellationToken);
+    }
 
-        return listas.Select(l => new ListaDeComprasDto(
-            l.Id,
-            l.Nome,
-            l.TextoOriginal,
-            l.TipoEntrada,
-            l.Status,
-            l.CreatedAt,
-            l.ProcessadoEm,
-            l.ErroProcessamento,
-            l.Itens.Count,
-            l.Itens.Any() ? l.Itens.Sum(i => i.SubTotal ?? 0) : (decimal?)null,
-            l.EmpresaId,
-            l.Empresa?.Nome,
-            l.DataCompra
-        ));
+    public async Task<PagedResultDto<ListaDeComprasDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        var query = _context.ListasDeCompras
+            .AsNoTracking()
+            .OrderByDescending(l => l.CreatedAt)
+            .Select(l => new ListaDeComprasDto(
+                l.Id,
+                l.Nome,
+                l.TextoOriginal,
+                l.TipoEntrada,
+                l.Status,
+                l.CreatedAt,
+                l.ProcessadoEm,
+                l.ErroProcessamento,
+                l.Itens.Count,
+                l.Itens.Sum(i => i.PrecoTotal ?? ((i.PrecoUnitario ?? 0m) * i.Quantidade)),
+                l.EmpresaId,
+                l.Empresa != null ? l.Empresa.Nome : null,
+                l.DataCompra));
+
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ListaDeComprasDetalhadaDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketList.API.Controllers;
@@ -19,9 +20,12 @@ public class HistoricoPrecosController : ControllerBase
     /// Lista todo o histórico de preços
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<HistoricoPrecoDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<HistoricoPrecoDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var historico = await _historicoPrecoService.GetAllAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
+
+        var historico = await _historicoPrecoService.GetAllAsync(pageNumber, pageSize, cancellationToken);
         return Ok(historico);
     }
 

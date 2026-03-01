@@ -1,6 +1,7 @@
 using System.Globalization;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Enums;
 using MarketList.Domain.Interfaces;
@@ -72,25 +73,32 @@ public class OrcamentoCategoriaService : IOrcamentoCategoriaService
             salvo.UpdatedAt);
     }
 
-    public async Task<IEnumerable<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
+    public async Task<PagedResultDto<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
         Guid usuarioId,
         PeriodoOrcamentoTipo periodoTipo,
         string? periodoReferencia,
+        int pageNumber = 1,
+        int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         var referencia = ResolverPeriodoReferencia(periodoTipo, periodoReferencia, DateTime.UtcNow);
-        var orcamentos = await _orcamentoRepository.ListByPeriodoAsync(usuarioId, periodoTipo, referencia, cancellationToken);
 
-        return orcamentos.Select(o => new OrcamentoCategoriaDto(
-            o.Id,
-            o.UsuarioId,
-            o.CategoriaId,
-            o.Categoria.Nome,
-            o.PeriodoTipo,
-            o.PeriodoReferencia,
-            o.ValorLimite,
-            o.CreatedAt,
-            o.UpdatedAt));
+        var query = _context.OrcamentosCategoria
+            .AsNoTracking()
+            .Where(o => o.UsuarioId == usuarioId && o.PeriodoTipo == periodoTipo && o.PeriodoReferencia == referencia)
+            .OrderBy(o => o.Categoria.Nome)
+            .Select(o => new OrcamentoCategoriaDto(
+                o.Id,
+                o.UsuarioId,
+                o.CategoriaId,
+                o.Categoria.Nome,
+                o.PeriodoTipo,
+                o.PeriodoReferencia,
+                o.ValorLimite,
+                o.CreatedAt,
+                o.UpdatedAt));
+
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ResumoOrcamentoListaDto?> ObterResumoParaListaAsync(

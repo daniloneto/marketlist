@@ -4,6 +4,7 @@ import type {
   OrcamentoCategoriaDto,
   PeriodoOrcamentoTipo,
   DashboardFinanceiroResponseDto,
+  PaginatedResponse,
 } from '../types';
 
 export const orcamentoService = {
@@ -16,13 +17,15 @@ export const orcamentoService = {
     periodoTipo: PeriodoOrcamentoTipo,
     periodoRef?: string | null
   ): Promise<OrcamentoCategoriaDto[]> => {
-    const response = await api.get<OrcamentoCategoriaDto[]>('/orcamentos', {
+    const response = await api.get<PaginatedResponse<OrcamentoCategoriaDto>>('/orcamentos', {
       params: {
         periodoTipo,
         periodoRef: periodoRef || undefined,
+        pageNumber: 1,
+        pageSize: 100,
       },
     });
-    return response.data;
+    return response.data.items;
   },
 
   getDashboardFinanceiro: async (params: {

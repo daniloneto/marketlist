@@ -10,10 +10,12 @@ public interface IOrcamentoCategoriaService
         CriarOrcamentoCategoriaRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
+    Task<PagedResultDto<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
         Guid usuarioId,
         PeriodoOrcamentoTipo periodoTipo,
         string? periodoReferencia,
+        int pageNumber = 1,
+        int pageSize = 10,
         CancellationToken cancellationToken = default);
 
     Task<ResumoOrcamentoListaDto?> ObterResumoParaListaAsync(

@@ -6,13 +6,14 @@ import type {
   HistoricoPrecoDto,
   ProdutoPendenteDto,
   ProdutoAprovacaoDto,
-  ProdutoResumoDto 
+  ProdutoResumoDto ,
+  PaginatedResponse
 } from '../types';
 
 export const produtoService = {
   getAll: async (): Promise<ProdutoDto[]> => {
-    const response = await api.get<ProdutoDto[]>('/produtos');
-    return response.data;
+    const response = await api.get<PaginatedResponse<ProdutoDto>>('/produtos', { params: { pageNumber: 1, pageSize: 100 } });
+    return response.data.items;
   },
 
   getById: async (id: string): Promise<ProdutoDto> => {

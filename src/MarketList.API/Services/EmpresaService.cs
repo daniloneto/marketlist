@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
@@ -18,20 +19,19 @@ public class EmpresaService : IEmpresaService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<EmpresaDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<EmpresaDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var empresas = await _context.Empresas
-            .Include(e => e.Listas)
+        var query = _context.Empresas
+            .AsNoTracking()
             .OrderBy(e => e.Nome)
-            .ToListAsync(cancellationToken);
+            .Select(e => new EmpresaDto(
+                e.Id,
+                e.Nome,
+                e.Cnpj,
+                e.CreatedAt,
+                e.Listas.Count));
 
-        return empresas.Select(e => new EmpresaDto(
-            e.Id,
-            e.Nome,
-            e.Cnpj,
-            e.CreatedAt,
-            e.Listas.Count
-        ));
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<EmpresaDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

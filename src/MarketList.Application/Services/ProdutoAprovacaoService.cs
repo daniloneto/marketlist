@@ -31,7 +31,7 @@ public class ProdutoAprovacaoService : IProdutoAprovacaoService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<ProdutoPendenteDto>> ListarPendentesRevisaoAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<ProdutoPendenteDto>> ListarPendentesRevisaoAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         // Buscar produtos que precisam de revisão (nome OU categoria)
         var produtosPendentesNome = await _produtoRepository.GetPendingReviewAsync(cancellationToken);
@@ -69,7 +69,14 @@ public class ProdutoAprovacaoService : IProdutoAprovacaoService
             ));
         }
 
-        return resultado;
+        var totalCount = resultado.Count;
+        var items = resultado
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        return new PagedResultDto<ProdutoPendenteDto>(items, totalCount, pageNumber, pageSize, totalPages);
     }
 
     public async Task AprovarComCorrecaoAsync(Guid produtoId, ProdutoAprovacaoDto aprovacao, CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
@@ -18,27 +19,25 @@ public class ProdutoService : IProdutoService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<ProdutoDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<ProdutoDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var produtos = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Include(p => p.HistoricoPrecos)
+        var query = _context.Produtos
+            .AsNoTracking()
             .OrderBy(p => p.Nome)
-            .ToListAsync(cancellationToken);
+            .Select(p => new ProdutoDto(
+                p.Id,
+                p.Nome,
+                p.Descricao,
+                p.Unidade,
+                p.CategoriaId,
+                p.Categoria.Nome,
+                p.HistoricoPrecos
+                    .OrderByDescending(h => h.DataConsulta)
+                    .Select(h => (decimal?)h.PrecoUnitario)
+                    .FirstOrDefault(),
+                p.CreatedAt));
 
-        return produtos.Select(p => new ProdutoDto(
-            p.Id,
-            p.Nome,
-            p.Descricao,
-            p.Unidade,
-            p.CategoriaId,
-            p.Categoria.Nome,
-            p.HistoricoPrecos
-                .OrderByDescending(h => h.DataConsulta)
-                .Select(h => (decimal?)h.PrecoUnitario)
-                .FirstOrDefault(),
-            p.CreatedAt
-        ));
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ProdutoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

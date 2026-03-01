@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketList.API.Controllers;
@@ -19,9 +20,12 @@ public class EmpresasController : ControllerBase
     /// Lista todas as empresas
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<EmpresaDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<EmpresaDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var empresas = await _empresaService.GetAllAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
+
+        var empresas = await _empresaService.GetAllAsync(pageNumber, pageSize, cancellationToken);
         return Ok(empresas);
     }
 

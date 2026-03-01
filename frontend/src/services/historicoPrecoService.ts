@@ -1,10 +1,12 @@
 import api from './api';
-import type { HistoricoPrecoDto } from '../types';
+import type { HistoricoPrecoDto ,
+  PaginatedResponse
+} from '../types';
 
 export const historicoPrecoService = {
   getAll: async (): Promise<HistoricoPrecoDto[]> => {
-    const response = await api.get<HistoricoPrecoDto[]>('/historicoprecos');
-    return response.data;
+    const response = await api.get<PaginatedResponse<HistoricoPrecoDto>>('/historicoprecos', { params: { pageNumber: 1, pageSize: 100 } });
+    return response.data.items;
   },
 
   getByProduto: async (produtoId: string): Promise<HistoricoPrecoDto[]> => {

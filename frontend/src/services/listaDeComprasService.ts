@@ -8,12 +8,13 @@ import type {
   ItemListaDeComprasCreateDto,
   ItemListaDeComprasUpdateDto,
   ResumoOrcamentoListaDto,
+  PaginatedResponse
 } from '../types';
 
 export const listaDeComprasService = {
   getAll: async (): Promise<ListaDeComprasDto[]> => {
-    const response = await api.get<ListaDeComprasDto[]>('/listasdecompras');
-    return response.data;
+    const response = await api.get<PaginatedResponse<ListaDeComprasDto>>('/listasdecompras', { params: { pageNumber: 1, pageSize: 100 } });
+    return response.data.items;
   },
 
   getById: async (id: string): Promise<ListaDeComprasDetalhadaDto> => {

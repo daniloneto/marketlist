@@ -1,4 +1,5 @@
 import api from './api';
+import type { PaginatedResponse } from '../types';
 
 export type UsuarioDto = {
   id: string;
@@ -7,8 +8,8 @@ export type UsuarioDto = {
 };
 
 const getAll = async (): Promise<UsuarioDto[]> => {
-  const res = await api.get('/usuarios');
-  return res.data as UsuarioDto[];
+  const res = await api.get<PaginatedResponse<UsuarioDto>>('/usuarios', { params: { pageNumber: 1, pageSize: 100 } });
+  return res.data.items;
 };
 
 const remove = async (id: string) => {
