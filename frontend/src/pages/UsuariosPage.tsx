@@ -85,9 +85,6 @@ export function UsuariosPage() {
     </Table.Tr>
   ));
 
-  if (isLoading) return <LoadingState />;
-  if (isError) return <ErrorState />;
-
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -98,7 +95,13 @@ export function UsuariosPage() {
       </div>
 
       <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+        {isLoading ? (
+          <LoadingState />
+        ) : isError ? (
+          <ErrorState />
+        ) : (
+          <>
+            <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Login</Table.Th>
@@ -107,12 +110,14 @@ export function UsuariosPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+            </Table>
 
-        {(!data || data.length === 0) && (
-          <Text c="dimmed" ta="center" py="xl">
-            Nenhum usuário encontrado
-          </Text>
+            {(!data || data.length === 0) && (
+              <Text c="dimmed" ta="center" py="xl">
+                Nenhum usuário encontrado
+              </Text>
+            )}
+          </>
         )}
       </Paper>
 

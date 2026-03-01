@@ -186,9 +186,6 @@ export function ProdutosPage() {
     label: c.nome,
   })) || [];
 
-  if (isLoading) return <LoadingState />;
-  if (error) return <ErrorState onRetry={refetch} />;
-
   return (
     <>
       <Group justify="space-between" mb="md">
@@ -204,7 +201,13 @@ export function ProdutosPage() {
       </Group>
 
       <Paper shadow="xs" p="md">
-        <Table striped highlightOnHover>
+        {isLoading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState onRetry={refetch} />
+        ) : (
+          <>
+            <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Nome</Table.Th>
@@ -256,12 +259,14 @@ export function ProdutosPage() {
               </Table.Tr>
             ))}
           </Table.Tbody>
-        </Table>
+            </Table>
 
-        {produtos?.length === 0 && (
-          <Text c="dimmed" ta="center" py="xl">
-            Nenhum produto encontrado
-          </Text>
+            {produtos?.length === 0 && (
+              <Text c="dimmed" ta="center" py="xl">
+                Nenhum produto encontrado
+              </Text>
+            )}
+          </>
         )}
       </Paper>
 
