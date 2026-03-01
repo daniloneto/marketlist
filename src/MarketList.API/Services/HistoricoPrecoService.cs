@@ -93,7 +93,7 @@ public class HistoricoPrecoService : IHistoricoPrecoService
             Id = Guid.NewGuid(),
             ProdutoId = dto.ProdutoId,
             PrecoUnitario = dto.PrecoUnitario,
-            DataConsulta = DateTime.UtcNow,
+            DataConsulta = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow),
             FontePreco = dto.FontePreco,
             CreatedAt = DateTime.UtcNow
         };

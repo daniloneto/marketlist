@@ -111,7 +111,7 @@ public class OrcamentoCategoriaService : IOrcamentoCategoriaService
             return null;
         }
 
-        var dataReferencia = lista.DataCompra ?? DateTime.UtcNow;
+        var dataReferencia = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(lista.DataCompra) ?? MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
         var periodoReferencia = ResolverPeriodoReferencia(periodoTipo, null, dataReferencia);
 
         var produtoIds = lista.Itens

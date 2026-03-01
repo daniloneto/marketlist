@@ -70,7 +70,7 @@ public class CsvCatalogImportService : ICsvCatalogImportService
                 {
                     Id = Guid.NewGuid(),
                     Nome = categoriaNome,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
                 };
                 _context.Categorias.Add(categoria);
                 existingCategories[categoriaNome] = categoria;
@@ -89,7 +89,7 @@ public class CsvCatalogImportService : ICsvCatalogImportService
                 Nome = produtoNome,
                 NomeNormalizado = nomeNormalizado,
                 CategoriaId = categoria.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
             };
 
             _context.Produtos.Add(produto);

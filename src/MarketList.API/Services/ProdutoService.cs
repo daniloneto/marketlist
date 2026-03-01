@@ -125,7 +125,7 @@ public class ProdutoService : IProdutoService
             Descricao = dto.Descricao,
             Unidade = dto.Unidade,
             CategoriaId = dto.CategoriaId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
         };
 
         _context.Produtos.Add(produto);
@@ -156,7 +156,7 @@ public class ProdutoService : IProdutoService
         produto.Descricao = dto.Descricao;
         produto.Unidade = dto.Unidade;
         produto.CategoriaId = dto.CategoriaId;
-        produto.UpdatedAt = DateTime.UtcNow;
+        produto.UpdatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

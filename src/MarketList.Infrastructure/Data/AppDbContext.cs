@@ -1,4 +1,5 @@
 using MarketList.Domain.Entities;
+using MarketList.Domain.Helpers;
 using MarketList.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,6 +41,35 @@ public class AppDbContext : DbContext, IUnitOfWork
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTime.UtcNow;
                     break;
+            }
+        }
+
+        // Enforce UTC for all DateTime/DateTime? properties in all entities
+        foreach (var entry in ChangeTracker.Entries()
+                     .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            var entity = entry.Entity;
+            if (entity == null) continue;
+
+            var properties = entity.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var prop in properties)
+            {
+                if (prop.PropertyType == typeof(DateTime))
+                {
+                    var value = (DateTime)prop.GetValue(entity)!;
+                    if (value != default)
+                    {
+                        prop.SetValue(entity, DateTimeHelper.EnsureUtc(value));
+                    }
+                }
+                else if (prop.PropertyType == typeof(DateTime?))
+                {
+                    var value = (DateTime?)prop.GetValue(entity);
+                    if (value.HasValue)
+                    {
+                        prop.SetValue(entity, (DateTime?)DateTimeHelper.EnsureUtc(value.Value));
+                    }
+                }
             }
         }
 

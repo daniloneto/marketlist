@@ -1,4 +1,5 @@
 using MarketList.Domain.Entities;
+using MarketList.Domain.Helpers;
 using MarketList.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -335,6 +336,12 @@ public class BackupController : ControllerBase
             var prop = properties[i];
             var columnName = prop.GetColumnName(storeObject) ?? prop.Name;
             var value = entityType.GetProperty(prop.Name)!.GetValue(entity);
+
+            // Corrige DateTimeKind para UTC se necessário
+            if (value is DateTime dt)
+            {
+                value = DateTimeHelper.EnsureUtc(dt);
+            }
 
             columns.Add(columnName);
 

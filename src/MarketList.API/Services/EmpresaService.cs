@@ -59,7 +59,7 @@ public class EmpresaService : IEmpresaService
             Id = Guid.NewGuid(),
             Nome = dto.Nome,
             Cnpj = dto.Cnpj,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow)
         };
 
         _context.Empresas.Add(empresa);
@@ -82,7 +82,7 @@ public class EmpresaService : IEmpresaService
 
         empresa.Nome = dto.Nome;
         empresa.Cnpj = dto.Cnpj;
-        empresa.UpdatedAt = DateTime.UtcNow;
+        empresa.UpdatedAt = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

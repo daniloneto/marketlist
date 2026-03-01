@@ -75,7 +75,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
             // Finaliza o processamento
             lista.Status = StatusLista.Concluida;
-            lista.ProcessadoEm = DateTime.UtcNow;
+            lista.ProcessadoEm = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
             lista.ErroProcessamento = null;
             await _listaRepository.UpdateAsync(lista, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -179,7 +179,7 @@ public class ProcessamentoListaService : IProcessamentoListaService
 
             // 3. Registrar no histórico de preços
             //    Usa DataCompra da lista (data de emissão da NFC-e) quando disponível
-            var dataHistorico = lista.DataCompra ?? DateTime.UtcNow;
+            var dataHistorico = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(lista.DataCompra) ?? MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(DateTime.UtcNow);
             var historicoPreco = new HistoricoPreco
             {
                 Id = Guid.NewGuid(),
