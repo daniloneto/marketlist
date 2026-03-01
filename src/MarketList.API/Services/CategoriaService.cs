@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
@@ -18,20 +19,19 @@ public class CategoriaService : ICategoriaService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<CategoriaDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<CategoriaDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var categorias = await _context.Categorias
-            .Include(c => c.Produtos)
+        var query = _context.Categorias
+            .AsNoTracking()
             .OrderBy(c => c.Nome)
-            .ToListAsync(cancellationToken);
+            .Select(c => new CategoriaDto(
+                c.Id,
+                c.Nome,
+                c.Descricao,
+                c.CreatedAt,
+                c.Produtos.Count));
 
-        return categorias.Select(c => new CategoriaDto(
-            c.Id,
-            c.Nome,
-            c.Descricao,
-            c.CreatedAt,
-            c.Produtos.Count
-        ));
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<CategoriaDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

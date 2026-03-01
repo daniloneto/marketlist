@@ -19,6 +19,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   IconShoppingCart,
+  IconLayoutDashboard,
   IconCategory,
   IconPackage,
   IconChartLine,
@@ -46,7 +47,8 @@ interface LayoutProps {
 }
 
 const navItems = [
-  { label: 'Listas de Compras', icon: IconShoppingCart, to: '/' },
+  { label: 'Dashboard Financeiro', icon: IconLayoutDashboard, to: '/' },
+  { label: 'Listas de Compras', icon: IconShoppingCart, to: '/listas' },
   { label: 'Produtos', icon: IconPackage, to: '/produtos' },
   { label: 'Revisão de Produtos', icon: IconChecklist, to: '/revisao-produtos' },
   { label: 'Categorias', icon: IconCategory, to: '/categorias' },
@@ -150,12 +152,12 @@ export function Layout({ children }: LayoutProps) {
             />
           )}
 
-          <Image src={marketlistLogo} alt="MarketList" h={40} fit="contain" />
+          <Image src={marketlistLogo} alt="FinControl" h={40} fit="contain" />
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md" style={{ display: isMobile ? 'none' : undefined }}>
-        <Stack gap="xs" style={{ height: '100%' }}>
+      <AppShell.Navbar p="md" style={{ display: isMobile ? 'none' : undefined, overflowY: 'auto' }}>
+        <Stack gap="xs" style={{ height: '100%', minHeight: 0 }}>
           {navItems.map((item) => (
             <MantineNavLink
               key={item.to}
@@ -223,7 +225,8 @@ export function Layout({ children }: LayoutProps) {
       </AppShell.Navbar>
 
       <Drawer opened={opened} onClose={() => setOpened(false)} padding="md" position="left" size="75%">
-        <Stack gap="xs" style={{ height: '100%' }}>
+        <div style={{ height: '100%', overflowY: 'auto' }}>
+        <Stack gap="xs" style={{ height: '100%', minHeight: 0 }}>
           {navItems.map((item) => (
             <MantineNavLink
               key={item.to + '-drawer'}
@@ -290,6 +293,7 @@ export function Layout({ children }: LayoutProps) {
             Logout
           </Button>
         </Stack>
+        </div>
       </Drawer>
 
       <AppShell.Main

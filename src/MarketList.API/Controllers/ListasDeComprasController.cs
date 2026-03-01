@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,9 +26,12 @@ public class ListasDeComprasController : ControllerBase
     /// Lista todas as listas de compras
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListaDeComprasDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<ListaDeComprasDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var listas = await _listaService.GetAllAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
+
+        var listas = await _listaService.GetAllAsync(pageNumber, pageSize, cancellationToken);
         return Ok(listas);
     }
 

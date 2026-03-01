@@ -14,12 +14,14 @@ import {
   Paper,
   Select,
   Badge,
+  Checkbox,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconHistory, IconList, IconCopy } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconHistory, IconList, IconCopy, IconFilter, IconX } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
-import { LoadingState, ErrorState, FormGrid } from '../components';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
+import { LoadingState, ErrorState, FormGrid, PaginationControls } from '../components';
 import type { ProdutoDto, ProdutoCreateDto, HistoricoPrecoDto } from '../types';
 
 export function ProdutosPage() {
@@ -28,18 +30,30 @@ export function ProdutosPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [historicoModalOpen, setHistoricoModalOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<ProdutoDto | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [historico, setHistorico] = useState<HistoricoPrecoDto[]>([]);
   const [listaModalOpen, setListaModalOpen] = useState(false);
   const [listaTexto, setListaTexto] = useState('');
+  const [filtroNome, setFiltroNome] = useState('');
+  const [filtroCategoriaId, setFiltroCategoriaId] = useState<string | null>(null);
+  const [somenteComPreco, setSomenteComPreco] = useState(false);
+
+
+  const filtrosAtivos = filtroNome.trim().length > 0 || !!filtroCategoriaId || somenteComPreco;
 
   const { data: produtos, isLoading, error, refetch } = useQuery({
-    queryKey: ['produtos'],
-    queryFn: produtoService.getAll,
+    queryKey: ['produtos', page, pageSize, filtroNome, filtroCategoriaId, somenteComPreco],
+    queryFn: () => produtoService.getAll(page, pageSize, {
+      nome: filtroNome.trim() || undefined,
+      categoriaId: filtroCategoriaId,
+      comPreco: somenteComPreco,
+    }),
   });
 
   const { data: categorias } = useQuery({
     queryKey: ['categorias'],
-    queryFn: categoriaService.getAll,
+    queryFn: categoriaService.getAllItems,
   });
 
   const form = useForm<ProdutoCreateDto>({
@@ -172,19 +186,17 @@ export function ProdutosPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
-  const categoriasOptions = categorias?.map((c) => ({
-    value: c.id,
-    label: c.nome,
-  })) || [];
+  const categoriasOptions = [{ value: '', label: 'Todas' }, ...(categorias ?? []).map((c) => ({ value: c.id, label: c.nome }))];
+
+  const limparFiltros = () => {
+    setFiltroNome('');
+    setFiltroCategoriaId(null);
+    setSomenteComPreco(false);
+    setPage(1);
+  };
 
   return (
     <>
@@ -199,6 +211,58 @@ export function ProdutosPage() {
           </Button>
         </Group>
       </Group>
+
+      <Paper shadow="xs" p="md" mb="md">
+        <Stack gap="sm">
+          <Group justify="space-between">
+            <Group gap="xs">
+              <IconFilter size={16} />
+              <Text fw={600}>Filtros</Text>
+              {filtrosAtivos && <Badge color="blue">Ativos</Badge>}
+            </Group>
+            <Button
+              variant="subtle"
+              color="gray"
+              leftSection={<IconX size={14} />}
+              onClick={limparFiltros}
+              disabled={!filtrosAtivos}
+            >
+              Limpar filtros
+            </Button>
+          </Group>
+
+          <Group grow align="end">
+            <TextInput
+              label="Buscar por nome"
+              placeholder="Digite o nome do produto"
+              value={filtroNome}
+              onChange={(e) => {
+                setFiltroNome(e.currentTarget.value);
+                setPage(1);
+              }}
+            />
+
+            <Select
+              label="Categoria"
+              data={categoriasOptions.filter((c) => c.value)}
+              value={filtroCategoriaId ?? ''}
+              onChange={(value) => {
+                setFiltroCategoriaId(value || null);
+                setPage(1);
+              }}
+            />
+
+            <Checkbox
+              label="Somente produtos com preço"
+              checked={somenteComPreco}
+              onChange={(e) => {
+                setSomenteComPreco(e.currentTarget.checked);
+                setPage(1);
+              }}
+            />
+          </Group>
+        </Stack>
+      </Paper>
 
       <Paper shadow="xs" p="md">
         {isLoading ? (
@@ -218,7 +282,7 @@ export function ProdutosPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {produtos?.map((produto) => (
+            {produtos?.items.map((produto) => (
               <Table.Tr key={produto.id}>
                 <Table.Td>
                   <Stack gap={0}>
@@ -261,10 +325,20 @@ export function ProdutosPage() {
           </Table.Tbody>
             </Table>
 
-            {produtos?.length === 0 && (
+            {produtos?.items.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
                 Nenhum produto encontrado
               </Text>
+            )}
+            {produtos && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={produtos.totalCount}
+                totalPages={produtos.totalPages}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
             )}
           </>
         )}
@@ -291,7 +365,7 @@ export function ProdutosPage() {
             <Select
               label="Categoria"
               placeholder="Selecione uma categoria"
-              data={categoriasOptions}
+              data={categoriasOptions.filter((c) => c.value)}
               searchable
               {...form.getInputProps('categoriaId')}
             />
@@ -329,7 +403,7 @@ export function ProdutosPage() {
             <TextInput label="Unidade" {...form.getInputProps('unidade')} />
             <Select
               label="Categoria"
-              data={categoriasOptions}
+              data={categoriasOptions.filter((c) => c.value)}
               searchable
               {...form.getInputProps('categoriaId')}
             />

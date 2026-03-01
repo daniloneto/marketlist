@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
@@ -18,24 +19,22 @@ public class HistoricoPrecoService : IHistoricoPrecoService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<HistoricoPrecoDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<HistoricoPrecoDto>> GetAllAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var historicos = await _context.HistoricoPrecos
-            .Include(h => h.Produto)
-            .Include(h => h.Empresa)
+        var query = _context.HistoricoPrecos
+            .AsNoTracking()
             .OrderByDescending(h => h.DataConsulta)
-            .ToListAsync(cancellationToken);
+            .Select(h => new HistoricoPrecoDto(
+                h.Id,
+                h.ProdutoId,
+                h.Produto.Nome,
+                h.PrecoUnitario,
+                h.DataConsulta,
+                h.FontePreco,
+                h.EmpresaId,
+                h.Empresa != null ? h.Empresa.Nome : null));
 
-        return historicos.Select(h => new HistoricoPrecoDto(
-            h.Id,
-            h.ProdutoId,
-            h.Produto.Nome,
-            h.PrecoUnitario,
-            h.DataConsulta,
-            h.FontePreco,
-            h.EmpresaId,
-            h.Empresa?.Nome
-        ));
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<IEnumerable<HistoricoPrecoDto>> GetByProdutoAsync(Guid produtoId, CancellationToken cancellationToken = default)

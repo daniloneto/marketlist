@@ -8,11 +8,14 @@ import type {
   ItemListaDeComprasCreateDto,
   ItemListaDeComprasUpdateDto,
   ResumoOrcamentoListaDto,
+  PaginatedResponse,
 } from '../types';
 
 export const listaDeComprasService = {
-  getAll: async (): Promise<ListaDeComprasDto[]> => {
-    const response = await api.get<ListaDeComprasDto[]>('/listasdecompras');
+  getAll: async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<ListaDeComprasDto>> => {
+    const response = await api.get<PaginatedResponse<ListaDeComprasDto>>('/listasdecompras', {
+      params: { pageNumber, pageSize },
+    });
     return response.data;
   },
 
@@ -43,11 +46,11 @@ export const listaDeComprasService = {
   updateItem: async (
     listaId: string,
     itemId: string,
-    data: ItemListaDeComprasUpdateDto
+    data: ItemListaDeComprasUpdateDto,
   ): Promise<ItemListaDeComprasDto> => {
     const response = await api.put<ItemListaDeComprasDto>(
       `/listasdecompras/${listaId}/itens/${itemId}`,
-      data
+      data,
     );
     return response.data;
   },

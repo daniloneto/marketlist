@@ -1,10 +1,19 @@
 import api from './api';
-import type { EmpresaDto, EmpresaCreateDto, EmpresaUpdateDto } from '../types';
+import type { EmpresaDto, EmpresaCreateDto, EmpresaUpdateDto, PaginatedResponse } from '../types';
 
 export const empresaService = {
-  getAll: async (): Promise<EmpresaDto[]> => {
-    const response = await api.get<EmpresaDto[]>('/empresas');
+  getAll: async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<EmpresaDto>> => {
+    const response = await api.get<PaginatedResponse<EmpresaDto>>('/empresas', {
+      params: { pageNumber, pageSize },
+    });
     return response.data;
+  },
+
+  getAllItems: async (): Promise<EmpresaDto[]> => {
+    const response = await api.get<PaginatedResponse<EmpresaDto>>('/empresas', {
+      params: { pageNumber: 1, pageSize: 100 },
+    });
+    return response.data.items;
   },
 
   getById: async (id: string): Promise<EmpresaDto> => {

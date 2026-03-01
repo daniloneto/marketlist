@@ -43,3 +43,38 @@ public record ItemResumoOrcamentoCategoriaDto(
     decimal PercentualConsumido,
     StatusConsumoOrcamento Status
 );
+
+public record DashboardFinanceiroQueryDto(
+    int Year,
+    int Month,
+    Guid? CategoriaId,
+    DateTime? DataInicio,
+    DateTime? DataFim,
+    bool SomenteComOrcamento,
+    bool SomenteComGasto
+);
+
+public record DashboardFinanceiroResumoDto(
+    decimal TotalBudget,
+    decimal TotalSpent,
+    decimal TotalRemaining,
+    decimal? TotalPercentageUsed
+);
+
+public record DashboardFinanceiroCategoriaDto(
+    Guid CategoryId,
+    string CategoryName,
+    decimal? BudgetAmount,
+    decimal SpentAmount,
+    decimal? RemainingAmount,
+    decimal? PercentageUsed
+);
+
+public record DashboardFinanceiroResponseDto(
+    int Year,
+    int Month,
+    DateTime PeriodStart,
+    DateTime PeriodEnd,
+    DashboardFinanceiroResumoDto Summary,
+    IReadOnlyList<DashboardFinanceiroCategoriaDto> Categories
+);

@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Interfaces;
 using MarketList.Infrastructure.Data;
@@ -18,27 +19,51 @@ public class ProdutoService : IProdutoService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<IEnumerable<ProdutoDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PagedResultDto<ProdutoDto>> GetAllAsync(
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? nome = null,
+        Guid? categoriaId = null,
+        bool? comPreco = null,
+        CancellationToken cancellationToken = default)
     {
-        var produtos = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Include(p => p.HistoricoPrecos)
-            .OrderBy(p => p.Nome)
-            .ToListAsync(cancellationToken);
+        var query = _context.Produtos
+            .AsNoTracking()
+            .AsQueryable();
 
-        return produtos.Select(p => new ProdutoDto(
-            p.Id,
-            p.Nome,
-            p.Descricao,
-            p.Unidade,
-            p.CategoriaId,
-            p.Categoria.Nome,
-            p.HistoricoPrecos
-                .OrderByDescending(h => h.DataConsulta)
-                .Select(h => (decimal?)h.PrecoUnitario)
-                .FirstOrDefault(),
-            p.CreatedAt
-        ));
+        if (!string.IsNullOrWhiteSpace(nome))
+        {
+            var nomeFiltro = nome.Trim().ToLower();
+            query = query.Where(p => p.Nome.ToLower().Contains(nomeFiltro));
+        }
+
+        if (categoriaId.HasValue)
+        {
+            query = query.Where(p => p.CategoriaId == categoriaId.Value);
+        }
+
+        if (comPreco == true)
+        {
+            query = query.Where(p => p.HistoricoPrecos.Any(h => h.PrecoUnitario > 0m));
+        }
+
+        var queryDto = query
+            .OrderBy(p => p.Nome)
+            .Select(p => new ProdutoDto(
+                p.Id,
+                p.Nome,
+                p.Descricao,
+                p.Unidade,
+                p.CategoriaId,
+                p.Categoria.Nome,
+                p.HistoricoPrecos
+                    .Where(h => h.PrecoUnitario > 0m)
+                    .OrderByDescending(h => h.DataConsulta)
+                    .Select(h => (decimal?)h.PrecoUnitario)
+                    .FirstOrDefault(),
+                p.CreatedAt));
+
+        return await queryDto.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ProdutoDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

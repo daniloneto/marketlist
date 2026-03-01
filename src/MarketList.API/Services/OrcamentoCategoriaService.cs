@@ -1,6 +1,7 @@
 using System.Globalization;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Entities;
 using MarketList.Domain.Enums;
 using MarketList.Domain.Interfaces;
@@ -72,25 +73,32 @@ public class OrcamentoCategoriaService : IOrcamentoCategoriaService
             salvo.UpdatedAt);
     }
 
-    public async Task<IEnumerable<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
+    public async Task<PagedResultDto<OrcamentoCategoriaDto>> ListarPorPeriodoAsync(
         Guid usuarioId,
         PeriodoOrcamentoTipo periodoTipo,
         string? periodoReferencia,
+        int pageNumber = 1,
+        int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         var referencia = ResolverPeriodoReferencia(periodoTipo, periodoReferencia, DateTime.UtcNow);
-        var orcamentos = await _orcamentoRepository.ListByPeriodoAsync(usuarioId, periodoTipo, referencia, cancellationToken);
 
-        return orcamentos.Select(o => new OrcamentoCategoriaDto(
-            o.Id,
-            o.UsuarioId,
-            o.CategoriaId,
-            o.Categoria.Nome,
-            o.PeriodoTipo,
-            o.PeriodoReferencia,
-            o.ValorLimite,
-            o.CreatedAt,
-            o.UpdatedAt));
+        var query = _context.OrcamentosCategoria
+            .AsNoTracking()
+            .Where(o => o.UsuarioId == usuarioId && o.PeriodoTipo == periodoTipo && o.PeriodoReferencia == referencia)
+            .OrderBy(o => o.Categoria.Nome)
+            .Select(o => new OrcamentoCategoriaDto(
+                o.Id,
+                o.UsuarioId,
+                o.CategoriaId,
+                o.Categoria.Nome,
+                o.PeriodoTipo,
+                o.PeriodoReferencia,
+                o.ValorLimite,
+                o.CreatedAt,
+                o.UpdatedAt));
+
+        return await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
     }
 
     public async Task<ResumoOrcamentoListaDto?> ObterResumoParaListaAsync(
@@ -174,6 +182,133 @@ public class OrcamentoCategoriaService : IOrcamentoCategoriaService
             itensResumo.Sum(i => i.TotalEstimado),
             itensResumo.Sum(i => i.ItensSemPreco),
             itensResumo);
+    }
+
+    public async Task<DashboardFinanceiroResponseDto> ObterDashboardFinanceiroAsync(
+        Guid usuarioId,
+        DashboardFinanceiroQueryDto query,
+        CancellationToken cancellationToken = default)
+    {
+        if (query.Year < 1 || query.Month is < 1 or > 12)
+        {
+            throw new InvalidOperationException("Ano ou mes invalido para consulta do dashboard.");
+        }
+
+        var periodoInicio = new DateTime(query.Year, query.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var periodoFim = periodoInicio.AddMonths(1).AddTicks(-1);
+
+        if (query.DataInicio.HasValue)
+        {
+            var inicioPersonalizado = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(query.DataInicio.Value);
+            if (inicioPersonalizado > periodoInicio)
+            {
+                periodoInicio = inicioPersonalizado;
+            }
+        }
+
+        if (query.DataFim.HasValue)
+        {
+            var fimPersonalizado = MarketList.Domain.Helpers.DateTimeHelper.EnsureUtc(query.DataFim.Value);
+            if (fimPersonalizado < periodoFim)
+            {
+                periodoFim = fimPersonalizado;
+            }
+        }
+
+        if (periodoInicio > periodoFim)
+        {
+            throw new InvalidOperationException("Periodo de datas personalizado invalido.");
+        }
+
+        var periodoReferencia = ResolverPeriodoReferencia(PeriodoOrcamentoTipo.Mensal, $"{query.Year:D4}-{query.Month:D2}", periodoInicio);
+
+        var orcamentos = await _orcamentoRepository
+            .ListByPeriodoAsync(usuarioId, PeriodoOrcamentoTipo.Mensal, periodoReferencia, cancellationToken);
+
+        var orcamentoPorCategoria = orcamentos
+            .GroupBy(o => new { o.CategoriaId, NomeCategoria = o.Categoria.Nome })
+            .ToDictionary(g => g.Key.CategoriaId, g => (g.Key.NomeCategoria, g.Sum(x => x.ValorLimite)));
+
+        var itensQuery = _context.ItensListaDeCompras
+            .AsNoTracking()
+            .Include(i => i.Produto)
+                .ThenInclude(p => p.Categoria)
+            .Include(i => i.ListaDeCompras)
+            .Where(i => i.ListaDeCompras.Status == StatusLista.Concluida)
+            .Where(i => i.Produto.CategoriaId != Guid.Empty)
+            .Where(i => !i.Produto.CategoriaPrecisaRevisao)
+            .Where(i => (i.PrecoTotal.HasValue && i.PrecoTotal.Value > 0m) || (i.PrecoUnitario.HasValue && i.PrecoUnitario.Value > 0m))
+            .Where(i =>
+                (i.ListaDeCompras.DataCompra ?? i.ListaDeCompras.CreatedAt) >= periodoInicio &&
+                (i.ListaDeCompras.DataCompra ?? i.ListaDeCompras.CreatedAt) <= periodoFim);
+
+        if (query.CategoriaId.HasValue)
+        {
+            itensQuery = itensQuery.Where(i => i.Produto.CategoriaId == query.CategoriaId.Value);
+        }
+
+        var itens = await itensQuery.ToListAsync(cancellationToken);
+
+        var gastoPorCategoria = itens
+            .GroupBy(i => new { i.Produto.CategoriaId, NomeCategoria = i.Produto.Categoria.Nome })
+            .ToDictionary(
+                g => g.Key.CategoriaId,
+                g => (g.Key.NomeCategoria, g.Sum(i => i.PrecoTotal ?? ((i.PrecoUnitario ?? 0m) * i.Quantidade))));
+
+        var categoriasIds = orcamentoPorCategoria.Keys
+            .Union(gastoPorCategoria.Keys)
+            .ToList();
+
+        var categorias = categoriasIds
+            .Select(categoriaId =>
+            {
+                var possuiOrcamento = orcamentoPorCategoria.TryGetValue(categoriaId, out var infoOrcamento);
+                var possuiGasto = gastoPorCategoria.TryGetValue(categoriaId, out var infoGasto);
+                var nomeCategoria = possuiOrcamento ? infoOrcamento.NomeCategoria : infoGasto.NomeCategoria;
+                var valorOrcamento = possuiOrcamento ? infoOrcamento.Item2 : (decimal?)null;
+                var valorGasto = possuiGasto ? infoGasto.Item2 : 0m;
+                decimal? restante = valorOrcamento.HasValue ? valorOrcamento.Value - valorGasto : null;
+                decimal? percentual = valorOrcamento.HasValue && valorOrcamento.Value > 0m
+                    ? (valorGasto / valorOrcamento.Value) * 100m
+                    : null;
+
+                return new DashboardFinanceiroCategoriaDto(
+                    categoriaId,
+                    nomeCategoria,
+                    valorOrcamento,
+                    valorGasto,
+                    restante,
+                    percentual);
+            });
+
+        if (query.SomenteComOrcamento)
+        {
+            categorias = categorias.Where(c => c.BudgetAmount.HasValue);
+        }
+
+        if (query.SomenteComGasto)
+        {
+            categorias = categorias.Where(c => c.SpentAmount > 0m);
+        }
+
+        var listaCategorias = categorias
+            .OrderByDescending(c => c.PercentageUsed ?? (c.SpentAmount > 0m ? 1000m : 0m))
+            .ThenByDescending(c => c.SpentAmount)
+            .ThenBy(c => c.CategoryName)
+            .ToList();
+
+        var totalBudget = listaCategorias.Where(c => c.BudgetAmount.HasValue).Sum(c => c.BudgetAmount!.Value);
+        var totalSpent = listaCategorias.Sum(c => c.SpentAmount);
+        var totalRemaining = totalBudget - totalSpent;
+        decimal? totalPercentage = totalBudget > 0m ? (totalSpent / totalBudget) * 100m : null;
+
+        return new DashboardFinanceiroResponseDto(
+            query.Year,
+            query.Month,
+            periodoInicio,
+            periodoFim,
+            new DashboardFinanceiroResumoDto(totalBudget, totalSpent, totalRemaining, totalPercentage),
+            listaCategorias);
     }
 
     private async Task<Dictionary<Guid, decimal>> ObterUltimosPrecosPorProdutoAsync(

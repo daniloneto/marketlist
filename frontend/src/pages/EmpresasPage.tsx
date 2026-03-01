@@ -16,7 +16,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconBuilding } from '@tabler/icons-react';
 import { empresaService } from '../services';
-import { LoadingState, ErrorState } from '../components';
+import { LoadingState, ErrorState, PaginationControls } from '../components';
 import type { EmpresaDto, EmpresaCreateDto } from '../types';
 
 export function EmpresasPage() {
@@ -24,10 +24,12 @@ export function EmpresasPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaDto | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: empresas, isLoading, error, refetch } = useQuery({
-    queryKey: ['empresas'],
-    queryFn: empresaService.getAll,
+    queryKey: ['empresas', page, pageSize],
+    queryFn: () => empresaService.getAll(page, pageSize),
   });
 
   const form = useForm<EmpresaCreateDto>({
@@ -120,6 +122,7 @@ export function EmpresasPage() {
         ) : error ? (
           <ErrorState onRetry={refetch} />
         ) : (
+          <>
           <Table striped highlightOnHover>
           <Table.Thead>
             <Table.Tr>
@@ -130,7 +133,7 @@ export function EmpresasPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {empresas?.map((empresa) => (
+            {empresas?.items.map((empresa) => (
               <Table.Tr key={empresa.id}>
                 <Table.Td>
                   <Group gap="xs">
@@ -161,6 +164,18 @@ export function EmpresasPage() {
             ))}
           </Table.Tbody>
           </Table>
+
+          {empresas && (
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              totalCount={empresas.totalCount}
+              totalPages={empresas.totalPages}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+            />
+          )}
+          </>
         )}
       </Paper>
 

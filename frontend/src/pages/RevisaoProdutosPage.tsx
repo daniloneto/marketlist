@@ -22,22 +22,25 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCheck, IconLink } from '@tabler/icons-react';
 import { produtoService, categoriaService } from '../services';
-import { LoadingState, ErrorState, FormGrid } from '../components';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
+import { LoadingState, ErrorState, FormGrid, PaginationControls } from '../components';
 import type { ProdutoPendenteDto, ProdutoAprovacaoDto } from '../types';
 
 export function RevisaoProdutosPage() {
   const queryClient = useQueryClient();
   const [revisaoModalOpen, setRevisaoModalOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<ProdutoPendenteDto | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: produtosPendentes, isLoading, error } = useQuery({
-    queryKey: ['produtosPendentes'],
-    queryFn: produtoService.getPendentes,
+    queryKey: ['produtosPendentes', page, pageSize],
+    queryFn: () => produtoService.getPendentes(page, pageSize),
   });
 
   const { data: categorias } = useQuery({
     queryKey: ['categorias'],
-    queryFn: categoriaService.getAll,
+    queryFn: categoriaService.getAllItems,
   });
 
   const form = useForm<ProdutoAprovacaoDto>({
@@ -119,15 +122,15 @@ export function RevisaoProdutosPage() {
     vincularMutation.mutate({ idOrigem: selectedProduto.id, idDestino });
   };
 
-  const produtosNomePendente = produtosPendentes?.filter(p => p.precisaRevisao) || [];
-  const produtosCategoriaPendente = produtosPendentes?.filter(p => p.categoriaPrecisaRevisao) || [];
+  const produtosNomePendente = produtosPendentes?.items.filter((p) => p.precisaRevisao) || [];
+  const produtosCategoriaPendente = produtosPendentes?.items.filter((p) => p.categoriaPrecisaRevisao) || [];
 
   return (
     <Stack gap="md">
       <Group justify="space-between">
         <Title order={2}>Revisão de Produtos</Title>
         <Badge size="lg" color="yellow">
-          {produtosPendentes?.length || 0} pendentes
+          {produtosPendentes?.totalCount || 0} pendentes
         </Badge>
       </Group>
 
@@ -136,122 +139,110 @@ export function RevisaoProdutosPage() {
       ) : error ? (
         <ErrorState message="Erro ao carregar produtos pendentes" onRetry={() => queryClient.invalidateQueries({ queryKey: ['produtosPendentes'] })} />
       ) : (
-      <Tabs defaultValue="nome">
-        <Tabs.List>
-          <Tabs.Tab value="nome">
-            Nome Pendente
-            {produtosNomePendente.length > 0 && (
-              <Badge ml="xs" size="sm" color="red">{produtosNomePendente.length}</Badge>
-            )}
-          </Tabs.Tab>
-          <Tabs.Tab value="categoria">
-            Categoria Pendente
-            {produtosCategoriaPendente.length > 0 && (
-              <Badge ml="xs" size="sm" color="orange">{produtosCategoriaPendente.length}</Badge>
-            )}
-          </Tabs.Tab>
-        </Tabs.List>
+        <>
+          <Tabs defaultValue="nome">
+            <Tabs.List>
+              <Tabs.Tab value="nome">
+                Nome Pendente
+                {produtosNomePendente.length > 0 && (
+                  <Badge ml="xs" size="sm" color="red">{produtosNomePendente.length}</Badge>
+                )}
+              </Tabs.Tab>
+              <Tabs.Tab value="categoria">
+                Categoria Pendente
+                {produtosCategoriaPendente.length > 0 && (
+                  <Badge ml="xs" size="sm" color="orange">{produtosCategoriaPendente.length}</Badge>
+                )}
+              </Tabs.Tab>
+            </Tabs.List>
 
-        <Tabs.Panel value="nome" pt="md">
-          {produtosNomePendente.length === 0 ? (
-            <Paper p="xl" withBorder>
-              <Text c="dimmed" ta="center">
-                Nenhum produto com nome pendente de revisão
-              </Text>
-            </Paper>
-          ) : (
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Nome</Table.Th>
-                  <Table.Th>Código Loja</Table.Th>
-                  <Table.Th>Categoria</Table.Th>
-                  <Table.Th>Data Criação</Table.Th>
-                  <Table.Th>Ações</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {produtosNomePendente.map((produto) => (
-                  <Table.Tr key={produto.id}>
-                    <Table.Td>
-                      <Text fw={500}>{produto.nome}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      {produto.codigoLoja ? (
-                        <Badge color="blue" variant="light">{produto.codigoLoja}</Badge>
-                      ) : (
-                        <Text c="dimmed" size="sm">N/A</Text>
-                      )}
-                    </Table.Td>
-                    <Table.Td>{produto.categoriaNome}</Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{new Date(produto.createdAt).toLocaleDateString('pt-BR')}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Button
-                        size="xs"
-                        variant="light"
-                        leftSection={<IconCheck size={16} />}
-                        onClick={() => handleRevisar(produto)}
-                      >
-                        Revisar
-                      </Button>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          )}
-        </Tabs.Panel>
+            <Tabs.Panel value="nome" pt="md">
+              {produtosNomePendente.length === 0 ? (
+                <Paper p="xl" withBorder>
+                  <Text c="dimmed" ta="center">
+                    Nenhum produto com nome pendente de revisão
+                  </Text>
+                </Paper>
+              ) : (
+                <Table striped highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Nome</Table.Th>
+                      <Table.Th>Código Loja</Table.Th>
+                      <Table.Th>Categoria</Table.Th>
+                      <Table.Th>Data Criação</Table.Th>
+                      <Table.Th>Ações</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {produtosNomePendente.map((produto) => (
+                      <Table.Tr key={produto.id}>
+                        <Table.Td><Text fw={500}>{produto.nome}</Text></Table.Td>
+                        <Table.Td>{produto.codigoLoja ? <Badge color="blue" variant="light">{produto.codigoLoja}</Badge> : <Text c="dimmed" size="sm">N/A</Text>}</Table.Td>
+                        <Table.Td>{produto.categoriaNome}</Table.Td>
+                        <Table.Td><Text size="sm">{formatDateTimeInUserTimeZone(produto.createdAt)}</Text></Table.Td>
+                        <Table.Td>
+                          <Button size="xs" variant="light" leftSection={<IconCheck size={16} />} onClick={() => handleRevisar(produto)}>
+                            Revisar
+                          </Button>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              )}
+            </Tabs.Panel>
 
-        <Tabs.Panel value="categoria" pt="md">
-          {produtosCategoriaPendente.length === 0 ? (
-            <Paper p="xl" withBorder>
-              <Text c="dimmed" ta="center">
-                Nenhum produto com categoria pendente de revisão
-              </Text>
-            </Paper>
-          ) : (
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Nome</Table.Th>
-                  <Table.Th>Categoria Atual</Table.Th>
-                  <Table.Th>Data Criação</Table.Th>
-                  <Table.Th>Ações</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {produtosCategoriaPendente.map((produto) => (
-                  <Table.Tr key={produto.id}>
-                    <Table.Td>
-                      <Text fw={500}>{produto.nome}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge color="orange" variant="light">
-                        {produto.categoriaNome}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{new Date(produto.createdAt).toLocaleDateString('pt-BR')}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Button
-                        size="xs"
-                        variant="light"
-                        leftSection={<IconCheck size={16} />}
-                        onClick={() => handleRevisar(produto)}
-                      >
-                        Revisar
-                      </Button>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
+            <Tabs.Panel value="categoria" pt="md">
+              {produtosCategoriaPendente.length === 0 ? (
+                <Paper p="xl" withBorder>
+                  <Text c="dimmed" ta="center">
+                    Nenhum produto com categoria pendente de revisão
+                  </Text>
+                </Paper>
+              ) : (
+                <Table striped highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Nome</Table.Th>
+                      <Table.Th>Categoria Atual</Table.Th>
+                      <Table.Th>Data Criação</Table.Th>
+                      <Table.Th>Ações</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {produtosCategoriaPendente.map((produto) => (
+                      <Table.Tr key={produto.id}>
+                        <Table.Td><Text fw={500}>{produto.nome}</Text></Table.Td>
+                        <Table.Td><Badge color="orange" variant="light">{produto.categoriaNome}</Badge></Table.Td>
+                        <Table.Td><Text size="sm">{formatDateTimeInUserTimeZone(produto.createdAt)}</Text></Table.Td>
+                        <Table.Td>
+                          <Button size="xs" variant="light" leftSection={<IconCheck size={16} />} onClick={() => handleRevisar(produto)}>
+                            Revisar
+                          </Button>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              )}
+            </Tabs.Panel>
+          </Tabs>
+
+          {produtosPendentes && (
+            <PaginationControls
+              page={page}
+              pageSize={pageSize}
+              totalCount={produtosPendentes.totalCount}
+              totalPages={produtosPendentes.totalPages}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
           )}
-        </Tabs.Panel>
-      </Tabs>
+        </>
       )}
 
       {/* Modal de Revisão */}

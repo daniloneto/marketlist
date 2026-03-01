@@ -1,10 +1,24 @@
 import api from './api';
-import type { CategoriaDto, CategoriaCreateDto, CategoriaUpdateDto } from '../types';
+import type {
+  CategoriaDto,
+  CategoriaCreateDto,
+  CategoriaUpdateDto,
+  PaginatedResponse,
+} from '../types';
 
 export const categoriaService = {
-  getAll: async (): Promise<CategoriaDto[]> => {
-    const response = await api.get<CategoriaDto[]>('/categorias');
+  getAll: async (pageNumber = 1, pageSize = 10): Promise<PaginatedResponse<CategoriaDto>> => {
+    const response = await api.get<PaginatedResponse<CategoriaDto>>('/categorias', {
+      params: { pageNumber, pageSize },
+    });
     return response.data;
+  },
+
+  getAllItems: async (): Promise<CategoriaDto[]> => {
+    const response = await api.get<PaginatedResponse<CategoriaDto>>('/categorias', {
+      params: { pageNumber: 1, pageSize: 100 },
+    });
+    return response.data.items;
   },
 
   getById: async (id: string): Promise<CategoriaDto> => {

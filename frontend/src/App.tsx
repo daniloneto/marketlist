@@ -25,6 +25,7 @@ import {
   EmpresasPage,
   RevisaoProdutosPage,
   OrcamentosPage,
+  DashboardPage,
 } from './pages';
 
 const queryClient = new QueryClient({
@@ -70,7 +71,8 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <Routes>
-                    <Route path="/" element={<ListasDeComprasPage />} />
+                    <Route path="/" element={<DashboardPage />} />
+                    <Route path="/listas" element={<ListasDeComprasPage />} />
                     <Route path="/listas/:id" element={<ListaDetalhePage />} />
                     <Route path="/categorias" element={<CategoriasPage />} />
                     <Route path="/produtos" element={<ProdutosPage />} />

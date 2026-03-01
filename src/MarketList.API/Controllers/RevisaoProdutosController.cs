@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,9 +25,12 @@ public class RevisaoProdutosController : ControllerBase
     /// Lista todos os produtos pendentes de revisão (nome ou categoria)
     /// </summary>
     [HttpGet("pendentes")]
-    public async Task<ActionResult<IEnumerable<ProdutoPendenteDto>>> GetPendentes(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<ProdutoPendenteDto>>> GetPendentes([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var produtos = await _aprovacaoService.ListarPendentesRevisaoAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
+
+        var produtos = await _aprovacaoService.ListarPendentesRevisaoAsync(pageNumber, pageSize, cancellationToken);
         return Ok(produtos);
     }
 

@@ -10,7 +10,7 @@ public interface IProdutoAprovacaoService
     /// <summary>
     /// Lista todos os produtos pendentes de revisão (nome ou categoria)
     /// </summary>
-    Task<IEnumerable<ProdutoPendenteDto>> ListarPendentesRevisaoAsync(CancellationToken cancellationToken = default);
+    Task<PagedResultDto<ProdutoPendenteDto>> ListarPendentesRevisaoAsync(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Aprova um produto com correções (nome e/ou categoria)

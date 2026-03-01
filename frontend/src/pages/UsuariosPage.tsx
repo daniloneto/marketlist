@@ -4,14 +4,18 @@ import { Table, Button, Text, Title, Paper, Modal, TextInput, PasswordInput, Sta
 import usuariosService, { type UsuarioDto } from '../services/usuariosService';
 import authService from '../services/authService';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
-import { LoadingState, ErrorState } from '../components';
+import { formatDateTimeInUserTimeZone } from '../utils/date';
+import { LoadingState, ErrorState, PaginationControls } from '../components';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 
 export function UsuariosPage() {
-  const { data, isLoading, isError } = useQuery<UsuarioDto[]>({
-    queryKey: ['usuarios'],
-    queryFn: () => usuariosService.getAll(),
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['usuarios', page, pageSize],
+    queryFn: () => usuariosService.getAll(page, pageSize),
   });
 
   const queryClient = useQueryClient();
@@ -65,12 +69,12 @@ export function UsuariosPage() {
     },
   });
 
-  const rows = (data ?? []).map((u: UsuarioDto) => (
+  const rows = (data?.items ?? []).map((u: UsuarioDto) => (
     <Table.Tr key={u.id}>
       <Table.Td>
         <Text fw={500}>{u.login}</Text>
       </Table.Td>
-      <Table.Td>{new Date(u.criadoEm).toLocaleString()}</Table.Td>
+      <Table.Td>{formatDateTimeInUserTimeZone(u.criadoEm)}</Table.Td>
       <Table.Td>
         <Button
           color="red"
@@ -112,10 +116,20 @@ export function UsuariosPage() {
           <Table.Tbody>{rows}</Table.Tbody>
             </Table>
 
-            {(!data || data.length === 0) && (
+            {(!data || data.items.length === 0) && (
               <Text c="dimmed" ta="center" py="xl">
                 Nenhum usuário encontrado
               </Text>
+            )}
+            {data && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={data.totalCount}
+                totalPages={data.totalPages}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
             )}
           </>
         )}

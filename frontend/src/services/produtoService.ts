@@ -1,18 +1,42 @@
 import api from './api';
-import type { 
-  ProdutoDto, 
-  ProdutoCreateDto, 
-  ProdutoUpdateDto, 
+import type {
+  ProdutoDto,
+  ProdutoCreateDto,
+  ProdutoUpdateDto,
   HistoricoPrecoDto,
   ProdutoPendenteDto,
   ProdutoAprovacaoDto,
-  ProdutoResumoDto 
+  ProdutoResumoDto,
+  PaginatedResponse,
 } from '../types';
 
 export const produtoService = {
-  getAll: async (): Promise<ProdutoDto[]> => {
-    const response = await api.get<ProdutoDto[]>('/produtos');
+  getAll: async (
+    pageNumber = 1,
+    pageSize = 10,
+    filters?: {
+      nome?: string;
+      categoriaId?: string | null;
+      comPreco?: boolean;
+    },
+  ): Promise<PaginatedResponse<ProdutoDto>> => {
+    const response = await api.get<PaginatedResponse<ProdutoDto>>('/produtos', {
+      params: {
+        pageNumber,
+        pageSize,
+        nome: filters?.nome || undefined,
+        categoriaId: filters?.categoriaId || undefined,
+        comPreco: filters?.comPreco ? true : undefined,
+      },
+    });
     return response.data;
+  },
+
+  getAllItems: async (): Promise<ProdutoDto[]> => {
+    const response = await api.get<PaginatedResponse<ProdutoDto>>('/produtos', {
+      params: { pageNumber: 1, pageSize: 100 },
+    });
+    return response.data.items;
   },
 
   getById: async (id: string): Promise<ProdutoDto> => {
@@ -44,9 +68,13 @@ export const produtoService = {
     return response.data;
   },
 
-  // Revisão de Produtos
-  getPendentes: async (): Promise<ProdutoPendenteDto[]> => {
-    const response = await api.get<ProdutoPendenteDto[]>('/revisao-produtos/pendentes');
+  getPendentes: async (
+    pageNumber = 1,
+    pageSize = 10,
+  ): Promise<PaginatedResponse<ProdutoPendenteDto>> => {
+    const response = await api.get<PaginatedResponse<ProdutoPendenteDto>>('/revisao-produtos/pendentes', {
+      params: { pageNumber, pageSize },
+    });
     return response.data;
   },
 
@@ -62,6 +90,7 @@ export const produtoService = {
     const response = await api.get<ProdutoResumoDto[]>(`/revisao-produtos/${id}/similares`);
     return response.data;
   },
+
   gerarListaSimples: async (): Promise<string> => {
     const response = await api.get<string>('/produtos/lista-simples');
     return response.data;

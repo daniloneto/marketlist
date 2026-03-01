@@ -14,3 +14,4 @@ export { ImportarNotaQrCodePage } from './ImportarNotaQrCodePage';
 
 export { ImportarNotaEnderecoPage } from './ImportarNotaEnderecoPage';
 export { OrcamentosPage } from './OrcamentosPage';
+export { DashboardPage } from './DashboardPage';

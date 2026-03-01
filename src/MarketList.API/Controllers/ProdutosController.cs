@@ -1,5 +1,6 @@
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,9 +28,18 @@ public class ProdutosController : ControllerBase
     /// Lista todos os produtos
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProdutoDto>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<ProdutoDto>>> GetAll(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? nome = null,
+        [FromQuery] Guid? categoriaId = null,
+        [FromQuery] bool? comPreco = null,
+        CancellationToken cancellationToken = default)
     {
-        var produtos = await _produtoService.GetAllAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
+
+        var produtos = await _produtoService.GetAllAsync(pageNumber, pageSize, nome, categoriaId, comPreco, cancellationToken);
         return Ok(produtos);
     }
 

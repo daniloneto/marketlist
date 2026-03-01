@@ -22,7 +22,8 @@ import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash, IconEye, IconInfoCircle, IconBuilding } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { listaDeComprasService, empresaService } from '../services';
-import { LoadingState, ErrorState, StatusBadge, FormGrid } from '../components';
+import { formatDateTimeInUserTimeZone, formatExtractedDateTime } from '../utils/date';
+import { LoadingState, ErrorState, StatusBadge, FormGrid, PaginationControls } from '../components';
 import type { ListaDeComprasDto, ListaDeComprasCreateDto, EmpresaCreateDto } from '../types';
 import { TipoEntrada } from '../types';
 
@@ -33,15 +34,17 @@ export function ListasDeComprasPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [empresaModalOpen, setEmpresaModalOpen] = useState(false);
   const [selectedLista, setSelectedLista] = useState<ListaDeComprasDto | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: listas, isLoading, error, refetch } = useQuery({
-    queryKey: ['listas'],
-    queryFn: listaDeComprasService.getAll,
+    queryKey: ['listas', page, pageSize],
+    queryFn: () => listaDeComprasService.getAll(page, pageSize),
   });
 
   const { data: empresas } = useQuery({
     queryKey: ['empresas'],
-    queryFn: empresaService.getAll,
+    queryFn: empresaService.getAllItems,
   });  const createForm = useForm<ListaDeComprasCreateDto>({
     initialValues: {
       nome: '',
@@ -165,13 +168,7 @@ export function ListasDeComprasPage() {
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateTimeInUserTimeZone(dateString);
   };
 
   return (
@@ -205,7 +202,7 @@ export function ListasDeComprasPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {listas?.map((lista) => (
+            {listas?.items.map((lista) => (
               <Table.Tr key={lista.id}>
                 <Table.Td>{lista.nome}</Table.Td>
                 <Table.Td>
@@ -223,7 +220,7 @@ export function ListasDeComprasPage() {
                     '-'
                   )}
                 </Table.Td>
-                <Table.Td>{formatDate(lista.dataCompra ?? lista.createdAt)}</Table.Td>
+                <Table.Td>{lista.dataCompra ? formatExtractedDateTime(lista.dataCompra) : formatDate(lista.createdAt)}</Table.Td>
                 <Table.Td>
                   <StatusBadge status={lista.status} />
                 </Table.Td>
@@ -258,10 +255,20 @@ export function ListasDeComprasPage() {
           </Table.Tbody>
             </Table>
 
-            {listas?.length === 0 && (
+            {listas?.items.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
                 Nenhuma lista de compras encontrada
               </Text>
+            )}
+            {listas && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={listas.totalCount}
+                totalPages={listas.totalPages}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
             )}
           </>
         )}

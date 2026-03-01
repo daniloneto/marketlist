@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MarketList.Application.DTOs;
 using MarketList.Application.Interfaces;
+using MarketList.API.Helpers;
 using MarketList.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,10 +46,12 @@ public class OrcamentosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<OrcamentoCategoriaDto>>> ListarPorPeriodo(
+    public async Task<ActionResult<PagedResultDto<OrcamentoCategoriaDto>>> ListarPorPeriodo(
         [FromQuery] PeriodoOrcamentoTipo periodoTipo,
         [FromQuery] string? periodoRef,
-        CancellationToken cancellationToken)
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
         var usuarioId = ObterUsuarioId();
         if (usuarioId is null)
@@ -61,13 +64,60 @@ public class OrcamentosController : ControllerBase
             return BadRequest(new { error = "PeriodoTipo invalido." });
         }
 
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+        {
+            return BadRequest(new { error = erro });
+        }
+
         var result = await _orcamentoService.ListarPorPeriodoAsync(
             usuarioId.Value,
             periodoTipo,
             periodoRef,
+            pageNumber,
+            pageSize,
             cancellationToken);
 
         return Ok(result);
+    }
+
+
+    [HttpGet("dashboard")]
+    public async Task<ActionResult<DashboardFinanceiroResponseDto>> ObterDashboardFinanceiro(
+        [FromQuery] int year,
+        [FromQuery] int month,
+        [FromQuery] Guid? categoriaId,
+        [FromQuery] DateTime? dataInicio,
+        [FromQuery] DateTime? dataFim,
+        [FromQuery] bool somenteComOrcamento = false,
+        [FromQuery] bool somenteComGasto = false,
+        CancellationToken cancellationToken = default)
+    {
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await _orcamentoService.ObterDashboardFinanceiroAsync(
+                usuarioId.Value,
+                new DashboardFinanceiroQueryDto(
+                    year,
+                    month,
+                    categoriaId,
+                    dataInicio,
+                    dataFim,
+                    somenteComOrcamento,
+                    somenteComGasto),
+                cancellationToken);
+
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     private Guid? ObterUsuarioId()

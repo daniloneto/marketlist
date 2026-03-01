@@ -18,7 +18,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import { categoriaService } from '../services';
-import { LoadingState, ErrorState } from '../components';
+import { LoadingState, ErrorState, PaginationControls } from '../components';
 import type { CategoriaDto, CategoriaCreateDto } from '../types';
 
 export function CategoriasPage() {
@@ -26,10 +26,12 @@ export function CategoriasPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState<CategoriaDto | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: categorias, isLoading, error, refetch } = useQuery({
-    queryKey: ['categorias'],
-    queryFn: categoriaService.getAll,
+    queryKey: ['categorias', page, pageSize],
+    queryFn: () => categoriaService.getAll(page, pageSize),
   });
 
   const form = useForm<CategoriaCreateDto>({
@@ -133,7 +135,7 @@ export function CategoriasPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {categorias?.map((categoria) => (
+            {categorias?.items.map((categoria) => (
               <Table.Tr key={categoria.id}>
                 <Table.Td fw={500}>{categoria.nome}</Table.Td>
                 <Table.Td>{categoria.descricao || '-'}</Table.Td>
@@ -160,10 +162,20 @@ export function CategoriasPage() {
           </Table.Tbody>
             </Table>
 
-            {categorias?.length === 0 && (
+            {categorias?.items.length === 0 && (
               <Text c="dimmed" ta="center" py="xl">
                 Nenhuma categoria encontrada
               </Text>
+            )}
+            {categorias && (
+              <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                totalCount={categorias.totalCount}
+                totalPages={categorias.totalPages}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              />
             )}
           </>
         )}

@@ -1,4 +1,6 @@
+using MarketList.Application.DTOs;
 using MarketList.Domain.Entities;
+using MarketList.API.Helpers;
 using MarketList.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -23,13 +25,17 @@ public class UsuariosController : ControllerBase
     /// Lista usuários (id, login, criadoEm)
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<object>>> GetAll(CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResultDto<object>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
-        var users = await _context.Set<Usuario>()
-            .AsNoTracking()
-            .Select(u => new { id = u.Id, login = u.Login, criadoEm = u.CreatedAt })
-            .ToListAsync(cancellationToken);
+        if (!PaginacaoHelper.TryValidar(pageNumber, pageSize, out var erro))
+            return BadRequest(new { error = erro });
 
+        var query = _context.Set<Usuario>()
+            .AsNoTracking()
+            .OrderBy(u => u.Login)
+            .Select(u => (object)new { id = u.Id, login = u.Login, criadoEm = u.CreatedAt });
+
+        var users = await query.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
         return Ok(users);
     }
 
