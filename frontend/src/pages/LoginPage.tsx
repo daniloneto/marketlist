@@ -26,7 +26,7 @@ export function LoginPage() {
     <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 16px 16px' }}>
       <Card shadow="sm" style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-          <Image src={marketlistLogo} alt="MarketList" h={56} fit="contain" />
+          <Image src={marketlistLogo} alt="FinControl" h={56} fit="contain" />
         </div>        
         <form onSubmit={submit}>
           <Stack>

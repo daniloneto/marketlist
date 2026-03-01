@@ -152,7 +152,7 @@ export function Layout({ children }: LayoutProps) {
             />
           )}
 
-          <Image src={marketlistLogo} alt="MarketList" h={40} fit="contain" />
+          <Image src={marketlistLogo} alt="FinControl" h={40} fit="contain" />
         </Group>
       </AppShell.Header>
 

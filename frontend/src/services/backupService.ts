@@ -29,7 +29,7 @@ export const backupService = {
 
     // Extrai o nome do arquivo do header ou gera um padrão
     const contentDisposition = response.headers['content-disposition'];
-    let fileName = `marketlist_backup_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')}.json`;
+    let fileName = `fincontrol_backup_${new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')}.json`;
     
     if (contentDisposition) {
       const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);

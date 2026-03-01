@@ -153,7 +153,7 @@ public class BackupController : ControllerBase
             };
 
             var json = JsonSerializer.Serialize(backup, options);
-            var fileName = $"marketlist_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            var fileName = $"fincontrol_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
 
             return File(System.Text.Encoding.UTF8.GetBytes(json), "application/json", fileName);
         }

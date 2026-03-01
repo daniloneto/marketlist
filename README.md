@@ -1,4 +1,4 @@
-# MarketList
+# FinControl
 
 Sistema de listas de compras com automação de processamento de itens.
 
@@ -140,7 +140,7 @@ O frontend estará disponível em: http://localhost:5173
 
 ## Banco de Dados
 
-O MarketList suporta dois provedores de banco de dados:
+O FinControl suporta dois provedores de banco de dados:
 
 ### PostgreSQL (Recomendado para Produção)
 
@@ -246,7 +246,7 @@ VITE_API_URL=http://localhost:5000/api
 
 ## 🤖 Assistente de Compras (Chat com IA)
 
-O MarketList inclui um assistente inteligente baseado em Model Context Protocol (MCP) que permite conversar sobre suas listas, produtos e preços.
+O FinControl inclui um assistente inteligente baseado em Model Context Protocol (MCP) que permite conversar sobre suas listas, produtos e preços.
 
 ### Características do Assistente
 

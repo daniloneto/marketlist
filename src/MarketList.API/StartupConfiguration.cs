@@ -52,7 +52,7 @@ internal static class StartupConfiguration
     {
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new() { Title = "MarketList API", Version = "v1" });
+            c.SwaggerDoc("v1", new() { Title = "FinControl API", Version = "v1" });
         });
     }
 
