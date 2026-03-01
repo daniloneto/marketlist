@@ -21,4 +21,9 @@ public interface IOrcamentoCategoriaService
         Guid listaId,
         PeriodoOrcamentoTipo periodoTipo = PeriodoOrcamentoTipo.Mensal,
         CancellationToken cancellationToken = default);
+
+    Task<DashboardFinanceiroResponseDto> ObterDashboardFinanceiroAsync(
+        Guid usuarioId,
+        DashboardFinanceiroQueryDto query,
+        CancellationToken cancellationToken = default);
 }

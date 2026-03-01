@@ -3,6 +3,7 @@ import type {
   CriarOrcamentoCategoriaRequest,
   OrcamentoCategoriaDto,
   PeriodoOrcamentoTipo,
+  DashboardFinanceiroResponseDto,
 } from '../types';
 
 export const orcamentoService = {
@@ -20,6 +21,21 @@ export const orcamentoService = {
         periodoTipo,
         periodoRef: periodoRef || undefined,
       },
+    });
+    return response.data;
+  },
+
+  getDashboardFinanceiro: async (params: {
+    year: number;
+    month: number;
+    categoriaId?: string;
+    dataInicio?: string;
+    dataFim?: string;
+    somenteComOrcamento?: boolean;
+    somenteComGasto?: boolean;
+  }): Promise<DashboardFinanceiroResponseDto> => {
+    const response = await api.get<DashboardFinanceiroResponseDto>('/orcamentos/dashboard', {
+      params,
     });
     return response.data;
   },

@@ -249,6 +249,32 @@ export interface ResumoOrcamentoListaDto {
   totalItensSemPreco: number;
   itensPorCategoria: ItemResumoOrcamentoCategoriaDto[];
 }
+
+export interface DashboardFinanceiroResumoDto {
+  totalBudget: number;
+  totalSpent: number;
+  totalRemaining: number;
+  totalPercentageUsed: number | null;
+}
+
+export interface DashboardFinanceiroCategoriaDto {
+  categoryId: string;
+  categoryName: string;
+  budgetAmount: number | null;
+  spentAmount: number;
+  remainingAmount: number | null;
+  percentageUsed: number | null;
+}
+
+export interface DashboardFinanceiroResponseDto {
+  year: number;
+  month: number;
+  periodStart: string;
+  periodEnd: string;
+  summary: DashboardFinanceiroResumoDto;
+  categories: DashboardFinanceiroCategoriaDto[];
+}
+
 // Chat Types
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
